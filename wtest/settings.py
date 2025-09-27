@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure-c$-2hc3l=(l9841mb0ldi!(#kx%tk3i+o3!px1^h97tar$#-u=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['wtest-1.onrender.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 
 
