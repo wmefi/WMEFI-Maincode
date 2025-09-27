@@ -21,12 +21,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Mount default portal (no prefix)
     path('', include('wtestapp.urls')),
-    # Mount CP and GC portals sharing same URL patterns, distinguished in views by path prefix
     path('cp/', include('wtestapp.urls')),
     path('gc/', include('wtestapp.urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

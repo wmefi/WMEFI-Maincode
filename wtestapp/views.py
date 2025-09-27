@@ -854,3 +854,7 @@ def process_excel_survey(request, df):
         order_counter += 1
 
     return survey
+
+
+def home(request):
+    return HttpResponse("<h1>Welcome to WTest Portal</h1><p><a href='/login/'>Login</a></p>")
