@@ -26,8 +26,9 @@ SECRET_KEY = 'django-insecure-c$-2hc3l=(l9841mb0ldi!(#kx%tk3i+o3!px1^h97tar$#-u=
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',') + ['wtest-ehkq.onrender.com']
 
 
 
