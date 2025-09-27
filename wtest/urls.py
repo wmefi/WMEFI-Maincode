@@ -23,7 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('wtestapp.urls')),
     path('cp/', include('wtestapp.urls')),
-    path('gc/', include('wtestapp.urls')),
+    path('gc/', include('wtestapp.urls_gc')),
 ]
 
 if settings.DEBUG:

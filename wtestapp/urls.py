@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),  # <--- root URL inside app
+    path('', views.login, name='home'),  # Root opens login directly
     path('login/', views.login, name='login'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('doctor_profile/', views.doctor_profile, name='doctor_profile'),
