@@ -15,11 +15,13 @@
     .brand-head img{ height:72px; }
     .brand-title{ font-weight:800; color:#9a547a; margin:0; }
     .auth-card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,.12); overflow:hidden; min-height: 560px; }
-    .auth-left{ display:none; background: #f7f7f7 url('{% static "images/login_images.jpg" %}') center right/cover no-repeat; min-height: 560px; }
+    /* Always show the visual; use an <img> so it loads regardless of CSS background */
+    .auth-left{ display:block; background:#f7f7f7; height:220px; }
+    .auth-left img{ width:100%; height:100%; object-fit:cover; display:block; }
     .auth-body{ padding:28px; display:flex; flex-direction:column; justify-content:center; }
     .form-box{ max-width: 380px; margin: 0 auto; text-align:center; width:100%; }
     .form-box .form-group{ text-align:left; }
-    @media (min-width: 992px){ .auth-grid{ display:grid; grid-template-columns: 1.1fr .9fr; } .auth-left{ display:block; }
+    @media (min-width: 992px){ .auth-grid{ display:grid; grid-template-columns: 1.1fr .9fr; } .auth-left{ height:auto; min-height:560px; }
       .auth-body{ padding:40px; } }
 
     .auth-heading{ font-weight:800; color:#9a547a; margin-bottom:6px; }
@@ -42,7 +44,9 @@
     </div>
 
     <div class="auth-card auth-grid">
-      <div class="auth-left" aria-label="Login visual"></div>
+      <div class="auth-left" aria-label="Login visual">
+        <img src="{% static 'images/logo/login_images.jpg' %}" alt="Login visual" />
+      </div>
       <div class="auth-body d-flex align-items-center justify-content-center">
         <div class="form-box w-100 mw-380 mx-auto text-center">
           <h4 class="auth-heading">Login with Mobile</h4>

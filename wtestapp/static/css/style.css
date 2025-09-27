@@ -63,9 +63,9 @@
     2. import files
 -------------------------------------------------------------------*/
 
-@import url(css/animate.css);
-@import url(css/flaticon.css);
-@import url(css/font-awesome.min.css);
+@import url('animate.css');
+@import url('flaticon.css');
+@import url('font-awesome.min.css');
 
 /*------------------------------------------------------------------
     3. basic

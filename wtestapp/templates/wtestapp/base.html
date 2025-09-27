@@ -12,7 +12,9 @@
       :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --navbg:#fce6f0; }
       .navbar-custom{ background: linear-gradient(90deg, #fdeef4 0%, #ffffff 60%); border-bottom: 2px solid var(--pink); box-shadow: 0 6px 14px rgba(0,0,0,.06); }
       .navbar-custom .navbar-brand img{ height: 56px; width: auto; }
-      .navbar-custom .nav-link{ color:#7b3f63; font-weight: 600; font-size: 1.05rem; padding: .6rem 1rem; border-radius: .5rem; transition: all .2s ease; }
+      .navbar-custom .nav-link{ color:#7b3f63; font-weight: 700; font-size: 1.15rem; padding: .75rem 1.25rem; border-radius: .5rem; transition: all .2s ease; }
+      .navbar-custom .navbar-nav .nav-item{ margin-left: 8px; }
+      .navbar-custom .navbar-brand{ margin-right: 16px; }
       .navbar-custom .nav-link:hover{ color:#fff; background: var(--pink); text-decoration: none; }
       .navbar-custom .nav-link.active{ color:#fff; background: var(--purple); }
       .navbar-toggler{ border-color: var(--pink); }
@@ -83,7 +85,7 @@
           </div>
           <div class="modal-body">
             <div class="gate-hero mb-2">
-              <img src="{% static 'images/Untitled design.png' %}" alt="Hero" />
+              <img src="{% static 'images/logo/Untitled design.png' %}" alt="Hero" />
             </div>
             <div id="gateMessage">Please complete your profile and accept the participant agreement to access My Surveys.</div>
           </div>

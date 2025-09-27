@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,13 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-c$-2hc3l=(l9841mb0ldi!(#kx%tk3i+o3!px1^h97tar$#-u='
+# Load from environment; provide a safe dev default only for local use
+SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-me')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',') + ['wtest-ehkq.onrender.com']
+# DEBUG and allowed hosts from environment (default to local-friendly values)
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()) + ['wtest-ehkq.onrender.com']
 
 
 
@@ -127,10 +126,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Include app-level static; add project-level static only if the folder exists
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
     os.path.join(BASE_DIR, "wtestapp/static"),
 ]
+_project_static_dir = os.path.join(BASE_DIR, "static")
+if os.path.isdir(_project_static_dir):
+    STATICFILES_DIRS.append(_project_static_dir)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 

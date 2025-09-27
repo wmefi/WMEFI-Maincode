@@ -21,6 +21,7 @@
   .option-item input[type="radio"]:checked + .square-indicator,
   .option-item input[type="checkbox"]:checked + .square-indicator{ background: var(--pink); border-color: var(--purple); box-shadow: 0 0 0 2px rgba(230,100,162,.15); }
   .option-label{ margin:0; color:#7b3f63; }
+  
 </style>
 {% endblock %}
 
@@ -66,7 +67,7 @@
         </ul>
       </div>
 
-      <!-- Q3 checkbox multi -->
+      <!-- Q3 checkbox multi (MCQ-only; removed free text) -->
       <div class="form-section">
         <div class="q-title">3. Under which conditions or indications do you usually recommend sunscreen for babies? (Select all that apply)</div>
         <ul class="option-list">
@@ -78,9 +79,6 @@
           </li>
           {% endfor %}
         </ul>
-        <div class="mt-2">
-          <input type="text" class="form-control" name="q3_other" placeholder="Other (please specify)" value="{{ answers.q3_other|default:'' }}">
-        </div>
       </div>
 
       <!-- Q4 checkbox multi -->
@@ -97,7 +95,7 @@
         </ul>
       </div>
 
-      <!-- Q5 radio with free text when Yes -->
+      <!-- Q5 radio (MCQ-only; removed free text) -->
       <div class="form-section">
         <div class="q-title">5. Have you observed any common skin reactions or issues related to sunscreen use in babies?</div>
         <ul class="option-list">
@@ -112,9 +110,6 @@
             <label class="option-label" for="q5_no">No</label>
           </li>
         </ul>
-        <div class="mt-2">
-          <input type="text" class="form-control" name="q5_detail" placeholder="If Yes, please specify" value="{{ answers.q5_detail|default:'' }}">
-        </div>
       </div>
 
       <!-- Q6 -->
@@ -131,10 +126,36 @@
         </ul>
       </div>
 
-      <!-- Q7 open ended -->
+      <!-- Q7 converted to single choice -->
       <div class="form-section">
-        <div class="q-title">7. Which sunscreen brands do you most frequently recommend for children under 5?</div>
-        <input type="text" class="form-control" name="q7" value="{{ answers.q7|default:'' }}">
+        <div class="q-title">7. Which sunscreen brand do you most frequently recommend for children under 5?</div>
+        <ul class="option-list">
+          <li class="option-item">
+            <input type="radio" id="q7_1" name="q7" value="Brand A" {% if answers.q7 == 'Brand A' %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q7_1">Brand A</label>
+          </li>
+          <li class="option-item">
+            <input type="radio" id="q7_2" name="q7" value="Brand B" {% if answers.q7 == 'Brand B' %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q7_2">Brand B</label>
+          </li>
+          <li class="option-item">
+            <input type="radio" id="q7_3" name="q7" value="Brand C" {% if answers.q7 == 'Brand C' %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q7_3">Brand C</label>
+          </li>
+          <li class="option-item">
+            <input type="radio" id="q7_4" name="q7" value="Brand D" {% if answers.q7 == 'Brand D' %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q7_4">Brand D</label>
+          </li>
+          <li class="option-item">
+            <input type="radio" id="q7_5" name="q7" value="Other (Generic)" {% if answers.q7 == 'Other (Generic)' %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q7_5">Other (Generic)</label>
+          </li>
+        </ul>
       </div>
 
       <!-- Q8 -->
