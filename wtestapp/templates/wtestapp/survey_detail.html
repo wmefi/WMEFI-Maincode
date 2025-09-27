@@ -1,0 +1,113 @@
+{% extends 'wtestapp/base.html' %}
+{% load static %}
+{% load survey_extras %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+
+{% block style %}
+<style>
+    :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+    body{ background: var(--bg); }
+    .survey-card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.1); padding:24px; }
+    .survey-card h2{ color:var(--purple); font-weight:700; font-size: 2.25rem; } /* Larger title */
+    .survey-card p.text-muted{ font-size: 1.1rem; } /* Larger description */
+    .q-title{ font-weight:600; color:var(--purple); font-size: 1.15rem; margin-bottom: 10px; }
+    .form-section{ padding:12px 16px; border-radius:12px; background: #fff; margin-bottom:16px; }
+    .btn-primary{ background:var(--pink); border-color:var(--pink); padding: 12px 25px; font-size: 1.2rem; border-radius: 8px; }
+    .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
+    .required{ color:var(--pink); }
+    /* Option list – vertical with square indicators */
+    .option-list{ list-style:none; padding-left:0; margin: 0; }
+    .option-item{ display:flex; align-items:center; margin: 8px 0; }
+    .option-item input{ position: absolute; opacity: 0; }
+    .square-indicator{ width:18px; height:18px; border:2px solid var(--pink); border-radius:4px; display:inline-block; margin-right:10px; transition: all .15s ease; background:#fff; }
+    .option-item input[type="radio"]:checked + .square-indicator,
+    .option-item input[type="checkbox"]:checked + .square-indicator{ background: var(--pink); border-color: var(--purple); box-shadow: 0 0 0 2px rgba(230,100,162,.15); }
+    .option-label{ margin:0; color:#7b3f63; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="survey-card">
+        <h3 class="mb-2" style="font-size: 1.75rem; font-weight: 700;">{{ survey.title }}</h3>
+        <p class="text-muted mb-4">{{ survey.description }}</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% for question in questions %}
+                <div class="form-section">
+                    <div class="q-title">{{ forloop.counter }}. {{ question.question_text }}</div>
+                    <div class="mt-2">
+                        {% if question.question_type == 'text' %}
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                            </div>
+                        {% elif question.question_type == 'textarea' %}
+                            <div class="form-group">
+                                <textarea class="form-control" name="question_{{ question.id }}" rows="3">{{ answers_map|get_item:question.id|default:'' }}</textarea>
+                            </div>
+                        {% elif question.question_type == 'radio' %}
+                            <ul class="option-list">
+                                {% for option in question.options %}
+                                <li class="option-item">
+                                    <input type="radio" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% if answers_map|get_item:question.id == option %}checked{% endif %}>
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ question.id }}_o{{ forloop.counter }}">{{ option }}</label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% elif question.question_type == 'checkbox' %}
+                            <ul class="option-list">
+                                {% for option in question.options %}
+                                <li class="option-item">
+                                    <input type="checkbox" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% with selected_answers=answers_map|get_item:question.id %}{% if selected_answers and option in selected_answers %}checked{% endif %}{% endwith %}>
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ question.id }}_o{{ forloop.counter }}">{{ option }}</label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% elif question.question_type == 'yesno' %}
+                            <div class="custom-control custom-radio">
+                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_yes" name="question_{{ question.id }}" value="Yes" {% if answers_map|get_item:question.id == 'Yes' %}checked{% endif %}>
+                                <label class="custom-control-label" for="question_{{ question.id }}_yes">Yes</label>
+                            </div>
+                            <div class="custom-control custom-radio">
+                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_no" name="question_{{ question.id }}" value="No" {% if answers_map|get_item:question.id == 'No' %}checked{% endif %}>
+                                <label class="custom-control-label" for="question_{{ question.id }}_no">No</label>
+                            </div>
+                        {% elif question.question_type == 'rating' %}
+                            <div class="form-group">
+                                <input type="range" class="form-control-range" name="question_{{ question.id }}" min="1" max="5" step="1" value="{{ answers_map|get_item:question.id|default:'3' }}" oninput="document.getElementById('rating_val_{{ question.id }}').innerText=this.value">
+                                <div class="small text-muted">Selected: <span id="rating_val_{{ question.id }}">{{ answers_map|get_item:question.id|default:'3' }}</span>/5</div>
+                            </div>
+                        {% elif question.question_type == 'number' %}
+                            <div class="form-group">
+                                <input type="number" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                            </div>
+                        {% elif question.question_type == 'email' %}
+                            <div class="form-group">
+                                <input type="email" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                            </div>
+                        {% elif question.question_type == 'phone' %}
+                            <div class="form-group">
+                                <input type="tel" pattern="[0-9]{10}" class="form-control" name="question_{{ question.id }}" placeholder="10-digit phone number" value="{{ answers_map|get_item:question.id|default:'' }}">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="d-flex justify-content-between">
+                <button type="submit" name="submit_action" value="save" class="btn btn-outline-secondary">Save Draft</button>
+                <button type="submit" name="submit_action" value="submit" class="btn btn-primary btn-lg">Submit Survey</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

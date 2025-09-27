@@ -1,0 +1,79 @@
+{% extends 'wtestapp/base.html' %}
+{% load static %}
+
+{% block title %}Current Management of Moderate & Severe Anaemia (Zone - 1){% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background: var(--bg); }
+  .survey-card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.1); padding:24px; }
+  .q-title{ font-weight:700; color:var(--purple); font-size: 1.1rem; margin-bottom: 10px; }
+  .form-section{ padding:12px 16px; border-radius:12px; background: #fff; margin-bottom:16px; }
+  .btn-primary{ background:var(--pink); border-color:var(--pink); padding: 12px 22px; border-radius: 10px; font-weight:700; }
+  .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
+  .btn-ghost{ border:1px solid var(--purple); color:var(--purple); border-radius:10px; padding:10px 16px; font-weight:600; background:#fff; }
+  .btn-ghost:hover{ background:var(--purple); color:#fff; }
+  .option-list{ list-style:none; padding-left:0; margin: 0; }
+  .option-item{ display:flex; align-items:center; margin: 8px 0; }
+  .option-item input{ position: absolute; opacity: 0; }
+  .square-indicator{ width:18px; height:18px; border:2px solid var(--pink); border-radius:4px; display:inline-block; margin-right:10px; transition: all .15s ease; background:#fff; }
+  .option-item input[type="radio"]:checked + .square-indicator,
+  .option-item input[type="checkbox"]:checked + .square-indicator{ background: var(--pink); border-color: var(--purple); box-shadow: 0 0 0 2px rgba(230,100,162,.15); }
+  .option-label{ margin:0; color:#7b3f63; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="survey-card">
+    <h3 class="mb-2" style="font-size: 1.4rem; font-weight: 800;">Current Management of Moderate & Severe Anaemia (Zone - 1)</h3>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% for q in questions %}
+        <div class="form-section">
+          <div class="q-title">{{ forloop.counter }}. {{ q.title }}</div>
+
+          {% if q.type == 'radio' %}
+            <ul class="option-list">
+              {% for opt in q.options %}
+              <li class="option-item">
+                <input type="radio" id="{{ q.name }}_{{ forloop.counter }}" name="{{ q.name }}" value="{{ opt }}" {% if answers[q.name] == opt %}checked{% endif %}>
+                <span class="square-indicator"></span>
+                <label class="option-label" for="{{ q.name }}_{{ forloop.counter }}">{{ opt }}</label>
+              </li>
+              {% endfor %}
+            </ul>
+          {% elif q.type == 'checkbox' %}
+            <ul class="option-list">
+              {% for opt in q.options %}
+              <li class="option-item">
+                <input type="checkbox" id="{{ q.name }}_{{ forloop.counter }}" name="{{ q.name }}" value="{{ opt }}" {% if answers[q.name] and opt in answers[q.name] %}checked{% endif %}>
+                <span class="square-indicator"></span>
+                <label class="option-label" for="{{ q.name }}_{{ forloop.counter }}">{{ opt }}</label>
+              </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="d-flex justify-content-between">
+        <button type="submit" name="submit_action" value="save" class="btn btn-ghost">Save Draft</button>
+        <div>
+          <button type="submit" name="submit_action" value="reset" class="btn btn-ghost mr-2">Clear Selections</button>
+          <button type="submit" name="submit_action" value="submit" class="btn btn-primary">Submit Survey</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

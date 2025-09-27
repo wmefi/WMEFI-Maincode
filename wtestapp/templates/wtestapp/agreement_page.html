@@ -1,0 +1,162 @@
+{% extends 'wtestapp/base.html' %}
+{% load static %}
+
+{% block title %}Agreement{% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background: var(--bg); }
+  .card-agreement{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:24px; }
+  /* Horizontal progress steps */
+  .progress-steps{ display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:nowrap; margin-bottom:18px; }
+  .step{ display:flex; align-items:center; gap:10px; }
+  .step .dot{ width:28px; height:28px; border-radius:50%; background:#ddd; color:#555; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .step.active .dot{ background:var(--pink); color:#fff; }
+  .step .label{ font-weight:600; color:#7b3f63; }
+  .agreement-text{ max-height:300px; overflow:auto; border:1px dashed var(--pink); border-radius:12px; padding:16px; background:#fff; }
+  /* Make included agreement content align/fit nicely without changing text */
+  .agreement-text * { box-sizing: border-box; }
+  .agreement-text h1, .agreement-text h3, .agreement-text h4 { margin-top: 0; }
+  .agreement-text img { max-width: 100%; height: auto; }
+  .agreement-text .pdf-header { width: 100% !important; }
+  .agreement-text table { width: 100% !important; border-collapse: collapse; }
+  .agreement-text p { margin-bottom: 8px; }
+  .agreement-text img, .agreement-text table { margin: 0 auto; }
+  /* Signature pad and buttons */
+  .sig-pad{ border:2px dashed var(--purple); border-radius:12px; width:100%; height:200px; background:#fff; cursor:crosshair; }
+  .sig-actions .btn{ margin-right:10px; }
+  .btn-primary{ background:var(--pink); border-color:var(--pink); }
+  .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
+  .btn-outline-secondary{ color:var(--purple); border-color:var(--purple); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="progress-steps">
+    <div class="step"><div class="dot">1</div><div class="label">Login</div></div>
+    <div class="step"><div class="dot">2</div><div class="label">Profile</div></div>
+    <div class="step active"><div class="dot">3</div><div class="label">Agreement</div></div>
+    <div class="step"><div class="dot">4</div><div class="label">Survey</div></div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card-agreement">
+    <h3 class="mb-1" style="color:var(--purple); font-weight:700;">Participant Agreement</h3>
+    <h5 class="mb-3" style="color:#7b3f63;">Dr. {{ doctor.first_name }} {{ doctor.last_name }}</h5>
+    <p class="text-muted mb-2">Mobile: <strong>{{ doctor.mobile|default:'Not provided' }}</strong></p>
+
+    <form method="post" action="{% url 'accept_agreement' %}" onsubmit="return submitAgreement(event)">
+      {% csrf_token %}
+
+      <div class="form-group mb-3">
+        <label class="font-weight-bold">Agreement Text</label>
+        <div class="agreement-text">
+          {% include 'wtestapp/agreement_pdf_template.html' with doctor=doctor amount=amount %}
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label class="font-weight-bold">Digital Signature</label>
+        <div class="mb-2 small text-muted">Draw your signature below or type your name.</div>
+        <canvas id="signatureCanvas" class="sig-pad"></canvas>
+        <div class="sig-actions mt-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignature()">Clear</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="typeSignature()">Type Signature</button>
+        </div>
+        <input type="hidden" name="signature_data" id="signature_data">
+        <input type="hidden" name="signature_type" id="signature_type" value="drawn">
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="agree" name="agree">
+        <label class="form-check-label" for="agree">
+          I, {{ doctor.first_name }} {{ doctor.last_name }}, agree to the above terms and conditions.
+        </label>
+      </div>
+
+      <div class="text-right">
+        <button type="submit" class="btn btn-primary btn-lg">Accept & Continue</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  let typedFallback = '';
+
+  function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+    ctx.scale(ratio, ratio);
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#222';
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    if(e.touches && e.touches.length){ e = e.touches[0]; }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  canvas.addEventListener('mousedown', e=>{ drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+  canvas.addEventListener('mousemove', e=>{ if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); });
+  canvas.addEventListener('mouseup', ()=> drawing=false);
+  canvas.addEventListener('mouseleave', ()=> drawing=false);
+  canvas.addEventListener('touchstart', e=>{ drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+  canvas.addEventListener('touchmove', e=>{ if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault(); });
+  canvas.addEventListener('touchend', ()=> drawing=false);
+
+  function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); document.getElementById('signature_type').value = 'drawn'; typedFallback = ''; }
+
+  function typeSignature(){
+    const name = prompt('Type your full name for signature:','{{ doctor.first_name }} {{ doctor.last_name }}');
+    if(name){
+      typedFallback = name;
+      document.getElementById('signature_type').value = 'typed';
+      // render typed signature onto canvas for preview
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.font = '28px cursive';
+      ctx.fillStyle = '#222';
+      ctx.fillText(name, 20, 120);
+    }
+  }
+
+  function submitAgreement(e){
+    const agree = document.getElementById('agree');
+    if(!agree.checked){ alert('Please accept the agreement to continue.'); return false; }
+
+    const type = document.getElementById('signature_type').value;
+    const hidden = document.getElementById('signature_data');
+
+    if(type === 'typed'){
+      if(!typedFallback){ alert('Please type your signature.'); return false; }
+      hidden.value = 'typed:' + typedFallback;
+    } else {
+      // detect if canvas is empty by reading pixels
+      const blank = document.createElement('canvas');
+      blank.width = canvas.width; blank.height = canvas.height;
+      if(canvas.toDataURL() === blank.toDataURL()){
+        alert('Please draw your signature.');
+        return false;
+      }
+      hidden.value = canvas.toDataURL('image/png');
+    }
+    return true;
+  }
+</script>
+{% endblock %}

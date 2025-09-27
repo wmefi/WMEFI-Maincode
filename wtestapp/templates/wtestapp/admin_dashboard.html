@@ -1,0 +1,200 @@
+{% extends 'wtestapp/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background: var(--bg); }
+  .card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 28px rgba(0,0,0,.08); }
+  .page-title{ color:var(--purple); font-weight:800; }
+  .badge-pill{ border-radius:999px; }
+  .filter a{ margin-right:8px; }
+  .table thead th{ border-bottom: 2px solid #f2c3db; color:#7b3f63; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="page-title mb-0">Admin Dashboard</h2>
+    <div class="filter">
+      <a href="?" class="btn btn-light btn-sm {% if not portal %}active{% endif %}">All</a>
+      <a href="?portal=CP" class="btn btn-outline-primary btn-sm {% if portal == 'CP' %}active{% endif %}">CP</a>
+      <a href="?portal=GC" class="btn btn-outline-primary btn-sm {% if portal == 'GC' %}active{% endif %}">GC</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card p-3">
+        <div class="small text-muted">Doctors</div>
+        <div class="h3 mb-0">{{ doctors|length }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <div class="small text-muted">Surveys</div>
+        <div class="h3 mb-0">{{ surveys|length }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <div class="small text-muted">Agreements</div>
+        <div class="h3 mb-0">{{ agreements|length }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <div class="small text-muted">Responses</div>
+        <div class="h3 mb-0">{{ responses|length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Doctors</strong>
+      <span class="badge badge-pill badge-info">{{ doctors|length }}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Portal</th>
+              <th>Agreement</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in doctors %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ d.first_name }} {{ d.last_name }}</td>
+                <td>{{ d.mobile }}</td>
+                <td>{{ d.portal_type|default:'-' }}</td>
+                <td>
+                  {% if d.agreement_accepted %}
+                    <span class="badge badge-success">Accepted</span>
+                  {% else %}
+                    <span class="badge badge-secondary">Pending</span>
+                  {% endif %}
+                </td>
+                <td>{{ d.created_at|date:'Y-m-d H:i' }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted">No doctors</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Surveys</strong>
+      <span class="badge badge-pill badge-info">{{ surveys|length }}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Portal</th>
+              <th>Assigned Doctors</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in surveys %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ s.title }}</td>
+                <td>{{ s.portal_type|default:'-' }}</td>
+                <td>{{ s.assigned_to.count }}</td>
+                <td>{{ s.created_at|date:'Y-m-d H:i' }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted">No surveys</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Agreements</strong>
+      <span class="badge badge-pill badge-info">{{ agreements|length }}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Doctor</th>
+              <th>Signed At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in agreements %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ a.doctor.first_name }} {{ a.doctor.last_name }} ({{ a.doctor.portal_type|default:'-' }})</td>
+                <td>{{ a.signed_at|date:'Y-m-d H:i' }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-muted">No agreements</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Responses</strong>
+      <span class="badge badge-pill badge-info">{{ responses|length }}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Doctor</th>
+              <th>Survey</th>
+              <th>Completed</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in responses %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ r.doctor.first_name }} {{ r.doctor.last_name }} ({{ r.doctor.portal_type|default:'-' }})</td>
+                <td>{{ r.survey.title }}</td>
+                <td>{% if r.is_completed %}<span class="badge badge-success">Yes</span>{% else %}<span class="badge badge-secondary">No</span>{% endif %}</td>
+                <td>{% if r.completed_at %}{{ r.completed_at|date:'Y-m-d H:i' }}{% else %}-{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted">No responses</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

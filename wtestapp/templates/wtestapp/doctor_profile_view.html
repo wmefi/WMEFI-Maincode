@@ -1,0 +1,175 @@
+{% extends 'wtestapp/base.html' %}
+{% load static %}
+{% block title %}Doctor Profile{% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background:var(--bg); }
+  .profile-wrap{ max-width: 980px; margin: 28px auto; }
+  .card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+  .card-body{ padding: 22px 22px; }
+  .header{ display:flex; align-items:center; justify-content:space-between; padding: 18px 22px; border-bottom:1px solid #f7c8dc; }
+  .header-top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .header-left{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; min-width: 0; }
+  /* Place action buttons centered on their own row */
+  .header-right{ display:flex; gap:12px; flex-wrap:wrap; width:100%; justify-content:center; margin-left:0; padding-top:6px; }
+  .avatar{ width:46px; height:46px; border-radius:50%; background:#f7d7e7; color:#9a547a; display:flex; align-items:center; justify-content:center; font-weight:700; flex:0 0 auto; }
+  .title-wrap{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .title{ font-size:22px; font-weight:800; color:#9a547a; margin:0; }
+  .chips{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .chip{ display:inline-flex; align-items:center; gap:6px; border:1px solid #e0b0c8; color:#9a547a; padding:6px 10px; border-radius:999px; font-weight:600; background:#fff; }
+  .chip.success{ border-color:#7bc27f; color:#2f8f35; background:#e8f7e9; }
+  .btn-outline{ border:1px solid #c0769e; color:#c0769e; background:#fff; padding:10px 16px; border-radius:12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.05); }
+  .btn-outline:hover{ background:#c0769e; color:#fff; }
+  .section{ padding:18px 20px; }
+  .section-title{ font-weight:800; color:#9a547a; }
+  .divider{ height:1px; background:#f2c3db; margin:8px 0 16px; }
+  .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px; }
+  .label{ font-weight:700; color:#a66386; }
+  .value{ color:#6b3c57; }
+  @media (max-width:768px){ .grid{ grid-template-columns: 1fr; } .header-top{ flex-direction:column; align-items:flex-start; } .header-right{ width:100%; justify-content:flex-start; } }
+</style>
+{% endblock %}
+ 
+
+{% block content %}
+<div class="profile-wrap">
+  <div class="card">
+    <div class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <div class="avatar">{{ doctor.first_name|default:doctor.last_name|first|upper|default:"?" }}</div>
+        <div class="title-wrap">
+          <h2 class="title">Doctor Profile</h2>
+          <div class="chips">
+            <span class="chip"><i class="fas fa-phone"></i> {{ doctor.mobile|default:"-" }}</span>
+            <span class="chip"><i class="fas fa-envelope"></i> {{ doctor.email|default:"-" }}</span>
+            {% if doctor.agreement_accepted %}<span class="chip success"><i class="fas fa-check"></i> Agreement Accepted</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <a href="{% url 'doctor_surveys_list' %}" class="btn-outline"><i class="fas fa-list-ul mr-1"></i> My Surveys</a>
+        <a href="{% url 'download_agreement_pdf' %}" class="btn-outline"><i class="fas fa-file-pdf mr-1"></i> Agreement PDF</a>
+      </div>
+    </div>
+  </div>
+ 
+
+    <div class="card-body">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="section-title">Basic Information</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div>
+          <div class="label">First Name</div>
+          <div class="value">{{ doctor.first_name|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Last Name</div>
+          <div class="value">{{ doctor.last_name|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Gender</div>
+          <div class="value">{{ doctor.gender|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Profession</div>
+          <div class="value">{{ doctor.profession|default:"Not provided" }}</div>
+        </div>
+      </div>
+
+      <div class="section-title mt-3">Contact & Address</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div style="grid-column:1 / span 2;">
+          <div class="label">Address</div>
+          <div class="value">{{ doctor.address|default:"Not provided" }}, {{ doctor.city|default:"" }}, {{ doctor.state|default:"" }} - {{ doctor.pincode|default:"" }}</div>
+        </div>
+      </div>
+
+      <div class="section-title mt-3">Professional</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div>
+          <div class="label">Specialty</div>
+          <div class="value">{{ doctor.specialty|default:"Not provided" }}</div>
+        </div>
+        {% if doctor.clinic_name %}
+        <div>
+          <div class="label">Clinic Name</div>
+          <div class="value">{{ doctor.clinic_name }}</div>
+        </div>
+        {% endif %}
+        <div>
+          <div class="label">Qualification</div>
+          <div class="value">{{ doctor.qualification|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">MCI Registration No</div>
+          <div class="value">{{ doctor.mci_registration|default:"Not provided" }}</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="label">PAN Card</div>
+          <div class="value">{{ doctor.pan|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">GST Number</div>
+          <div class="value">{% if doctor.has_gst %}{{ doctor.gst_number|default:"Not provided" }}{% else %}Not Registered{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="section-title mt-3">Bank Details</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div>
+          <div class="label">Account Name</div>
+          <div class="value">{{ doctor.bank_account_name|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Bank Name</div>
+          <div class="value">{{ doctor.bank_name|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Account No</div>
+          <div class="value">{{ doctor.account_no|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Branch</div>
+          <div class="value">{{ doctor.branch|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">IFSC</div>
+          <div class="value">{{ doctor.ifsc|default:"Not provided" }}</div>
+        </div>
+      </div>
+
+      <div class="section-title mt-3">Documents</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div>
+          <div class="label">PAN Copy</div>
+          <div class="value">{% if doctor.pan_copy %}<a href="{{ doctor.pan_copy.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
+        </div>
+        <div>
+          <div class="label">Cancelled Cheque</div>
+          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
+        </div>
+        <div>
+          <div class="label">Prescription</div>
+          <div class="value">{% if doctor.prescription_file %}<a href="{{ doctor.prescription_file.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

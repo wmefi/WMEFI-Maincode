@@ -1,0 +1,49 @@
+{% extends 'wtestapp/base.html' %}
+
+{% block title %}Survey Complete{% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background: var(--bg); }
+  .done-wrapper{ display:flex; align-items:center; justify-content:center; min-height:60vh; }
+  .done-card{ background:var(--card); border:1px solid var(--pink); border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.1); padding:32px 28px; max-width:720px; width:100%; text-align:center; }
+  .success-icon{ width:86px; height:86px; border-radius:50%; background: #dff7e3; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border: 2px solid #b6edc2; }
+  .success-icon i{ color:#2e7d32; font-size:42px; }
+  .title{ color:var(--purple); font-weight:800; font-size:2rem; margin-bottom:8px; }
+  .subtitle{ color:#6b5a68; font-size:1.05rem; margin-bottom:22px; }
+  .actions{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .btn-main{ background:var(--pink); border-color:var(--pink); color:#fff; padding:10px 18px; border-radius:10px; font-weight:600; }
+  .btn-main:hover{ background:var(--purple); border-color:var(--purple); color:#fff; }
+  .btn-ghost{ border:1px solid var(--purple); color:var(--purple); padding:10px 18px; border-radius:10px; font-weight:600; background:#fff; }
+  .btn-ghost:hover{ background:var(--purple); color:#fff; }
+  .small-muted{ color:#8b7b88; font-size:.9rem; margin-top:10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container done-wrapper">
+  <div class="done-card">
+    <div class="success-icon"><i class="fas fa-check"></i></div>
+    <div class="title">Thank You!</div>
+    <div class="subtitle">Your survey has been submitted successfully.</div>
+
+    <div class="actions">
+      <a href="{% url 'doctor_surveys_list' %}" class="btn btn-main"><i class="fas fa-list-ul mr-1"></i> View Your Surveys</a>
+      <!-- <button type="button" class="btn btn-ghost" onclick="shareWhatsApp()"><i class="fab fa-whatsapp mr-1"></i> Share via WhatsApp</button> -->
+      <a href="{% url 'doctor_profile' %}" class="btn btn-ghost"><i class="fas fa-user mr-1"></i> Go to Profile</a>
+    </div>
+
+    <div class="small-muted">You can download a copy of your responses from the surveys list.</div>
+  </div>
+  
+</div>
+
+<script>
+  function shareWhatsApp(){
+    const text = encodeURIComponent('I have just submitted my clinical survey.');
+    const url = 'https://wa.me/?text=' + text;
+    window.open(url, '_blank');
+  }
+</script>
+{% endblock %}

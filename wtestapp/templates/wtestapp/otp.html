@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify OTP</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <style>
+    :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+    body{ min-height:100vh; margin:0; background: linear-gradient(135deg, rgba(100,197,203,.25), rgba(230,100,162,.25)); display:flex; align-items:center; justify-content:center; }
+    .auth-wrap{ width:100%; max-width:980px; padding: 24px; }
+    .brand-head{ display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:16px; }
+    .brand-head img{ height:72px; }
+    .brand-title{ font-weight:800; color:#9a547a; margin:0; }
+    .auth-card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,.12); overflow:hidden; min-height: 520px; }
+    .auth-left{ display:none; background: #f7f7f7 url('{% static "images/OTP_IMAGE.webp" %}') center/cover no-repeat; min-height: 520px; }
+    .auth-body{ padding:28px; display:flex; flex-direction:column; justify-content:center; }
+    .form-box{ max-width: 380px; margin: 0 auto; text-align:center; width:100%; }
+    .form-box .form-group{ text-align:left; }
+    @media (min-width: 992px){ .auth-grid{ display:grid; grid-template-columns: 1.1fr .9fr; } .auth-left{ display:block; }
+      .auth-body{ padding:40px; } }
+
+    .auth-heading{ font-weight:800; color:#9a547a; margin-bottom:6px; }
+    .auth-sub{ color:#7b3f63; margin-bottom:18px; }
+    .form-control{ border-color:#e7b3cd; }
+    .form-control:focus{ border-color:var(--pink); box-shadow:0 0 0 .2rem rgba(230,100,162,.15); }
+    .btn-primary{ background:var(--pink); border-color:var(--pink); font-weight:700; border-radius:10px; padding:.7rem 1rem; }
+    .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
+    .helper{ font-size:.875rem; color:#7b3f63; }
+  </style>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="brand-head">
+      <img src="{% static 'images/logo/logo.png' %}" alt="Brand" />
+      <h3 class="brand-title mb-0">Verification</h3>
+    </div>
+
+    <div class="auth-card auth-grid">
+      <div class="auth-left" aria-label="OTP visual"></div>
+      <div class="auth-body">
+        <div class="form-box">
+          <h4 class="auth-heading">Enter OTP</h4>
+          <div class="auth-sub">An OTP has been sent to {{ mobile|default:'your mobile number' }}.</div>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-danger py-2">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="otp">OTP Code</label>
+              <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter 4-digit OTP" pattern="[0-9]{4}" maxlength="4" required />
+              <small class="form-text text-muted helper">Enter the 4-digit code you received.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Verify & Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

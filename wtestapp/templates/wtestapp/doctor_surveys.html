@@ -1,0 +1,64 @@
+{% extends 'wtestapp/base.html' %}
+
+{% block title %}Assigned Surveys{% endblock %}
+
+{% block style %}
+<style>
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
+  body{ background: var(--bg); }
+  .page-title{ color:var(--purple); font-weight:800; font-size:1.75rem; }
+  .survey-list{ display:flex; flex-direction:column; gap:14px; }
+  .survey-item{ background:var(--card); border:1px solid var(--pink); border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.08); padding:16px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .survey-meta{ display:flex; flex-direction:column; gap:4px; }
+  .survey-title{ font-weight:700; font-size:1.1rem; color:#7b3f63; margin:0; }
+  .survey-desc{ margin:0; color:#8b7b88; font-size:.95rem; }
+  .btn-main{ background:var(--pink); border-color:var(--pink); color:#fff; font-weight:600; border-radius:10px; padding:8px 14px; }
+  .btn-main:hover{ background:var(--purple); border-color:var(--purple); }
+  .empty{ color:#7b3f63; background:#fff; border:1px dashed var(--pink); border-radius:14px; padding:18px; text-align:center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="page-title mb-3">Your Assigned Surveys</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if surveys %}
+    <div class="survey-list">
+      <!-- Practice/Dummy Survey always available -->
+      <div class="survey-item">
+        <div class="survey-meta">
+          <h5 class="survey-title">Practice Survey (Demo)</h5>
+          <p class="survey-desc">A short dummy survey you can try right now.</p>
+        </div>
+        <div>
+          <a href="{% url 'survey1' %}" class="btn btn-main">Start Demo</a>
+        </div>
+      </div>
+      {% for survey in surveys %}
+        <div class="survey-item">
+          <div class="survey-meta">
+            <h5 class="survey-title">{{ survey.title }}</h5>
+            {% if survey.description %}
+              <p class="survey-desc">{{ survey.description|truncatechars:140 }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <a href="{% url 'survey_detail' survey.id %}" class="btn btn-main">Take Survey</a>
+          </div>
+        </div>
+      {% endfor %}
+  {% else %}
+    <div class="empty">
+      {% if last_survey_url %}
+        <a href="{{ last_survey_url }}" class="btn btn-main mt-2">View last submitted survey</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Doctor Dashboard{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+      :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --navbg:#fce6f0; }
+      .navbar-custom{ background: linear-gradient(90deg, #fdeef4 0%, #ffffff 60%); border-bottom: 2px solid var(--pink); box-shadow: 0 6px 14px rgba(0,0,0,.06); }
+      .navbar-custom .navbar-brand img{ height: 56px; width: auto; }
+      .navbar-custom .nav-link{ color:#7b3f63; font-weight: 600; font-size: 1.05rem; padding: .6rem 1rem; border-radius: .5rem; transition: all .2s ease; }
+      .navbar-custom .nav-link:hover{ color:#fff; background: var(--pink); text-decoration: none; }
+      .navbar-custom .nav-link.active{ color:#fff; background: var(--purple); }
+      .navbar-toggler{ border-color: var(--pink); }
+      .navbar-toggler-icon{ background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(198, 118, 158, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); }
+    </style>
+    {% block style %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/logo/logo.png'%}" class="d-inline-block align-top" alt="Logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'doctor_profile' %}">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a
+                      id="mySurveysLink"
+                      class="nav-link"
+                      href="{% url 'doctor_surveys_list' %}"
+                      data-status-url="{% url 'doctor_status' %}"
+                      data-surveys-url="{% url 'doctor_surveys_list' %}"
+                      data-edit-url="{% url 'doctor_profile_edit' %}"
+                    >My Surveys</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+                <li class="nav-item">
+                    {% if request.user.is_authenticated and doctor %}
+                    <a class="nav-link" href="#">{{ doctor.user.username }}</a>
+                    {% endif %}
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fab fa-facebook"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fab fa-linkedin"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fab fa-twitter"></i></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Gate Modal -->
+    <div class="modal fade" id="surveyGateModal" tabindex="-1" role="dialog" aria-labelledby="surveyGateModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="surveyGateModalLabel">Before You Continue</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="gate-hero mb-2">
+              <img src="{% static 'images/Untitled design.png' %}" alt="Hero" />
+            </div>
+            <div id="gateMessage">Please complete your profile and accept the participant agreement to access My Surveys.</div>
+          </div>
+          <div class="modal-footer">
+            <a id="gateProfileBtn" href="#" class="btn btn-primary">Complete Profile</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>
+      /* Narrow dialog, medium height, and subtle hover effects for modal buttons */
+      #surveyGateModal .modal-dialog { max-width: 420px; }
+      /* Remove enforced min-height so content defines height */
+      #surveyGateModal .modal-content { min-height: 0; }
+      @media (max-width: 575.98px) {
+        #surveyGateModal .modal-dialog { max-width: 92vw; }
+        #surveyGateModal .modal-content { min-height: 0; }
+      }
+      #surveyGateModal .modal-body { padding-top: 14px; padding-bottom: 12px; }
+      #gateMessage { margin-bottom: 0; }
+      .gate-hero { margin-bottom: 8px; }
+      #surveyGateModal .modal-footer { padding-top: 10px; padding-bottom: 10px; margin-top: 0; }
+      /* Make hero image fully fit inside modal width */
+      .gate-hero { width: 100%; overflow: hidden; border-radius: 10px; }
+      .gate-hero img { width: 100%; height: auto; max-height: 260px; object-fit: contain; display: block; }
+      #surveyGateModal .modal-footer .btn {
+        transition: all .18s ease;
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+      }
+      #surveyGateModal .modal-footer .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0,0,0,.12);
+        filter: brightness(1.02);
+      }
+    </style>
+
+    <script>
+      (function(){
+        var link = document.getElementById('mySurveysLink');
+        if(!link) return;
+        link.addEventListener('click', function(e){
+          // Let ctrl/cmd-click open new tab as normal
+          if (e.metaKey || e.ctrlKey) return;
+          e.preventDefault();
+          var statusUrl = link.getAttribute('data-status-url');
+          var surveysUrl = link.getAttribute('data-surveys-url');
+          var editUrl = link.getAttribute('data-edit-url');
+          fetch(statusUrl, {credentials: 'same-origin'})
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+              var profileComplete = !!data.profile_complete;
+              var agreementAccepted = !!data.agreement_accepted;
+              if (profileComplete && agreementAccepted){
+                window.location.href = surveysUrl;
+                return;
+              }
+              var gateMsg = document.getElementById('gateMessage');
+              gateMsg.textContent = 'Please complete your profile and accept the agreement to access My Surveys.';
+              var profileBtn = document.getElementById('gateProfileBtn');
+              profileBtn.style.display = profileComplete ? 'none' : 'inline-block';
+              profileBtn.setAttribute('href', editUrl);
+              // Show modal (Bootstrap 4)
+              $('#surveyGateModal').modal('show');
+            })
+            .catch(function(){
+              // On error fallback to surveys url
+              window.location.href = surveysUrl;
+            });
+        });
+      })();
+    </script>
+</body>
+</html>
