@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-me')
 
 # DEBUG and allowed hosts from environment (default to local-friendly values)
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()) + ['wtest-ehkq.onrender.com']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()) + ['wtest-gc-1.onrender.com']
 
 
 
