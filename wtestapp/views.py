@@ -539,7 +539,7 @@ def agreement_page(request):
     context = {
         'doctor': doctor,
         'amount': doctor.agreement_amount,
-        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
+        'survey_title': 'Current Management of Moderate & Severe Anaemia (Zone - 1)',
     }
     return render(request, 'wtestapp/agreement_page.html', context)
 
@@ -592,7 +592,7 @@ def download_agreement_pdf(request):
 
     context = {
         'doctor': doctor,
-        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
+        'survey_title': 'Current Management of Moderate & Severe Anaemia (Zone - 1)',
         'amount': amount,
     }
     template = get_template(template_path)

@@ -33,16 +33,16 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'doctor_profile' %}">Profile</a>
+                    <a class="nav-link" href="/gc/doctor_profile/">Profile</a>
                 </li>
                 <li class="nav-item">
                     <a
                       id="mySurveysLink"
                       class="nav-link"
-                      href="{% url 'doctor_surveys_list' %}"
-                      data-status-url="{% url 'doctor_status' %}"
-                      data-surveys-url="{% url 'doctor_surveys_list' %}"
-                      data-edit-url="{% url 'doctor_profile_edit' %}"
+                      href="/gc/doctor/surveys/"
+                      data-status-url="/gc/doctor_status/"
+                      data-surveys-url="/gc/doctor/surveys/"
+                      data-edit-url="/gc/doctor_profile/edit/"
                     >My Surveys</a>
                 </li>
                 <li class="nav-item">
@@ -90,7 +90,7 @@
             <div id="gateMessage">Please complete your profile and accept the participant agreement to access My Surveys.</div>
           </div>
           <div class="modal-footer">
-            <a id="gateProfileBtn" href="#" class="btn btn-primary">Complete Profile</a>
+            <a id="gateProfileBtn" href="/gc/doctor_profile/edit/" class="btn btn-primary">Complete Profile</a>
           </div>
         </div>
       </div>

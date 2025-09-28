@@ -15,6 +15,7 @@ urlpatterns = [
     path('survey/upload/', views.upload_survey_file, name='gc_upload_survey_file'),
     path('doctor/surveys/', views.doctor_surveys_list, name='gc_doctor_surveys_list'),
     path('doctor/survey1/', views.survey1, name='gc_survey1'),
+    path('doctor/survey2/', views.survey2, name='gc_survey2'),
     path('doctor/surveys/<int:survey_id>/', views.survey_detail, name='gc_survey_detail'),
     path('doctor/surveys/done/', views.survey_done, name='gc_survey_done'),
     path('logout/', views.logout_view, name='gc_logout'),

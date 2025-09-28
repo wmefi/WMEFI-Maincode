@@ -49,9 +49,9 @@
         </tr>
     </table>
     <h1>Participant Agreement (Terms & Conditions)</h1>
-    {% if survey_title %}
-    <h3 style="margin-top: 0;"><strong>Survey: {{ survey_title }}</strong></h3>
-    {% endif %}
+    {% with display_title=survey_title|default:'Current Management of Moderate & Severe Anaemia (Zone - 1)' %}
+    <h3 style="margin-top: 0;"><strong>Survey: {{ display_title }}</strong></h3>
+    {% endwith %}
 
     <p>This Participant Agreement (“Agreement”) entered into on this 25th day of September, 2025 by and between <strong>WMEFI</strong> having its registered Office No.73, 7th floor, Kalpataru Avenue opp. ESIC Hospital, Akruli Road, Kandivali (East), Mumbai - 400 101 (hereinafter referred to as “The Company,” which expression unless repugnant to the context or meaning thereof shall deem to include their respective successors and assigns) of the One Part.</p>
 
@@ -63,7 +63,7 @@
     <h3>WHEREAS</h3>
 
     <p>The Company inter alia is engaged in the business of providing services such as Weston Medical Education Foundation Of India programs, conducting surveys, etc.</p>
-    <p>The Company is conducting a marketing survey titled “Inclinic experience of Topical Sunscreen in Paediatric”.</p>
+    <p>The Company is conducting a marketing survey titled “Current Management of Moderate & Severe Anaemia (Zone - 1)”.</p>
     <p>The Participant has volunteered to participate in this survey by providing his valuable time, knowledge and experience in filling out the questionnaire provided by the company on the terms as set forth below.</p>
 
     <h3>THE PARTIES WISH TO ENTER INTO THIS AGREEMENT ON THE TERMS AND CONDITIONS HERE IN:</h3>

@@ -30,14 +30,14 @@
 
   {% if surveys %}
     <div class="survey-list">
-      <!-- Practice/Dummy Survey always available -->
+      <!-- Practice Survey always available -->
       <div class="survey-item">
         <div class="survey-meta">
-          <h5 class="survey-title">Practice Survey (Demo)</h5>
-          <p class="survey-desc">A short dummy survey you can try right now.</p>
+          <h5 class="survey-title">Practice Survey</h5>
+          <p class="survey-desc">A short survey you can try right now.</p>
         </div>
         <div>
-          <a href="{% url 'survey1' %}" class="btn btn-main">Start Demo</a>
+          <a href="{% url 'survey2' %}" class="btn btn-main">Start</a>
         </div>
       </div>
       {% for survey in surveys %}
@@ -55,7 +55,7 @@
       {% endfor %}
   {% else %}
     <div class="empty">
-      <a href="/cp/doctor/survey1/" class="btn btn-main mt-2">Start Demo Survey</a>
+      <a href="/gc/doctor/survey2/" class="btn btn-main mt-2">Start Survey</a>
       {% if last_survey_url %}
         <a href="{{ last_survey_url }}" class="btn btn-main mt-2">View last submitted survey</a>
       {% endif %}
