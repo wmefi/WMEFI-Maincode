@@ -602,12 +602,26 @@ def download_agreement_pdf(request):
     # Fetch latest agreement for signature rendering (if available)
     agreement = Agreement.objects.filter(doctor=doctor).order_by('-signed_at').first()
 
+    # Resolve company signature image absolute path for xhtml2pdf (try multiple candidates)
+    company_sig_path = None
+    for rel in ['images/logo/sig.png', 'images/logo/Untitled design.png', 'images/logo/logo.png']:
+        try:
+            p = find(rel)
+            if not p and settings.STATIC_ROOT:
+                p = os.path.join(settings.STATIC_ROOT, rel)
+            if p and os.path.exists(p):
+                company_sig_path = p
+                break
+        except Exception:
+            continue
+
     context = {
         'doctor': doctor,
         'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
         'amount': amount,
         'signed_date': signed_date,
         'agreement': agreement,
+        'company_sig': company_sig_path,
     }
     template = get_template(template_path)
     html = template.render(context)

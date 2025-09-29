@@ -29,6 +29,8 @@
   .btn-primary{ background:var(--pink); border-color:var(--pink); }
   .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
   .btn-outline-secondary{ color:var(--purple); border-color:var(--purple); }
+  /* Ensure consistent agreement fonts on page (match PDF) */
+  .card-agreement, .card-agreement * { font-family: Arial, Helvetica, sans-serif; }
 </style>
 {% endblock %}
 
@@ -58,9 +60,6 @@
       <div class="form-group mb-3">
         <label class="font-weight-bold">Agreement Text</label>
         <div class="agreement-text">
-          <div class="mb-2">
-            <img src="{% static 'images/logo/sig.png' %}" alt="WMEFI Authorized Signatory" style="width:220px; height:auto; display:none;" onerror="this.style.display='none'" onload="this.style.display='block'" />
-          </div>
           {% include 'wtestapp/agreement_pdf_template.html' with doctor=doctor amount=amount survey_title='Inclinic experience of Topical Sunscreen in Paediatric' %}
         </div>
       </div>

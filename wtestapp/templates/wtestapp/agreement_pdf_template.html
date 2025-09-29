@@ -56,7 +56,7 @@
 
     <p>And</p>
 
-    <p><strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong> , an adult, Indian Inhabitant residing at ________________________________, (hereinafter referred to as “The Participant”) of the Second Part.
+    <p><strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong>, an adult, Indian Inhabitant residing at <strong>{{ doctor.address|default:'[Address not provided]' }}{% if doctor.city %}, {{ doctor.city }}{% endif %}{% if doctor.state %}, {{ doctor.state }}{% endif %}{% if doctor.pincode %} - {{ doctor.pincode }}{% endif %}</strong>, (hereinafter referred to as “The Participant”) of the Second Part.
     The Company and the Participant may hereinafter be individually referred as “Party” and collectively as “Parties” to this Agreement.</p>
 
     <h3>WHEREAS</h3>
@@ -93,7 +93,11 @@
             <td width="50%" style="text-align:left; vertical-align:bottom;">
                 <div class="signature-block">
                     <p><strong>For WMEFI</strong></p>
-                    <img class="sig-image" src="{% static 'images/logo/sig.png' %}" alt="WMEFI Authorized Signatory" />
+                    {% if company_sig %}
+                      <img class="sig-image" src="{{ company_sig }}" alt="WMEFI Authorized Signatory" />
+                    {% else %}
+                      <img class="sig-image" src="{% static 'images/logo/sig.png' %}" alt="WMEFI Authorized Signatory" />
+                    {% endif %}
                     <p style="margin:2px 0 0;">Signature</p>
                     <p><strong>Dr. Prasad Vadde</strong></p>
                     <p>General Manager – Medical Affairs</p>
