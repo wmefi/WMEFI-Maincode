@@ -58,7 +58,10 @@
       <div class="form-group mb-3">
         <label class="font-weight-bold">Agreement Text</label>
         <div class="agreement-text">
-          {% include 'wtestapp/agreement_pdf_template.html' with doctor=doctor amount=amount survey_title='Current Management of Moderate & Severe Anaemia (Zone - 1)' %}
+          <div class="mb-2">
+            <img src="{% static 'images/logo/sig.png' %}" alt="WMEFI Authorized Signatory" style="width:220px; height:auto; display:none;" onerror="this.style.display='none'" onload="this.style.display='block'" />
+          </div>
+          {% include 'wtestapp/agreement_pdf_template.html' with doctor=doctor amount=amount survey_title='Inclinic experience of Topical Sunscreen in Paediatric' %}
         </div>
       </div>
 
@@ -72,6 +75,7 @@
         </div>
         <input type="hidden" name="signature_data" id="signature_data">
         <input type="hidden" name="signature_type" id="signature_type" value="drawn">
+        <input type="hidden" name="client_signed_date" id="client_signed_date">
       </div>
 
       <div class="form-check mb-3">
@@ -107,6 +111,33 @@
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+
+  // Pretty date formatter used for preview and submission
+  function formatClientDate(){
+    const d = new Date();
+    const day = d.getDate();
+    const suffix = (n)=>{ const j=n%10, k=n%100; if (j==1 && k!=11) return 'st'; if (j==2 && k!=12) return 'nd'; if (j==3 && k!=13) return 'rd'; return 'th'; };
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${day}${suffix(day)} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  // Update the on-page included agreement preview to show client local date
+  function setPreviewSignedDate(){
+    const container = document.querySelector('.agreement-text');
+    if(!container) return;
+    const formatted = formatClientDate();
+    const ps = container.querySelectorAll('p');
+    ps.forEach(p=>{
+      const t = (p.textContent||'').trim();
+      if(t.startsWith('Date :')){
+        p.textContent = 'Date : ' + formatted;
+      }
+    });
+    // also replace intro date spans
+    container.querySelectorAll('.signed-date').forEach(el=>{ el.textContent = formatted; });
+  }
+
+  document.addEventListener('DOMContentLoaded', setPreviewSignedDate);
 
   function getPos(e){
     const rect = canvas.getBoundingClientRect();
@@ -156,6 +187,15 @@
       }
       hidden.value = canvas.toDataURL('image/png');
     }
+    // capture client's local date in pretty format
+    try {
+      const d = new Date();
+      const day = d.getDate();
+      const suffix = (n)=>{ const j=n%10, k=n%100; if (j==1 && k!=11) return 'st'; if (j==2 && k!=12) return 'nd'; if (j==3 && k!=13) return 'rd'; return 'th'; };
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const formatted = `${day}${suffix(day)} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      document.getElementById('client_signed_date').value = formatted;
+    } catch(err) { /* ignore */ }
     return true;
   }
 </script>

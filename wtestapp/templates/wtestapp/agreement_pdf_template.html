@@ -4,6 +4,7 @@
 <head>
     <title>Participant Agreement</title>
     <style>
+        body { font-size: 14px; }
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -24,20 +25,18 @@
         .pdf-logo img { width: 80px; height: auto; }
 
         /* Signatures side-by-side */
-        .signature-section { margin-top: 28px; text-align: center; }
-        .signature-block {
-            display: inline-block;
-            width: 47%;
-            vertical-align: top;
-            text-align: center;
-            padding: 8px;
-        }
-        .sig-line { border-top: 1px solid #333; margin: 8px auto 4px; width: 80%; }
+        .signature-section { margin-top: 14px; }
+        .signature-block { padding: 12px; }
+        .signature-block p { margin: 8px 0; font-size: 14px; }
+        .sig-line { border-top: 1px solid #333; margin: 8px 0 6px; width: 55%; }
+        .sig-right { display: block; margin-left: auto; margin-right: 0; }
+        .sig-image { width: 220px; height: auto; margin: 8px 0; }
 
         .page-break { page-break-before: always; }
     </style>
 </head>
 <body>
+    {% now "jS F Y" as default_signed_date %}
     <table class="pdf-header" cellspacing="0" cellpadding="0">
         <tr>
             <td>
@@ -49,11 +48,11 @@
         </tr>
     </table>
     <h1>Participant Agreement (Terms & Conditions)</h1>
-    {% with display_title=survey_title|default:'Current Management of Moderate & Severe Anaemia (Zone - 1)' %}
+    {% with display_title=survey_title|default:'Inclinic experience of Topical Sunscreen in Paediatric' %}
     <h3 style="margin-top: 0;"><strong>Survey: {{ display_title }}</strong></h3>
     {% endwith %}
 
-    <p>This Participant Agreement (“Agreement”) entered into on this 25th day of September, 2025 by and between <strong>WMEFI</strong> having its registered Office No.73, 7th floor, Kalpataru Avenue opp. ESIC Hospital, Akruli Road, Kandivali (East), Mumbai - 400 101 (hereinafter referred to as “The Company,” which expression unless repugnant to the context or meaning thereof shall deem to include their respective successors and assigns) of the One Part.</p>
+    <p>This Participant Agreement (“Agreement”) entered into on this <strong><span class="signed-date">{{ signed_date|default:default_signed_date }}</span></strong> by and between <strong>WMEFI</strong> having its registered Office No.73, 7th floor, Kalpataru Avenue opp. ESIC Hospital, Akruli Road, Kandivali (East), Mumbai - 400 101 (hereinafter referred to as “The Company,” which expression unless repugnant to the context or meaning thereof shall deem to include their respective successors and assigns) of the One Part.</p>
 
     <p>And</p>
 
@@ -63,7 +62,7 @@
     <h3>WHEREAS</h3>
 
     <p>The Company inter alia is engaged in the business of providing services such as Weston Medical Education Foundation Of India programs, conducting surveys, etc.</p>
-    <p>The Company is conducting a marketing survey titled “Current Management of Moderate & Severe Anaemia (Zone - 1)”.</p>
+    <p>The Company is conducting a marketing survey titled “Inclinic experience of Topical Sunscreen in Paediatric”.</p>
     <p>The Participant has volunteered to participate in this survey by providing his valuable time, knowledge and experience in filling out the questionnaire provided by the company on the terms as set forth below.</p>
 
     <h3>THE PARTIES WISH TO ENTER INTO THIS AGREEMENT ON THE TERMS AND CONDITIONS HERE IN:</h3>
@@ -87,21 +86,33 @@
     <p>This Agreement will be governed in all respects by Indian law and the parties hereby submit to the exclusive jurisdiction of the courts in Mumbai.</p>
     <p>No person or entity other than the Participant is or shall be entitled to bring any action to enforce any provision of this Agreement, as a third party beneficiary or otherwise.</p>
 
-    <p style="text-align: center; margin-top: 30px;"><strong>IN WITNESS WHEREOF, the Parties have caused this Agreement to be executed on the date mentioned herein above.</strong></p>
+    <p style="text-align: center; margin-top: 10px; margin-bottom: 8px;"><strong>IN WITNESS WHEREOF, the Parties have caused this Agreement to be executed on the date mentioned herein above.</strong></p>
 
-    <table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 10px;">
-        <tr>
-            <td width="50%" style="text-align:center; vertical-align:top;">
-                <p><strong>For WMEFI</strong></p>
-                <p>Signature</p>
-                <p><strong>Dr. Prasad Vadde</strong></p>
-                <p>General Manager – Medical Affairs</p>
-                <p>Date : 25th September 2025</p>
+    <table width="100%" cellspacing="0" cellpadding="8" style="margin-top: 10px;">
+        <tr style="height: 150px;">
+            <td width="50%" style="text-align:left; vertical-align:bottom;">
+                <div class="signature-block">
+                    <p><strong>For WMEFI</strong></p>
+                    <img class="sig-image" src="{% static 'images/logo/sig.png' %}" alt="WMEFI Authorized Signatory" />
+                    <p style="margin:2px 0 0;">Signature</p>
+                    <p><strong>Dr. Prasad Vadde</strong></p>
+                    <p>General Manager – Medical Affairs</p>
+                    <p>Date : {{ signed_date|default:default_signed_date }}</p>
+                </div>
             </td>
-            <td width="50%" style="text-align:center; vertical-align:top;">
-                <p><strong>For Dr. {{ doctor.first_name|upper }} {{ doctor.last_name|upper }}</strong></p>
-                <p>Signature &amp; Stamp</p>
-                <p>Date : 25th September 2025</p>
+            <td width="50%" style="text-align:right; vertical-align:bottom;">
+                <div class="signature-block">
+                    <p><strong>For Dr. {{ doctor.first_name|upper }} {{ doctor.last_name|upper }}</strong></p>
+                    {% if agreement and agreement.digital_signature and agreement.signature_type == 'drawn' %}
+                      <img class="sig-image" src="{{ agreement.digital_signature }}" alt="Doctor Signature" />
+                    {% elif agreement and agreement.signature_type == 'typed' and agreement.digital_signature %}
+                      <p style="font-family: cursive; font-size: 22px; margin: 6px 0;">{{ agreement.digital_signature|cut:'typed:' }}</p>
+                    {% else %}
+                      <div class="sig-line sig-right"></div>
+                    {% endif %}
+                    <p style="margin:2px 0 0;">Signature &amp; Stamp</p>
+                    <p>Date : {{ signed_date|default:default_signed_date }}</p>
+                </div>
             </td>
         </tr>
     </table>

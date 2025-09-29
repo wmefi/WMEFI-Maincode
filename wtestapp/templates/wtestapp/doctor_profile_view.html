@@ -79,11 +79,11 @@
           <div class="label">Gender</div>
           <div class="value">{{ doctor.gender|default:"Not provided" }}</div>
         </div>
-        <div>
+        <!-- <div>
           <div class="label">Profession</div>
           <div class="value">{{ doctor.profession|default:"Not provided" }}</div>
         </div>
-      </div>
+      </div> -->
 
       <div class="section-title mt-3">Contact & Address</div>
       <div class="divider"></div>
@@ -160,10 +160,10 @@
           <div class="label">PAN Copy</div>
           <div class="value">{% if doctor.pan_copy %}<a href="{{ doctor.pan_copy.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
         </div>
-        <div>
+        <!-- <div>
           <div class="label">Cancelled Cheque</div>
-          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
-        </div>
+          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank">View Document</a>{% endif %}</div>
+        </div> -->
         <div>
           <div class="label">Prescription</div>
           <div class="value">{% if doctor.prescription_file %}<a href="{{ doctor.prescription_file.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>

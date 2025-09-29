@@ -43,9 +43,16 @@ def link_callback(uri, rel):
         print(f"DEBUG: URI not starting with static/media URL: {uri}")
         return uri
 
-    if not os.path.isfile(path):
-            raise Exception('media URI must start with %s or %s' % (sUrl, mUrl))
-    return path
+    try:
+        if path and os.path.isfile(path):
+            return path
+        # Fallback: return original URI so xhtml2pdf doesn't crash; asset may still render if accessible
+        print(f"PDF warn: unresolved asset: {uri} -> {path}")
+        return uri
+    except Exception as e:
+        # Last-resort fallback: do not break PDF generation
+        print(f"PDF warn: link_callback error for {uri}: {e}")
+        return uri
 
 
 def index(request):
@@ -178,9 +185,8 @@ def doctor_profile_edit(request):
             # Custom handling for has_gst = False to clear gst_number
             if not form.cleaned_data.get('has_gst'):
                 doctor.gst_number = ''
-            # If profession left blank, default to 'Doctor'
-            if not form.cleaned_data.get('profession'):
-                doctor.profession = 'Doctor'
+            # Always set profession to 'Dr.'
+            doctor.profession = 'Dr.'
             # Ensure mobile is populated: try existing, posted, or derive from username
             if not doctor.mobile:
                 posted_mobile = request.POST.get('mobile')
@@ -539,7 +545,7 @@ def agreement_page(request):
     context = {
         'doctor': doctor,
         'amount': doctor.agreement_amount,
-        'survey_title': 'Current Management of Moderate & Severe Anaemia (Zone - 1)',
+        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
     }
     return render(request, 'wtestapp/agreement_page.html', context)
 
@@ -551,8 +557,10 @@ def accept_agreement(request):
             signature_data = request.POST.get('signature_data', '')
             signature_type = request.POST.get('signature_type', 'drawn')
             agreement_text = request.POST.get('agreement_text', '').strip()
-
-            # Persist Agreement record
+            client_signed_date = request.POST.get('client_signed_date', '').strip()
+            if client_signed_date:
+                request.session['client_signed_date'] = client_signed_date
+                
             Agreement.objects.update_or_create(
                 doctor=doctor,
                 defaults={
@@ -589,11 +597,17 @@ def download_agreement_pdf(request):
         doctor.agreement_amount = _next_agreement_amount()
         doctor.save(update_fields=["agreement_amount"])
     amount = doctor.agreement_amount
+    signed_date = request.session.get('client_signed_date')
+
+    # Fetch latest agreement for signature rendering (if available)
+    agreement = Agreement.objects.filter(doctor=doctor).order_by('-signed_at').first()
 
     context = {
         'doctor': doctor,
-        'survey_title': 'Current Management of Moderate & Severe Anaemia (Zone - 1)',
+        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
         'amount': amount,
+        'signed_date': signed_date,
+        'agreement': agreement,
     }
     template = get_template(template_path)
     html = template.render(context)
@@ -858,3 +872,5 @@ def process_excel_survey(request, df):
 
 def home(request):
     return HttpResponse("<h1>Welcome to WTest Portal</h1><p><a href='/login/'>Login</a></p>")
+
+

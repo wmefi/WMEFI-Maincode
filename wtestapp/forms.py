@@ -14,6 +14,17 @@ class OTPVerificationForm(forms.Form):
     }))
 
 class DoctorProfileForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial value for profession field
+        if 'profession' in self.fields:
+            self.fields['profession'].initial = 'Dr.'
+            self.fields['profession'].widget.attrs.update({
+                'class': 'form-control',
+                'readonly': 'readonly',
+                'style': 'background-color: #e9ecef; cursor: not-allowed;'
+            })
+
     class Meta:
         model = Doctor
         fields = [
@@ -35,7 +46,6 @@ class DoctorProfileForm(forms.ModelForm):
             'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
             'pincode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pincode'}),
-            'profession': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doctor'}),
             'specialty': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specialty'}),
             'degree': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Degree'}),
             'diploma': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Diploma'}),

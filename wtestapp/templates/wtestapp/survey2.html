@@ -2,14 +2,14 @@
 {% load static %}
 {% load custom_tags %}
 
-{% block title %}Current Management of Moderate & Severe Anaemia (Zone - 1){% endblock %}
+{% block title %}Inclinic experience of Topical Sunscreen in Paediatric{% endblock %}
 
 {% block style %}
 <style>
   :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
   body{ background: var(--bg); }
   .survey-card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.1); padding:24px; }
-  .q-title{ font-weight:700; color:var(--purple); font-size: 1.1rem; margin-bottom: 10px; }
+  .q-title{ font-weight:700; color:var(--purple); font-size: 1.15rem; margin-bottom: 10px; }
   .form-section{ padding:12px 16px; border-radius:12px; background: #fff; margin-bottom:16px; }
   .form-section.answered{ border: 1px solid #28a745; box-shadow: 0 6px 14px rgba(40,167,69,.08); background: #f1fff6; }
   .form-section.invalid{ border: 1px solid #dc3545; box-shadow: 0 6px 14px rgba(220,53,69,.08); }
@@ -23,7 +23,7 @@
   .square-indicator{ width:18px; height:18px; border:2px solid var(--pink); border-radius:4px; display:inline-block; margin-right:10px; transition: all .15s ease; background:#fff; }
   .option-item input[type="radio"]:checked + .square-indicator,
   .option-item input[type="checkbox"]:checked + .square-indicator{ background: #28a745; border-color: #28a745; box-shadow: 0 0 0 2px rgba(40,167,69,.15); }
-  /* Make the label text green when selected */
+  /* Label turns green only when ticked */
   .option-item input[type="radio"]:checked + .square-indicator + .option-label,
   .option-item input[type="checkbox"]:checked + .square-indicator + .option-label{ color:#28a745; font-weight:700; }
   .option-label{ margin:0; color:#7b3f63; }
@@ -33,7 +33,8 @@
 {% block content %}
 <div class="container my-4">
   <div class="survey-card">
-    <h3 class="mb-2" style="font-size: 1.4rem; font-weight: 800;">Current Management of Moderate & Severe Anaemia (Zone - 1)</h3>
+    <h3 class="mb-2" style="font-size: 1.6rem; font-weight: 800;">Inclinic experience of Topical Sunscreen in Paediatric</h3>
+    <p class="text-muted">We request you to provide your valuable feedback based on your clinical aspects about usage pattern of topical sunscreen in paediatric category. We humbly request you to share your opinion based on your clinical experience on the following given points.</p>
 
     {% if messages %}
       {% for message in messages %}
@@ -44,38 +45,107 @@
     <form method="post">
       {% csrf_token %}
 
-      {% for q in questions %}
-        <div class="form-section" data-qname="{{ q.name }}" data-qtype="{{ q.type }}">
-          <div class="q-title">{{ forloop.counter }}. {{ q.title }}</div>
+      <!-- Q1 -->
+      <div class="form-section">
+        <div class="q-title">1. How often do you recommend sunscreen for infants and toddlers in your clinical practice?</div>
+        <ul class="option-list">
+          <li class="option-item"><input type="radio" id="q1_1" name="q1" value="Always" {% if answers.q1 == 'Always' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q1_1">Always</label></li>
+          <li class="option-item"><input type="radio" id="q1_2" name="q1" value="Often" {% if answers.q1 == 'Often' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q1_2">Often</label></li>
+          <li class="option-item"><input type="radio" id="q1_3" name="q1" value="Sometimes" {% if answers.q1 == 'Sometimes' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q1_3">Sometimes</label></li>
+          <li class="option-item"><input type="radio" id="q1_4" name="q1" value="Rarely" {% if answers.q1 == 'Rarely' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q1_4">Rarely</label></li>
+          <li class="option-item"><input type="radio" id="q1_5" name="q1" value="Never" {% if answers.q1 == 'Never' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q1_5">Never</label></li>
+        </ul>
+      </div>
 
-          {% if q.type == 'radio' %}
-            <ul class="option-list">
-              {% for opt in q.options %}
-              <li class="option-item">
-                <input type="radio" id="{{ q.name }}_{{ forloop.counter }}" name="{{ q.name }}" value="{{ opt }}" {% if answers|dict_get:q.name == opt %}checked{% endif %}>
-                <span class="square-indicator"></span>
-                <label class="option-label" for="{{ q.name }}_{{ forloop.counter }}">{{ opt }}</label>
-              </li>
-              {% endfor %}
-            </ul>
-          {% elif q.type == 'checkbox' %}
-            <ul class="option-list">
-              {% for opt in q.options %}
-              <li class="option-item">
-                {% with ans_list=answers|dict_get:q.name %}
-                <input type="checkbox" id="{{ q.name }}_{{ forloop.counter }}" name="{{ q.name }}" value="{{ opt }}" {% if opt|in_list:ans_list %}checked{% endif %}>
-                {% endwith %}
-                <span class="square-indicator"></span>
-                <label class="option-label" for="{{ q.name }}_{{ forloop.counter }}">{{ opt }}</label>
-              </li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-          <div class="invalid-feedback d-block" style="display:none; color:#dc3545; font-weight:600; margin-top:6px;">
-            Please answer this question.
+      <!-- Q2 -->
+      <div class="form-section">
+        <div class="q-title">2. At what minimum age do you typically advise starting sunscreen use in babies?</div>
+        <ul class="option-list">
+          <li class="option-item"><input type="radio" id="q2_1" name="q2" value="above 6 months" {% if answers.q2 == 'above 6 months' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q2_1">above 6 months</label></li>
+          <li class="option-item"><input type="radio" id="q2_2" name="q2" value="Above 1 years" {% if answers.q2 == 'Above 1 years' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q2_2">Above 1 years</label></li>
+          <li class="option-item"><input type="radio" id="q2_3" name="q2" value="Above 3 years" {% if answers.q2 == 'Above 3 years' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q2_3">Above 3 years</label></li>
+          <li class="option-item"><input type="radio" id="q2_4" name="q2" value="Depends on the skin condition" {% if answers.q2 == 'Depends on the skin condition' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q2_4">Depends on the skin condition</label></li>
+          <li class="option-item"><input type="radio" id="q2_5" name="q2" value="I do not recommend sunscreen for babies" {% if answers.q2 == 'I do not recommend sunscreen for babies' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q2_5">I do not recommend sunscreen for babies</label></li>
+        </ul>
+      </div>
+
+      <!-- Q3 checkbox multi with other -->
+      <div class="form-section">
+        <div class="q-title">3. Under which conditions or indications do you usually recommend sunscreen for babies? (Select one)</div>
+        <ul class="option-list">
+          {% with ans3=answers.q3 %}
+          <li class="option-item"><input type="checkbox" id="q3_1" name="q3" value="Routine outdoor exposure" {% if ans3 and 'Routine outdoor exposure' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_1">Routine outdoor exposure</label></li>
+          <li class="option-item"><input type="checkbox" id="q3_2" name="q3" value="Atopic or sensitive skin" {% if ans3 and 'Atopic or sensitive skin' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_2">Atopic or sensitive skin</label></li>
+          <li class="option-item"><input type="checkbox" id="q3_3" name="q3" value="During vacations/travel to sunny regions" {% if ans3 and 'During vacations/travel to sunny regions' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_3">During vacations/travel to sunny regions</label></li>
+          <li class="option-item"><input type="checkbox" id="q3_4" name="q3" value="Family history of photodermatoses" {% if ans3 and 'Family history of photodermatoses' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_4">Family history of photodermatoses</label></li>
+          <li class="option-item"><input type="checkbox" id="q3_5" name="q3" value="Post-treatment for skin conditions (e.g., after topical steroids)" {% if ans3 and 'Post-treatment for skin conditions (e.g., after topical steroids)' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_5">Post-treatment for skin conditions (e.g., after topical steroids)</label></li>
+          <li class="option-item"><input type="checkbox" id="q3_6" name="q3" value="To prevent tanning or pigmentation" {% if ans3 and 'To prevent tanning or pigmentation' in ans3 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q3_6">To prevent tanning or pigmentation</label></li>
+          <li class="option-item">
+            <input type="checkbox" id="q3_7" name="q3" value="Other" {% if ans3 and 'Other' in ans3 %}checked{% endif %}>
+            <span class="square-indicator"></span>
+            <label class="option-label" for="q3_7">Other (please specify):</label>
+          </li>
+          <div class="ml-4 mb-2 d-none" id="q3_other_wrap">
+            <input type="text" class="form-control" id="q3_other" name="q3_other" value="{{ answers.q3_other|default:'' }}" placeholder="Please specify" />
           </div>
-        </div>
-      {% endfor %}
+          {% endwith %}
+        </ul>
+      </div>
+
+      <!-- Q4 checkbox multi -->
+      <div class="form-section">
+        <div class="q-title">4. What key factors do you consider while recommending a baby sunscreen? (Select multiple options)</div>
+        {% with ans4=answers.q4 %}
+        <ul class="option-list">
+          <li class="option-item"><input type="checkbox" id="q4_1" name="q4" value="Mineral/physical filters (zinc oxide, titanium dioxide)" {% if ans4 and 'Mineral/physical filters (zinc oxide, titanium dioxide)' in ans4 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q4_1">Mineral/physical filters (zinc oxide, titanium dioxide)</label></li>
+          <li class="option-item"><input type="checkbox" id="q4_2" name="q4" value="Fragrance-free formulation" {% if ans4 and 'Fragrance-free formulation' in ans4 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q4_2">Fragrance-free formulation</label></li>
+          <li class="option-item"><input type="checkbox" id="q4_3" name="q4" value="Water resistance" {% if ans4 and 'Water resistance' in ans4 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q4_3">Water resistance</label></li>
+          <li class="option-item"><input type="checkbox" id="q4_4" name="q4" value="Broad-spectrum protection (UVA/UVB)" {% if ans4 and 'Broad-spectrum protection (UVA/UVB)' in ans4 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q4_4">Broad-spectrum protection (UVA/UVB)</label></li>
+          <li class="option-item"><input type="checkbox" id="q4_5" name="q4" value="SPF value" {% if ans4 and 'SPF value' in ans4 %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q4_5">SPF value</label></li>
+        </ul>
+        {% endwith %}
+      </div>
+
+      <!-- Q5 radio with details when Yes -->
+      <div class="form-section">
+        <div class="q-title">5. Have you observed any common skin reactions or issues related to sunscreen use in babies?</div>
+        <ul class="option-list">
+          <li class="option-item"><input type="radio" id="q5_yes" name="q5" value="Yes" {% if answers.q5 == 'Yes' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q5_yes">Yes (please specify):</label></li>
+          <div class="ml-4 mb-2 d-none" id="q5_details_wrap">
+            <input type="text" class="form-control" id="q5_details" name="q5_details" value="{{ answers.q5_details|default:'' }}" placeholder="Please specify" />
+          </div>
+          <li class="option-item"><input type="radio" id="q5_no" name="q5" value="No" {% if answers.q5 == 'No' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q5_no">No</label></li>
+        </ul>
+      </div>
+
+      <!-- Q6 -->
+      <div class="form-section">
+        <div class="q-title">6. In your experience, how receptive are parents to sunscreen recommendations for their babies?</div>
+        <ul class="option-list">
+          <li class="option-item"><input type="radio" id="q6_1" name="q6" value="Very receptive" {% if answers.q6 == 'Very receptive' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q6_1">Very receptive</label></li>
+          <li class="option-item"><input type="radio" id="q6_2" name="q6" value="Somewhat receptive" {% if answers.q6 == 'Somewhat receptive' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q6_2">Somewhat receptive</label></li>
+          <li class="option-item"><input type="radio" id="q6_3" name="q6" value="Indifferent" {% if answers.q6 == 'Indifferent' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q6_3">Indifferent</label></li>
+          <li class="option-item"><input type="radio" id="q6_4" name="q6" value="Resistant" {% if answers.q6 == 'Resistant' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q6_4">Resistant</label></li>
+        </ul>
+      </div>
+
+      <!-- Q7 open-ended -->
+      <div class="form-section">
+        <div class="q-title">7. Which sunscreen brands do you most frequently recommend for children under 5?</div>
+        <textarea class="form-control" id="q7_text" name="q7_text" rows="3" placeholder="Type your response here">{{ answers.q7_text|default:'' }}</textarea>
+      </div>
+
+      <!-- Q8 -->
+      <div class="form-section">
+        <div class="q-title">8. What formulation do you prefer recommending for babies?</div>
+        <ul class="option-list">
+          <li class="option-item"><input type="radio" id="q8_1" name="q8" value="Cream" {% if answers.q8 == 'Cream' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q8_1">Cream</label></li>
+          <li class="option-item"><input type="radio" id="q8_2" name="q8" value="Lotion" {% if answers.q8 == 'Lotion' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q8_2">Lotion</label></li>
+          <li class="option-item"><input type="radio" id="q8_3" name="q8" value="Gel" {% if answers.q8 == 'Gel' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q8_3">Gel</label></li>
+          <li class="option-item"><input type="radio" id="q8_4" name="q8" value="Spray" {% if answers.q8 == 'Spray' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q8_4">Spray</label></li>
+          <li class="option-item"><input type="radio" id="q8_5" name="q8" value="Stick" {% if answers.q8 == 'Stick' %}checked{% endif %}><span class="square-indicator"></span><label class="option-label" for="q8_5">Stick</label></li>
+        </ul>
+      </div>
 
       <div class="d-flex justify-content-between">
         <button type="submit" name="submit_action" value="save" class="btn btn-ghost">Save Draft</button>
@@ -89,64 +159,73 @@
       (function(){
         var form = document.querySelector('form');
         if(!form) return;
-        // Helper to update answered state styling per section immediately on selection
-        function updateSectionAnswered(sec){
-          var qname = sec.getAttribute('data-qname');
-          var qtype = sec.getAttribute('data-qtype');
-          var answered = false;
-          if(qtype === 'radio'){
-            answered = !!form.querySelector('input[name="'+qname+'"]:checked');
-          } else if(qtype === 'checkbox'){
-            var checked = form.querySelectorAll('input[name="'+qname+'"]:checked');
-            answered = checked && checked.length > 0;
-          }
-          if(answered){
-            sec.classList.add('answered');
-            var err = sec.querySelector('.invalid-feedback');
-            if(err){ err.style.display = 'none'; }
-            sec.style.border = '';
+
+        function toggleExtras(){
+          var q3Other = document.getElementById('q3_7');
+          var q3Wrap = document.getElementById('q3_other_wrap');
+          if(q3Other && q3Wrap){ q3Wrap.classList.toggle('d-none', !q3Other.checked); }
+          var q5Yes = document.getElementById('q5_yes');
+          var q5Wrap = document.getElementById('q5_details_wrap');
+          if(q5Yes && q5Wrap){ q5Wrap.classList.toggle('d-none', !q5Yes.checked); }
+        }
+
+        function isSectionAnswered(sec){
+          var radios = sec.querySelectorAll('input[type="radio"]');
+          var checks = sec.querySelectorAll('input[type="checkbox"]');
+          var textarea = sec.querySelector('textarea');
+          if(radios.length){ return !!sec.querySelector('input[type="radio"]:checked'); }
+          if(checks.length){ return sec.querySelectorAll('input[type="checkbox"]:checked').length > 0; }
+          if(textarea){ return textarea.value.trim().length > 0; }
+          return true;
+        }
+
+        function validateAll(){
+          var ok = true;
+          var firstBad = null;
+          var sections = form.querySelectorAll('.form-section');
+          sections.forEach(function(sec){
+            var answered = isSectionAnswered(sec);
+            sec.classList.toggle('invalid', !answered);
+            if(answered){ sec.classList.add('answered'); } else { sec.classList.remove('answered'); }
+            if(!answered && !firstBad){ firstBad = sec; }
+          });
+          if(firstBad){ firstBad.scrollIntoView({behavior:'smooth', block:'center'}); }
+          return ok && !firstBad;
+        }
+
+        function enforceSingleSelectQ3(changed){
+          var q3Inputs = form.querySelectorAll('input[name="q3"]');
+          if(changed){
+            q3Inputs.forEach(function(inp){ if(inp !== changed){ inp.checked = false; } });
           } else {
-            sec.classList.remove('answered');
+            // On init: if multiple are checked, keep the first
+            var checked = Array.from(q3Inputs).filter(function(i){ return i.checked; });
+            if(checked.length > 1){
+              checked.slice(1).forEach(function(i){ i.checked = false; });
+            }
           }
         }
 
-        // Attach change listeners to all inputs to toggle green styling instantly
-        var sectionsInit = form.querySelectorAll('.form-section');
-        sectionsInit.forEach(function(sec){
-          var inputs = sec.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-          inputs.forEach(function(inp){
-            inp.addEventListener('change', function(){ updateSectionAnswered(sec); });
-          });
-          // Initialize on load in case of pre-filled values
-          updateSectionAnswered(sec);
+        form.addEventListener('change', function(e){
+          if(e.target){
+            if(e.target.name === 'q3'){
+              enforceSingleSelectQ3(e.target);
+            }
+            if(e.target.name === 'q3' || e.target.name === 'q5'){
+              toggleExtras();
+            }
+          }
+          // live validation on any change
+          validateAll();
         });
 
+        // initial state
+        toggleExtras();
+        enforceSingleSelectQ3(null);
+        validateAll();
+
         form.addEventListener('submit', function(e){
-          var ok = true;
-          var sections = form.querySelectorAll('.form-section');
-          sections.forEach(function(sec){
-            var qname = sec.getAttribute('data-qname');
-            var qtype = sec.getAttribute('data-qtype');
-            var err = sec.querySelector('.invalid-feedback');
-            if(err){ err.style.display = 'none'; }
-            sec.style.borderColor = '';
-            var answered = false;
-            if(qtype === 'radio'){
-              answered = !!form.querySelector('input[name="'+qname+'"]:checked');
-            } else if(qtype === 'checkbox') {
-              var checked = form.querySelectorAll('input[name="'+qname+'"]:checked');
-              answered = checked && checked.length > 0;
-            }
-            if(!answered){
-              ok = false;
-              if(err){ err.style.display = 'block'; }
-              sec.style.border = '1px solid #dc3545';
-              sec.scrollIntoView({behavior:'smooth', block:'center'});
-            }
-            // keep answered class in sync on submit validation
-            if(answered){ sec.classList.add('answered'); } else { sec.classList.remove('answered'); }
-          });
-          if(!ok){
+          if(!validateAll()){
             e.preventDefault();
           }
         });
