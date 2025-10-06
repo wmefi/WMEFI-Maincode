@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-c$-2hc3l=(l9841mb0ldi!(#kx%tk3i+o3!px1^h97tar$#-u=
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()) + ['wtest-gc-7xuq.onrender.com']
 
 
