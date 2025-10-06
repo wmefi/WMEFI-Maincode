@@ -990,6 +990,23 @@ def get_doctor_survey_api(request):
     except Doctor.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Doctor not found'})
 
+def admin_dashboard(request):
+    """Admin dashboard view"""
+    doctors = Doctor.objects.all().order_by('-created_at')
+    surveys = Survey.objects.all().order_by('-created_at')
+    agreements = Agreement.objects.filter(signed_at__isnull=False).order_by('-signed_at')
+    
+    context = {
+        'doctors': doctors,
+        'surveys': surveys,
+        'agreements': agreements,
+        'total_doctors': doctors.count(),
+        'total_surveys': surveys.count(),
+        'total_agreements': agreements.count(),
+    }
+    
+    return render(request, 'wtestapp/admin_dashboard.html', context)
+
 def sign_agreement(request):
     """View to handle agreement signing"""
     if 'doctor_id' not in request.session:

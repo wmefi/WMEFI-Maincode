@@ -18,4 +18,5 @@ urlpatterns = [
     path('download-survey/<int:response_id>/', views.download_survey_pdf, name='download_survey_pdf'),
     path('sign-agreement/', views.sign_agreement, name='sign_agreement'),
     path('api/get-doctor-survey/', views.get_doctor_survey_api, name='get_doctor_survey_api'),
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
 ]
