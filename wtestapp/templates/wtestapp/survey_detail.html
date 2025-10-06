@@ -24,14 +24,61 @@
     .option-item input[type="radio"]:checked + .square-indicator,
     .option-item input[type="checkbox"]:checked + .square-indicator{ background: var(--pink); border-color: var(--purple); box-shadow: 0 0 0 2px rgba(230,100,162,.15); }
     .option-label{ margin:0; color:#7b3f63; }
+    .btn-back{ 
+        background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); 
+        border: 2px solid var(--pink); 
+        color: var(--purple); 
+        padding: 10px 24px; 
+        font-size: 1.1rem; 
+        font-weight: 600; 
+        border-radius: 8px; 
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-back:hover{ 
+        background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%); 
+        color: #fff; 
+        border-color: var(--purple);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3);
+    }
+    .btn-back i {
+        margin-right: 8px;
+    }
+    .btn-save-draft {
+        background: #fff;
+        border: 2px solid var(--purple);
+        color: var(--purple);
+        padding: 10px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-save-draft:hover {
+        background: var(--purple);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(192, 118, 158, 0.3);
+    }
+    .gap-3 > * + * {
+        margin-left: 15px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container my-4">
     <div class="survey-card">
-        <h3 class="mb-2" style="font-size: 1.75rem; font-weight: 700;">{{ survey.title }}</h3>
-        <p class="text-muted mb-4">{{ survey.description }}</p>
+        {% with page_title=survey_json_data.title|default:survey.title %}
+        <h3 class="mb-2" style="font-size: 1.75rem; font-weight: 700;">{{ page_title }}</h3>
+        {% endwith %}
+        {% with page_desc=survey_json_data.description|default:survey.description %}
+        {% if page_desc %}
+        <p class="text-muted mb-4">{{ page_desc }}</p>
+        {% endif %}
+        {% endwith %}
 
         {% if messages %}
             {% for message in messages %}
@@ -41,23 +88,91 @@
 
         <form method="post">
             {% csrf_token %}
-            {% for question in questions %}
+            
+            {% if questions_json %}
+                <!-- Display questions from JSON file -->
+                {% for question in questions_json %}
+                <div class="form-section">
+                    <div class="q-title">{{ forloop.counter }}. {{ question.text }}{% if question.required %}<span class="required">*</span>{% endif %}</div>
+                    <div class="mt-2">
+                        {% if question.type == 'text' %}
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="question_{{ forloop.counter0 }}" value="{{ existing_answers_json|get_item:question.text|default:'' }}" {% if question.required %}required{% endif %} {% if view_mode %}readonly{% endif %}>
+                            </div>
+                        {% elif question.type == 'textarea' %}
+                            <div class="form-group">
+                                <textarea class="form-control" name="question_{{ forloop.counter0 }}" rows="3" {% if question.required %}required{% endif %} {% if view_mode %}readonly{% endif %}>{{ existing_answers_json|get_item:question.text|default:'' }}</textarea>
+                            </div>
+                        {% elif question.type == 'radio' %}
+                            <ul class="option-list">
+                                {% for option in question.options %}
+                                <li class="option-item">
+                                    <input type="radio" id="q{{ forloop.parentloop.counter0 }}_o{{ forloop.counter }}" name="question_{{ forloop.parentloop.counter0 }}" value="{{ option }}" {% if question.required and forloop.first %}required{% endif %} {% if view_mode %}disabled{% endif %} {% if existing_answers_json|get_item:question.text == option %}checked{% endif %}>
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ forloop.parentloop.counter0 }}_o{{ forloop.counter }}">{{ option }}</label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% elif question.type == 'checkbox' %}
+                            <ul class="option-list">
+                                {% for option in question.options %}
+                                <li class="option-item">
+                                    {% with saved=existing_answers_json|get_item:question.text %}
+                                    <input type="checkbox" id="q{{ forloop.parentloop.counter0 }}_o{{ forloop.counter }}" name="question_{{ forloop.parentloop.counter0 }}" value="{{ option }}" {% if view_mode %}disabled{% endif %} {% if saved and option in saved %}checked{% endif %}>
+                                    {% endwith %}
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ forloop.parentloop.counter0 }}_o{{ forloop.counter }}">{{ option }}</label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% elif question.type == 'yesno' %}
+                            <ul class="option-list">
+                                <li class="option-item">
+                                    <input type="radio" id="q{{ forloop.counter0 }}_yes" name="question_{{ forloop.counter0 }}" value="Yes" {% if question.required %}required{% endif %} {% if view_mode %}disabled{% endif %} {% if existing_answers_json|get_item:question.text == 'Yes' %}checked{% endif %}>
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ forloop.counter0 }}_yes">Yes</label>
+                                </li>
+                                <li class="option-item">
+                                    <input type="radio" id="q{{ forloop.counter0 }}_no" name="question_{{ forloop.counter0 }}" value="No" {% if view_mode %}disabled{% endif %} {% if existing_answers_json|get_item:question.text == 'No' %}checked{% endif %}>
+                                    <span class="square-indicator"></span>
+                                    <label class="option-label" for="q{{ forloop.counter0 }}_no">No</label>
+                                </li>
+                            </ul>
+                        {% elif question.type == 'number' %}
+                            <div class="form-group">
+                                <input type="number" class="form-control" name="question_{{ forloop.counter0 }}" value="{{ existing_answers_json|get_item:question.text|default:'' }}" {% if question.required %}required{% endif %} {% if view_mode %}readonly{% endif %}>
+                            </div>
+                        {% elif question.type == 'email' %}
+                            <div class="form-group">
+                                <input type="email" class="form-control" name="question_{{ forloop.counter0 }}" value="{{ existing_answers_json|get_item:question.text|default:'' }}" {% if question.required %}required{% endif %} {% if view_mode %}readonly{% endif %}>
+                            </div>
+                        {% elif question.type == 'phone' %}
+                            <div class="form-group">
+                                <input type="tel" pattern="[0-9]{10}" class="form-control" name="question_{{ forloop.counter0 }}" placeholder="10-digit phone number" value="{{ existing_answers_json|get_item:question.text|default:'' }}" {% if question.required %}required{% endif %} {% if view_mode %}readonly{% endif %}>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Fallback: Display questions from database -->
+                {% for question in questions %}
                 <div class="form-section">
                     <div class="q-title">{{ forloop.counter }}. {{ question.question_text }}</div>
                     <div class="mt-2">
                         {% if question.question_type == 'text' %}
                             <div class="form-group">
-                                <input type="text" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                                <input type="text" class="form-control" name="question_{{ question.id }}" value="{{ existing_answers|get_item:question.id|default:'' }}">
                             </div>
                         {% elif question.question_type == 'textarea' %}
                             <div class="form-group">
-                                <textarea class="form-control" name="question_{{ question.id }}" rows="3">{{ answers_map|get_item:question.id|default:'' }}</textarea>
+                                <textarea class="form-control" name="question_{{ question.id }}" rows="3">{{ existing_answers|get_item:question.id|default:'' }}</textarea>
                             </div>
                         {% elif question.question_type == 'radio' %}
                             <ul class="option-list">
                                 {% for option in question.options %}
                                 <li class="option-item">
-                                    <input type="radio" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% if answers_map|get_item:question.id == option %}checked{% endif %}>
+                                    <input type="radio" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% if existing_answers|get_item:question.id == option %}checked{% endif %}>
                                     <span class="square-indicator"></span>
                                     <label class="option-label" for="q{{ question.id }}_o{{ forloop.counter }}">{{ option }}</label>
                                 </li>
@@ -67,7 +182,7 @@
                             <ul class="option-list">
                                 {% for option in question.options %}
                                 <li class="option-item">
-                                    <input type="checkbox" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% with selected_answers=answers_map|get_item:question.id %}{% if selected_answers and option in selected_answers %}checked{% endif %}{% endwith %}>
+                                    <input type="checkbox" id="q{{ question.id }}_o{{ forloop.counter }}" name="question_{{ question.id }}" value="{{ option }}" {% with selected_answers=existing_answers|get_item:question.id %}{% if selected_answers and option in selected_answers %}checked{% endif %}{% endwith %}>
                                     <span class="square-indicator"></span>
                                     <label class="option-label" for="q{{ question.id }}_o{{ forloop.counter }}">{{ option }}</label>
                                 </li>
@@ -75,38 +190,69 @@
                             </ul>
                         {% elif question.question_type == 'yesno' %}
                             <div class="custom-control custom-radio">
-                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_yes" name="question_{{ question.id }}" value="Yes" {% if answers_map|get_item:question.id == 'Yes' %}checked{% endif %}>
+                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_yes" name="question_{{ question.id }}" value="Yes" {% if existing_answers|get_item:question.id == 'Yes' %}checked{% endif %}>
                                 <label class="custom-control-label" for="question_{{ question.id }}_yes">Yes</label>
                             </div>
                             <div class="custom-control custom-radio">
-                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_no" name="question_{{ question.id }}" value="No" {% if answers_map|get_item:question.id == 'No' %}checked{% endif %}>
+                                <input class="custom-control-input" type="radio" id="question_{{ question.id }}_no" name="question_{{ question.id }}" value="No" {% if existing_answers|get_item:question.id == 'No' %}checked{% endif %}>
                                 <label class="custom-control-label" for="question_{{ question.id }}_no">No</label>
                             </div>
                         {% elif question.question_type == 'rating' %}
                             <div class="form-group">
-                                <input type="range" class="form-control-range" name="question_{{ question.id }}" min="1" max="5" step="1" value="{{ answers_map|get_item:question.id|default:'3' }}" oninput="document.getElementById('rating_val_{{ question.id }}').innerText=this.value">
-                                <div class="small text-muted">Selected: <span id="rating_val_{{ question.id }}">{{ answers_map|get_item:question.id|default:'3' }}</span>/5</div>
+                                <input type="range" class="form-control-range" name="question_{{ question.id }}" min="1" max="5" step="1" value="{{ existing_answers|get_item:question.id|default:'3' }}" oninput="document.getElementById('rating_val_{{ question.id }}').innerText=this.value">
+                                <div class="small text-muted">Selected: <span id="rating_val_{{ question.id }}">{{ existing_answers|get_item:question.id|default:'3' }}</span>/5</div>
                             </div>
                         {% elif question.question_type == 'number' %}
                             <div class="form-group">
-                                <input type="number" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                                <input type="number" class="form-control" name="question_{{ question.id }}" value="{{ existing_answers|get_item:question.id|default:'' }}">
                             </div>
                         {% elif question.question_type == 'email' %}
                             <div class="form-group">
-                                <input type="email" class="form-control" name="question_{{ question.id }}" value="{{ answers_map|get_item:question.id|default:'' }}">
+                                <input type="email" class="form-control" name="question_{{ question.id }}" value="{{ existing_answers|get_item:question.id|default:'' }}">
                             </div>
                         {% elif question.question_type == 'phone' %}
                             <div class="form-group">
-                                <input type="tel" pattern="[0-9]{10}" class="form-control" name="question_{{ question.id }}" placeholder="10-digit phone number" value="{{ answers_map|get_item:question.id|default:'' }}">
+                                <input type="tel" pattern="[0-9]{10}" class="form-control" name="question_{{ question.id }}" placeholder="10-digit phone number" value="{{ existing_answers|get_item:question.id|default:'' }}">
                             </div>
                         {% endif %}
                     </div>
                 </div>
-            {% endfor %}
-            <div class="d-flex justify-content-between">
-                <button type="submit" name="submit_action" value="save" class="btn btn-outline-secondary">Save Draft</button>
-                <button type="submit" name="submit_action" value="submit" class="btn btn-primary btn-lg">Submit Survey</button>
+                {% endfor %}
+            {% endif %}
+            
+            {% if not view_mode %}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{% url 'surveys' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Surveys</a>
+                <div class="d-flex gap-3">
+                    <button type="submit" name="submit_action" value="save" class="btn btn-save-draft"><i class="fas fa-save"></i> Save Draft</button>
+                    <button type="submit" name="submit_action" value="submit" class="btn btn-primary btn-lg"><i class="fas fa-paper-plane"></i> Submit Survey</button>
+                </div>
             </div>
+            <script>
+              // Optional auto-save on change (non-blocking)
+              document.addEventListener('DOMContentLoaded', function(){
+                const form = document.forms[0];
+                let timer;
+                function queueSave(){
+                  clearTimeout(timer);
+                  timer = setTimeout(()=>{
+                    const data = new FormData(form);
+                    data.set('submit_action','save');
+                    fetch(window.location.href, { method:'POST', body:data, headers:{ 'X-Requested-With':'XMLHttpRequest' } })
+                      .catch(()=>{});
+                  }, 600);
+                }
+                form.querySelectorAll('input,textarea,select').forEach(el=>{
+                  el.addEventListener('change', queueSave);
+                  el.addEventListener('input', queueSave);
+                });
+              });
+            </script>
+            {% else %}
+            <div class="d-flex justify-content-start mt-4">
+                <a href="{% url 'surveys' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Surveys</a>
+            </div>
+            {% endif %}
         </form>
     </div>
 </div>

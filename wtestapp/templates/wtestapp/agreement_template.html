@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Doctor Agreement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .content {
+            margin-bottom: 20px;
+        }
+        .signature-section {
+            margin-top: 50px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Doctor Agreement</div>
+        <div>Date: {{ date }}</div>
+    </div>
+
+    <div class="content">
+        <p>This agreement is made between:</p>
+        
+        <table>
+            <tr>
+                <th>Doctor Details</th>
+                <th>Information</th>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td>{{ doctor.first_name }} {{ doctor.last_name }}</td>
+            </tr>
+            <tr>
+                <td>Registration No.</td>
+                <td>{{ doctor.mci_registration }}</td>
+            </tr>
+            <tr>
+                <td>Specialty</td>
+                <td>{{ doctor.specialty }}</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>{{ doctor.email }}</td>
+            </tr>
+            <tr>
+                <td>Mobile</td>
+                <td>{{ doctor.mobile }}</td>
+            </tr>
+        </table>
+
+        <h3>Terms and Conditions</h3>
+        <ol>
+            <li>The doctor agrees to provide medical services as per the agreed terms.</li>
+            <li>The agreed compensation amount is Rs. {{ amount }}.</li>
+            <li>The doctor confirms their credentials and qualifications as stated above.</li>
+            <li>The doctor agrees to maintain patient confidentiality and follow medical ethics.</li>
+            <li>This agreement is valid from the date of signing.</li>
+        </ol>
+
+        <div class="signature-section">
+            <p><strong>Doctor's Signature:</strong> _______________________</p>
+            <p><strong>Date:</strong> {{ date }}</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This is a computer-generated document and does not require a physical signature.</p>
+    </div>
+</body>
+</html>

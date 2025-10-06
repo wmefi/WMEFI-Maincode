@@ -13,7 +13,7 @@ class OTPVerificationForm(forms.Form):
         'placeholder': 'Enter OTP'
     }))
 
-class DoctorProfileForm(forms.ModelForm):
+class DoctorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set initial value for profession field
@@ -29,12 +29,11 @@ class DoctorProfileForm(forms.ModelForm):
         model = Doctor
         fields = [
             'mobile', 'first_name', 'last_name', 'email', 'gender', 'address',
-            'state', 'city', 'pincode', 'profession', 'specialty', 'degree',
+            'state', 'city', 'pincode', 'date_of_birth', 'profession', 'specialty', 'degree',
             'diploma', 'pg_degree', 'diplomate', 'superspeciality',
             'mci_registration', 'pan', 'pan_copy', 'cancelled_cheque',
             'prescription_name', 'prescription_file', 'clinic_name', 'qualification',
-            'gst_number', 'has_gst', 'bank_account_name', 'bank_name',
-            'account_no', 'branch', 'ifsc'
+            'gst_number', 'has_gst'
         ]
         widgets = {
             'mobile': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mobile Number'}),
@@ -46,6 +45,7 @@ class DoctorProfileForm(forms.ModelForm):
             'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
             'pincode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pincode'}),
+            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'YYYY-MM-DD', 'type': 'date'}),
             'specialty': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specialty'}),
             'degree': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Degree'}),
             'diploma': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Diploma'}),
@@ -57,11 +57,6 @@ class DoctorProfileForm(forms.ModelForm):
             'clinic_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Clinic Name'}),
             'qualification': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Qualification'}),
             'gst_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'GST Number'}),
-            'bank_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name as per Bank Account'}),
-            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Name'}),
-            'account_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account No'}),
-            'branch': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch'}),
-            'ifsc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC'}),
             'prescription_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Prescription Name'}),
         }
 

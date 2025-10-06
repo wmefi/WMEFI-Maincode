@@ -4,58 +4,636 @@
 
 {% block style %}
 <style>
-  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
-  body{ background:var(--bg); }
-  .profile-wrap{ max-width: 980px; margin: 28px auto; }
-  .card{ background:var(--card); border:1px solid var(--pink); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
-  .card-body{ padding: 22px 22px; }
-  .header{ display:flex; align-items:center; justify-content:space-between; padding: 18px 22px; border-bottom:1px solid #f7c8dc; }
-  .header-top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .header-left{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; min-width: 0; }
-  /* Place action buttons centered on their own row */
-  .header-right{ display:flex; gap:12px; flex-wrap:wrap; width:100%; justify-content:center; margin-left:0; padding-top:6px; }
-  .avatar{ width:46px; height:46px; border-radius:50%; background:#f7d7e7; color:#9a547a; display:flex; align-items:center; justify-content:center; font-weight:700; flex:0 0 auto; }
-  .title-wrap{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .title{ font-size:22px; font-weight:800; color:#9a547a; margin:0; }
-  .chips{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .chip{ display:inline-flex; align-items:center; gap:6px; border:1px solid #e0b0c8; color:#9a547a; padding:6px 10px; border-radius:999px; font-weight:600; background:#fff; }
-  .chip.success{ border-color:#7bc27f; color:#2f8f35; background:#e8f7e9; }
-  .btn-outline{ border:1px solid #c0769e; color:#c0769e; background:#fff; padding:10px 16px; border-radius:12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.05); }
-  .btn-outline:hover{ background:#c0769e; color:#fff; }
-  .section{ padding:18px 20px; }
-  .section-title{ font-weight:800; color:#9a547a; }
-  .divider{ height:1px; background:#f2c3db; margin:8px 0 16px; }
-  .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px; }
-  .label{ font-weight:700; color:#a66386; }
-  .value{ color:#6b3c57; }
-  @media (max-width:768px){ .grid{ grid-template-columns: 1fr; } .header-top{ flex-direction:column; align-items:flex-start; } .header-right{ width:100%; justify-content:flex-start; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { 
+    --primary: #e664a2; 
+    --primary-dark: #c0769e; 
+    --secondary: #9a547a;
+    --accent: #f7c8dc; 
+    --card: #ffffff;
+    --text-dark: #6b3c57;
+    --text-light: #a66386;
+    --success: #28a745;
+    --success-bg: #d4edda;
+  }
+  body { 
+    background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%); 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    min-height: 100vh; 
+    padding: 0;
+    margin: 0;
+  }
+  .profile-wrap { 
+    max-width: 1200px; 
+    margin: 30px auto 60px; 
+    padding: 0 20px;
+    animation: fadeInUp 0.6s ease-out; 
+  }
+  @keyframes fadeInUp { 
+    from { opacity: 0; transform: translateY(30px); } 
+    to { opacity: 1; transform: translateY(0); } 
+  }
+  .card { 
+    background: var(--card); 
+    border: 2px solid var(--accent); 
+    border-radius: 24px; 
+    box-shadow: 0 15px 40px rgba(230, 100, 162, 0.15); 
+    overflow: hidden; 
+    transition: all 0.3s ease; 
+  }
+  .card:hover { 
+    box-shadow: 0 20px 50px rgba(230, 100, 162, 0.25); 
+    transform: translateY(-2px); 
+  }
+  .header { 
+    background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); 
+    padding: 25px 30px; 
+    border-bottom: 2px solid var(--accent); 
+  }
+  .header-top { 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: space-between; 
+    gap: 20px; 
+    flex-wrap: wrap; 
+  }
+  .header-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    flex: 1; 
+    min-width: 0; 
+  }
+  .avatar { 
+    width: 65px; 
+    height: 65px; 
+    border-radius: 50%; 
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+    color: #fff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 900; 
+    font-size: 26px; 
+    flex-shrink: 0; 
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.3); 
+    border: 3px solid #fff; 
+  }
+  .title-wrap { 
+    flex: 1; 
+    min-width: 0; 
+  }
+  .title { 
+    font-size: 28px; 
+    font-weight: 900; 
+    color: var(--secondary); 
+    margin-bottom: 12px; 
+    line-height: 1.2; 
+  }
+  .chips { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    flex-wrap: wrap; 
+    margin-top: 8px; 
+  }
+  .chip { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    border: 2px solid var(--accent); 
+    color: var(--secondary); 
+    padding: 8px 14px; 
+    border-radius: 50px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    background: #fff; 
+    transition: all 0.3s ease; 
+  }
+  .chip:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(230, 100, 162, 0.2); 
+  }
+  .chip i { 
+    color: var(--primary); 
+    font-size: 14px; 
+  }
+  .chip.success { 
+    border-color: var(--success); 
+    color: var(--success); 
+    background: var(--success-bg); 
+  }
+  .chip.success i { 
+    color: var(--success); 
+  }
+  .header-right { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+    align-items: center; 
+  }
+  .btn-outline { 
+    border: 2px solid var(--primary) !important; 
+    color: var(--primary) !important; 
+    background: #fff !important; 
+    padding: 12px 20px; 
+    border-radius: 14px; 
+    font-weight: 700; 
+    font-size: 14px; 
+    text-decoration: none; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    transition: all 0.3s ease; 
+    box-shadow: 0 4px 12px rgba(230, 100, 162, 0.1); 
+    white-space: nowrap; 
+    outline: none !important;
+  }
+  .btn-outline:focus {
+    border: 2px solid var(--primary) !important;
+    outline: none !important;
+    box-shadow: 0 4px 12px rgba(230, 100, 162, 0.1) !important;
+  }
+  .btn-outline:active {
+    border: 2px solid var(--primary) !important;
+    outline: none !important;
+    transform: translateY(1px);
+  }
+  .btn-outline:hover { 
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+    color: #fff; 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.3); 
+  }
+  .btn-outline i { 
+    font-size: 16px; 
+  }
+  .dropdown { 
+    position: relative; 
+    display: inline-block; 
+  }
+  .dropdown .btn-outline {
+    transition: all 0.3s ease;
+  }
+  .dropdown .btn-outline:hover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    color: #fff !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.3);
+  }
+  .dropdown .btn-outline:hover i {
+    color: #fff !important;
+  }
+  .dropdown-content { 
+    display: none; 
+    position: absolute; 
+    background: #fff; 
+    min-width: 260px; 
+    box-shadow: 0 12px 40px rgba(230, 100, 162, 0.2); 
+    border-radius: 14px; 
+    z-index: 1000; 
+    border: 2px solid var(--accent); 
+    margin-top: 8px; 
+    right: 0; 
+    max-height: 300px; 
+    overflow-y: auto; 
+  }
+  .dropdown:hover .dropdown-content,
+  .dropdown .btn-outline:hover + .dropdown-content { 
+    display: block; 
+  }
+  .dropdown-content:hover {
+    display: block;
+  }
+  .dropdown-content a { 
+    color: var(--text-dark); 
+    padding: 12px 16px; 
+    text-decoration: none; 
+    display: block; 
+    font-size: 14px; 
+    font-weight: 600; 
+    transition: all 0.3s ease; 
+    border-bottom: 1px solid #f7d7e7; 
+  }
+  .dropdown-btn {
+    cursor: pointer;
+    border: 2px solid var(--primary) !important;
+    background: #fff !important;
+    color: var(--primary) !important;
+  }
+  .download-link {
+    cursor: pointer !important;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  .download-link:hover {
+    background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%) !important;
+    color: var(--primary) !important;
+    cursor: pointer !important;
+  }
+  .download-link:active {
+    transform: scale(0.98);
+    background: linear-gradient(135deg, #f7d7e7 0%, #fdeef4 100%) !important;
+    cursor: pointer !important;
+  }
+  .download-link:focus {
+    outline: none !important;
+    cursor: pointer !important;
+  }
+  .dropdown-content a:last-child { 
+    border-bottom: none; 
+  }
+  .dropdown-content a:hover { 
+    background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%); 
+    color: var(--primary); 
+  }
+  .dropdown-content a i { 
+    margin-right: 8px; 
+    color: var(--primary); 
+  }
+  .dropdown-content .no-surveys { 
+    padding: 20px 18px; 
+    text-align: center; 
+    color: #9a547a; 
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%);
+    border-radius: 8px;
+    margin: 8px;
+    line-height: 1.6;
+  }
+  .dropdown-content .no-surveys i {
+    display: block;
+    font-size: 28px;
+    color: #e664a2;
+    margin-bottom: 8px;
+  }
+  .card-body { 
+    padding: 30px 35px 40px; 
+  }
+  .section-title { 
+    font-weight: 800; 
+    color: var(--secondary); 
+    font-size: 17px; 
+    margin-top: 28px; 
+    margin-bottom: 4px; 
+    position: relative; 
+    padding-left: 16px; 
+  }
+  .section-title:before { 
+    content: ''; 
+    position: absolute; 
+    left: 0; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    width: 5px; 
+    height: 20px; 
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); 
+    border-radius: 3px; 
+  }
+  .section-title:first-of-type { 
+    margin-top: 0; 
+  }
+  .divider { 
+    height: 2px; 
+    background: linear-gradient(90deg, transparent, var(--accent), transparent); 
+    margin: 8px 0 18px; 
+  }
+  .grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 15px; 
+    margin-bottom: 12px; 
+  }
+  .grid > div { 
+    padding: 12px 14px; 
+    background: linear-gradient(135deg, #fafafa 0%, #fff 100%); 
+    border-radius: 10px; 
+    border: 1px solid #f7c8dc; 
+    transition: all 0.3s ease; 
+  }
+  .grid > div:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.1); 
+    border-color: var(--primary); 
+  }
+  .label { 
+    font-weight: 700; 
+    color: var(--text-light); 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    margin-bottom: 5px; 
+  }
+  .value { 
+    color: var(--text-dark); 
+    font-size: 14px; 
+    font-weight: 600; 
+    word-break: break-word; 
+  }
+  .value a { 
+    color: var(--primary); 
+    text-decoration: none; 
+    font-weight: 600; 
+    transition: all 0.3s ease; 
+  }
+  .value a:hover { 
+    color: var(--primary-dark); 
+    text-decoration: underline; 
+  }
+  .alert { 
+    padding: 16px 20px; 
+    margin-bottom: 24px; 
+    border-radius: 12px; 
+    font-weight: 600; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    animation: slideDown 0.4s ease-out; 
+  }
+  @keyframes slideDown { 
+    from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+  }
+  .alert-success { 
+    color: #155724; 
+    background: var(--success-bg); 
+    border: 2px solid var(--success); 
+  }
+  .alert-error, .alert-danger { 
+    color: #721c24; 
+    background: #f8d7da; 
+    border: 2px solid #dc3545; 
+  }
+  @media (max-width: 992px) { 
+    .header-top { 
+      flex-direction: column; 
+      align-items: flex-start; 
+    } 
+    .header-right { 
+      width: 100%; 
+      justify-content: flex-start; 
+    } 
+  }
+  @media (max-width: 768px) { 
+    .profile-wrap { 
+      padding: 0 10px; 
+      margin: 20px auto;
+    } 
+    .header { 
+      padding: 18px; 
+    } 
+    .card-body { 
+      padding: 18px; 
+    } 
+    .header-left { 
+      flex-direction: column; 
+      align-items: flex-start; 
+      gap: 14px; 
+    } 
+    .avatar { 
+      width: 55px; 
+      height: 55px; 
+      font-size: 22px; 
+    } 
+    .title { 
+      font-size: 20px; 
+    } 
+    .chip { 
+      font-size: 11px; 
+      padding: 5px 10px; 
+    } 
+    .btn-outline { 
+      width: 100%; 
+      justify-content: center; 
+      padding: 12px 14px; 
+      font-size: 13px;
+    } 
+    .dropdown { 
+      width: 100%; 
+    }
+    .dropdown .btn-outline {
+      width: 100%;
+    }
+    .dropdown-content { 
+      min-width: 100%; 
+      left: 0; 
+      right: auto; 
+    }
+    .section-title { 
+      font-size: 16px; 
+    } 
+    .grid { 
+      grid-template-columns: 1fr; 
+      gap: 12px; 
+    } 
+    .grid > div {
+      padding: 10px 12px;
+    }
+  }
+  @media (max-width: 480px) { 
+    .profile-wrap { 
+      margin: 15px auto;
+    } 
+    .card { 
+      border-radius: 14px; 
+    } 
+    .header { 
+      padding: 14px; 
+    } 
+    .card-body { 
+      padding: 14px; 
+    } 
+    .title { 
+      font-size: 18px; 
+    }
+    .section-title {
+      font-size: 15px;
+    }
+    .dropdown-content a {
+      font-size: 13px;
+      padding: 10px 14px;
+    }
+  }
+  
+  .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .custom-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: -20px;
+    transform: translateY(-5px);
+    background: linear-gradient(135deg, #fdeef4 0%, #fff 100%);
+    color: #c0769e;
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-align: left;
+    box-shadow: 0 8px 28px rgba(230, 100, 162, 0.35);
+    z-index: 10000;
+    transition: all 0.3s ease;
+    border: 2.5px solid #e664a2;
+    max-width: 280px;
+    width: max-content;
+    line-height: 1.5;
+  }
+  
+  .custom-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    right: 40px;
+    border: 9px solid transparent;
+    border-bottom-color: #e664a2;
+  }
+  
+  .custom-tooltip i {
+    margin-right: 6px;
+    font-size: 14px;
+  }
+  
+  .tooltip-wrapper:hover .custom-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    .tooltip-wrapper {
+      width: 100%;
+    }
+    .custom-tooltip {
+      max-width: 90vw;
+      left: 50%;
+      right: auto;
+      font-size: 13px;
+      padding: 12px 18px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .custom-tooltip {
+      max-width: 85vw;
+      font-size: 12px;
+      padding: 10px 16px;
+    }
+  }
 </style>
+<script>
+  // Make dropdown work better on mobile with click/tap
+  document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.querySelector('.dropdown');
+    const dropdownBtn = dropdown ? dropdown.querySelector('.btn-outline') : null;
+    const dropdownContent = dropdown ? dropdown.querySelector('.dropdown-content') : null;
+    
+    if (dropdownBtn && dropdownContent) {
+      // For mobile devices
+      if (window.innerWidth <= 768) {
+        dropdownBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (dropdownContent.style.display === 'block') {
+            dropdownContent.style.display = 'none';
+          } else {
+            dropdownContent.style.display = 'block';
+          }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target)) {
+            dropdownContent.style.display = 'none';
+          }
+        });
+      } else {
+        // For desktop, prevent button default action
+        dropdownBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+        });
+      }
+    }
+  });
+
+  // Handle download with proper feedback
+  function handleDownload(element) {
+    // Add loading state
+    element.style.opacity = '0.7';
+    element.style.pointerEvents = 'none';
+    
+    // Add loading text
+    const originalText = element.innerHTML;
+    element.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+    
+    // Reset after a short delay to allow download to start
+    setTimeout(function() {
+      element.style.opacity = '1';
+      element.style.pointerEvents = 'auto';
+      element.innerHTML = originalText;
+    }, 2000);
+  }
+</script>
 {% endblock %}
- 
 
 {% block content %}
 <div class="profile-wrap">
   <div class="card">
     <div class="header">
-    <div class="header-top">
-      <div class="header-left">
-        <div class="avatar">{{ doctor.first_name|default:doctor.last_name|first|upper|default:"?" }}</div>
-        <div class="title-wrap">
-          <h2 class="title">Doctor Profile</h2>
-          <div class="chips">
-            <span class="chip"><i class="fas fa-phone"></i> {{ doctor.mobile|default:"-" }}</span>
-            <span class="chip"><i class="fas fa-envelope"></i> {{ doctor.email|default:"-" }}</span>
-            {% if doctor.agreement_accepted %}<span class="chip success"><i class="fas fa-check"></i> Agreement Accepted</span>{% endif %}
+      <div class="header-top">
+        <div class="header-left">
+          <div class="avatar">{{ doctor.first_name|default:doctor.last_name|first|upper|default:"?" }}</div>
+          <div class="title-wrap">
+            <h2 class="title">Doctor Profile</h2>
+            <div class="chips">
+              <span class="chip"><i class="fas fa-mobile-alt"></i> {{ doctor.mobile|default:"-" }}</span>
+              <span class="chip"><i class="fas fa-envelope"></i> {{ doctor.email|default:"-" }}</span>
+              {% if doctor.agreement_accepted %}<span class="chip success"><i class="fas fa-check"></i> Agreement Accepted</span>{% endif %}
+            </div>
           </div>
         </div>
-      </div>
-      <div class="header-right">
-        <a href="{% url 'doctor_surveys_list' %}" class="btn-outline"><i class="fas fa-list-ul mr-1"></i> My Surveys</a>
-        <a href="{% url 'download_agreement_pdf' %}" class="btn-outline"><i class="fas fa-file-pdf mr-1"></i> Agreement PDF</a>
+        <div class="header-right">
+          <a href="{% url 'surveys' %}" class="btn-outline"><i class="fas fa-list-ul"></i> My Surveys</a>
+          <div class="dropdown">
+            <button class="btn-outline dropdown-btn">
+              <i class="fas fa-file-download"></i> Survey PDFs <i class="fas fa-chevron-down" style="font-size: 12px; margin-left: 4px;"></i>
+            </button>
+            <div class="dropdown-content">
+              {% if completed_surveys %}
+                {% for response in completed_surveys %}
+                  <a href="{% url 'download_survey_pdf' response.id %}" class="download-link" onclick="handleDownload(this)">
+                    <i class="fas fa-file-pdf"></i> {{ response.survey.title }}
+                    <br><small style="color: var(--text-light); font-size: 11px; margin-left: 22px;">Completed: {{ response.completed_at|date:"d M Y" }}</small>
+                  </a>
+                {% endfor %}
+              {% else %}
+                <div class="no-surveys">
+                  <i class="fas fa-clipboard-list"></i>
+                  No completed surveys yet
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          {% if agreement and agreement.signed_at %}
+          <a href="javascript:void(0);" class="btn-outline download-link" onclick="showAgreementOTPModal()"><i class="fas fa-file-pdf"></i> Agreement PDF</a>
+          {% else %}
+          <div class="tooltip-wrapper" style="position: relative; display: inline-block;">
+            <button class="btn-outline" style="opacity: 0.6; cursor: not-allowed;" disabled>
+              <i class="fas fa-file-pdf"></i> Agreement PDF
+            </button>
+            <span class="custom-tooltip">
+              <i class="fas fa-exclamation-circle"></i> Please sign the agreement first
+            </span>
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
- 
 
     <div class="card-body">
       {% if messages %}
@@ -64,7 +642,7 @@
         {% endfor %}
       {% endif %}
 
-      <div class="section-title">Basic Information</div>
+      <div class="section-title">Personal Details</div>
       <div class="divider"></div>
       <div class="grid">
         <div>
@@ -76,40 +654,58 @@
           <div class="value">{{ doctor.last_name|default:"Not provided" }}</div>
         </div>
         <div>
+          <div class="label">Mobile Number</div>
+          <div class="value">{{ doctor.mobile|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Email</div>
+          <div class="value">{{ doctor.email|default:"Not provided" }}</div>
+        </div>
+        <div>
           <div class="label">Gender</div>
           <div class="value">{{ doctor.gender|default:"Not provided" }}</div>
         </div>
-        <!-- <div>
-          <div class="label">Profession</div>
-          <div class="value">{{ doctor.profession|default:"Not provided" }}</div>
-        </div>
-      </div> -->
-
-      <div class="section-title mt-3">Contact & Address</div>
-      <div class="divider"></div>
-      <div class="grid">
-        <div style="grid-column:1 / span 2;">
-          <div class="label">Address</div>
-          <div class="value">{{ doctor.address|default:"Not provided" }}, {{ doctor.city|default:"" }}, {{ doctor.state|default:"" }} - {{ doctor.pincode|default:"" }}</div>
+        <div>
+          <div class="label">Date of Birth</div>
+          <div class="value">{% if doctor.date_of_birth %}{{ doctor.date_of_birth|date:"d M Y" }}{% else %}Not provided{% endif %}</div>
         </div>
       </div>
 
-      <div class="section-title mt-3">Professional</div>
+      <div class="section-title">Address</div>
       <div class="divider"></div>
       <div class="grid">
+        <div style="grid-column: 1 / -1;">
+          <div class="label">Address</div>
+          <div class="value">{{ doctor.address|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">State</div>
+          <div class="value">{{ doctor.state|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">City</div>
+          <div class="value">{{ doctor.city|default:"Not provided" }}</div>
+        </div>
+        <div>
+          <div class="label">Pincode</div>
+          <div class="value">{{ doctor.pincode|default:"Not provided" }}</div>
+        </div>
+      </div>
+
+      <div class="section-title">Professional Details</div>
+      <div class="divider"></div>
+      <div class="grid">
+        <div>
+          <div class="label">Profession</div>
+          <div class="value">{{ doctor.profession|default:"Not provided" }}</div>
+        </div>
         <div>
           <div class="label">Specialty</div>
           <div class="value">{{ doctor.specialty|default:"Not provided" }}</div>
         </div>
-        {% if doctor.clinic_name %}
         <div>
-          <div class="label">Clinic Name</div>
-          <div class="value">{{ doctor.clinic_name }}</div>
-        </div>
-        {% endif %}
-        <div>
-          <div class="label">Qualification</div>
-          <div class="value">{{ doctor.qualification|default:"Not provided" }}</div>
+          <div class="label">Degree</div>
+          <div class="value">{{ doctor.degree|default:"Not provided" }}</div>
         </div>
         <div>
           <div class="label">MCI Registration No</div>
@@ -117,59 +713,231 @@
         </div>
       </div>
 
-      <div class="grid">
-        <div>
-          <div class="label">PAN Card</div>
-          <div class="value">{{ doctor.pan|default:"Not provided" }}</div>
-        </div>
-        <div>
-          <div class="label">GST Number</div>
-          <div class="value">{% if doctor.has_gst %}{{ doctor.gst_number|default:"Not provided" }}{% else %}Not Registered{% endif %}</div>
-        </div>
-      </div>
-
-      <div class="section-title mt-3">Bank Details</div>
+      <div class="section-title">GST Information</div>
       <div class="divider"></div>
       <div class="grid">
         <div>
-          <div class="label">Account Name</div>
-          <div class="value">{{ doctor.bank_account_name|default:"Not provided" }}</div>
+          <div class="label">GST Status</div>
+          <div class="value">{% if doctor.has_gst %}Registered{% else %}Not Registered{% endif %}</div>
         </div>
+        {% if doctor.has_gst %}
         <div>
-          <div class="label">Bank Name</div>
-          <div class="value">{{ doctor.bank_name|default:"Not provided" }}</div>
+          <div class="label">GST Number</div>
+          <div class="value">{{ doctor.gst_number|default:"Not provided" }}</div>
         </div>
-        <div>
-          <div class="label">Account No</div>
-          <div class="value">{{ doctor.account_no|default:"Not provided" }}</div>
-        </div>
-        <div>
-          <div class="label">Branch</div>
-          <div class="value">{{ doctor.branch|default:"Not provided" }}</div>
-        </div>
-        <div>
-          <div class="label">IFSC</div>
-          <div class="value">{{ doctor.ifsc|default:"Not provided" }}</div>
-        </div>
+        {% endif %}
       </div>
 
-      <div class="section-title mt-3">Documents</div>
+      <div class="section-title">Documents</div>
       <div class="divider"></div>
       <div class="grid">
         <div>
           <div class="label">PAN Copy</div>
-          <div class="value">{% if doctor.pan_copy %}<a href="{{ doctor.pan_copy.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
+          <div class="value">{% if doctor.pan_copy %}<a href="{{ doctor.pan_copy.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
         </div>
-        <!-- <div>
+        {% if doctor.has_gst %}
+        <div>
+          <div class="label">GST Certificate</div>
+          <div class="value">{% if doctor.gst_certificate %}<a href="{{ doctor.gst_certificate.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
+        </div>
+        {% endif %}
+        {% if doctor.portal_type == 'CP' %}
+        <div>
           <div class="label">Cancelled Cheque</div>
-          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank">View Document</a>{% endif %}</div>
-        </div> -->
+          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
+        </div>
+        {% endif %}
         <div>
           <div class="label">Prescription</div>
-          <div class="value">{% if doctor.prescription_file %}<a href="{{ doctor.prescription_file.url }}" target="_blank">View Document</a>{% else %}Not uploaded{% endif %}</div>
+          <div class="value">{% if doctor.prescription_file %}<a href="{{ doctor.prescription_file.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<div id="agreementOTPModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 35px; border-radius: 15px; max-width: 450px; width: 90%; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+    <h2 style="margin: 0 0 8px 0; color: #9a547a; font-weight: 800; text-align: center; font-size: 1.6rem;">Verify OTP</h2>
+    <p id="otpSentMessage" style="margin: 0 0 20px 0; color: #6c757d; text-align: center; font-size: 0.95rem;"></p>
+    
+    <div id="otpErrorMessage" style="display: none; background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 0.9rem; font-weight: 600;"></div>
+    
+    <div id="otpTestingMessage" style="display: none; background: #c8f7d8; border: 2px solid #28a745; border-radius: 12px; padding: 12px 15px; margin-bottom: 18px;">
+      <div style="color: #1e7e34; font-weight: 600; margin-bottom: 5px; font-size: 0.8rem; text-align: center;">For testing: Your OTP is</div>
+      <div id="otpTestingCode" style="color: #28a745; font-size: 1.4rem; font-weight: 700; letter-spacing: 10px; font-family: 'Courier New', monospace; text-align: center;"></div>
+    </div>
+    
+    <div id="otpInputSection" style="display: none;">
+      <div style="margin-bottom: 18px;">
+        <div class="otp-input-wrapper" style="display: flex; align-items: center; border: 2px solid #e7b3cd; border-radius: 12px; overflow: hidden; background: white; transition: all 0.3s;">
+          <span style="background: transparent; padding: 12px 15px; display: flex; align-items: center;">
+            <i class="fas fa-lock" style="color: #e664a2; font-size: 16px;"></i>
+          </span>
+          <input type="text" id="agreementOTPInput" placeholder="Enter 6-digit OTP" maxlength="6" pattern="[0-9]{6}" style="flex: 1; padding: 12px 15px 12px 5px; border: none; outline: none; font-size: 1rem; letter-spacing: 2px; color: #333; background: transparent;">
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="verifyAgreementOTP()" class="otp-verify-btn" style="flex: 1; padding: 13px; background: #e664a2; color: white; border: 2px solid #e664a2; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: all 0.3s ease;">Verify</button>
+        <button onclick="closeAgreementOTPModal()" class="otp-cancel-btn" style="flex: 1; padding: 13px; background: #6c757d; color: white; border: 2px solid #6c757d; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: all 0.3s ease;">Cancel</button>
+      </div>
+    </div>
+    
+    <div id="otpLoadingSection" style="display: none; text-align: center; padding: 15px;">
+      <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #e664a2; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <p style="margin-top: 12px; color: #6c757d; font-size: 0.9rem;">Please wait...</p>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.otp-input-wrapper:hover {
+  border-color: #e664a2 !important;
+  box-shadow: 0 0 0 3px rgba(230,100,162,0.1);
+}
+.otp-input-wrapper:focus-within {
+  border-color: #e664a2 !important;
+  box-shadow: 0 0 0 3px rgba(230,100,162,0.15);
+}
+.otp-verify-btn {
+  position: relative;
+  overflow: hidden;
+}
+.otp-verify-btn:hover {
+  background: white !important;
+  color: #e664a2 !important;
+  border-color: #e664a2 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230,100,162,0.3);
+}
+.otp-verify-btn:active {
+  transform: translateY(0px);
+}
+.otp-cancel-btn {
+  position: relative;
+  overflow: hidden;
+}
+.otp-cancel-btn:hover {
+  background: white !important;
+  color: #6c757d !important;
+  border-color: #6c757d !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108,117,125,0.2);
+}
+.otp-cancel-btn:active {
+  transform: translateY(0px);
+}
+</style>
+
+<script>
+function showAgreementOTPModal() {
+  const modal = document.getElementById('agreementOTPModal');
+  const sentMessage = document.getElementById('otpSentMessage');
+  const errorMessage = document.getElementById('otpErrorMessage');
+  const testingMessage = document.getElementById('otpTestingMessage');
+  const testingCode = document.getElementById('otpTestingCode');
+  const inputSection = document.getElementById('otpInputSection');
+  const loadingSection = document.getElementById('otpLoadingSection');
+  
+  modal.style.display = 'flex';
+  sentMessage.textContent = 'Sending OTP...';
+  errorMessage.style.display = 'none';
+  testingMessage.style.display = 'none';
+  inputSection.style.display = 'none';
+  loadingSection.style.display = 'block';
+  
+  fetch("{% url 'request_agreement_otp' %}")
+    .then(response => response.json())
+    .then(data => {
+      loadingSection.style.display = 'none';
+      if (data.success) {
+        sentMessage.textContent = `OTP sent to ${data.mobile}`;
+        testingCode.textContent = data.otp;
+        testingMessage.style.display = 'block';
+        inputSection.style.display = 'block';
+        errorMessage.style.display = 'none';
+      } else {
+        errorMessage.textContent = 'Error: ' + data.message;
+        errorMessage.style.display = 'block';
+        sentMessage.textContent = '';
+        setTimeout(closeAgreementOTPModal, 3000);
+      }
+    })
+    .catch(error => {
+      loadingSection.style.display = 'none';
+      errorMessage.textContent = 'Error sending OTP. Please try again.';
+      errorMessage.style.display = 'block';
+      sentMessage.textContent = '';
+      setTimeout(closeAgreementOTPModal, 3000);
+    });
+}
+
+function verifyAgreementOTP() {
+  const otpInput = document.getElementById('agreementOTPInput');
+  const otp = otpInput.value.trim();
+  
+  if (otp.length !== 6) {
+    alert('Please enter a valid 6-digit OTP');
+    return;
+  }
+  
+  const sentMessage = document.getElementById('otpSentMessage');
+  const errorMessage = document.getElementById('otpErrorMessage');
+  const testingMessage = document.getElementById('otpTestingMessage');
+  const inputSection = document.getElementById('otpInputSection');
+  const loadingSection = document.getElementById('otpLoadingSection');
+  
+  sentMessage.textContent = 'Verifying OTP...';
+  errorMessage.style.display = 'none';
+  testingMessage.style.display = 'none';
+  inputSection.style.display = 'none';
+  loadingSection.style.display = 'block';
+  
+  const formData = new FormData();
+  formData.append('otp', otp);
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  
+  fetch("{% url 'verify_agreement_otp' %}", {
+    method: 'POST',
+    body: formData
+  })
+    .then(response => response.json())
+    .then(data => {
+      loadingSection.style.display = 'none';
+      if (data.success) {
+        sentMessage.textContent = 'OTP verified! Downloading agreement...';
+        errorMessage.style.display = 'none';
+        setTimeout(() => {
+          window.location.href = "{% url 'download_agreement' %}";
+          closeAgreementOTPModal();
+        }, 1000);
+      } else {
+        errorMessage.textContent = data.message;
+        errorMessage.style.display = 'block';
+        sentMessage.textContent = '';
+        inputSection.style.display = 'block';
+        testingMessage.style.display = 'block';
+        otpInput.value = '';
+      }
+    })
+    .catch(error => {
+      loadingSection.style.display = 'none';
+      errorMessage.textContent = 'Error verifying OTP. Please try again.';
+      errorMessage.style.display = 'block';
+      sentMessage.textContent = '';
+      inputSection.style.display = 'block';
+      testingMessage.style.display = 'block';
+    });
+}
+
+function closeAgreementOTPModal() {
+  const modal = document.getElementById('agreementOTPModal');
+  modal.style.display = 'none';
+  document.getElementById('agreementOTPInput').value = '';
+}
+</script>
 {% endblock %}

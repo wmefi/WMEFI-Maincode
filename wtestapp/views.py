@@ -1,890 +1,1033 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, Http404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login as auth_login, logout as auth_logout
-from django.contrib.auth.models import User
-from django.urls import reverse # Import reverse
-from django.http import HttpResponse, JsonResponse # Import HttpResponse, JsonResponse
-from django.template.loader import get_template # Import get_template
 from django.utils import timezone
-from django.conf import settings # Import settings
-from django.contrib.staticfiles.finders import find # Import find
-from xhtml2pdf import pisa # Import pisa
-from io import BytesIO # Import BytesIO
-import os # Import os
+from django.contrib.auth.decorators import login_required
+from .models import Doctor, CustomUser, Survey, Agreement, Question, SurveyResponse, Answer, SurveyAssignment
+from .utils import send_sms
+from .forms import DoctorForm
+import logging
 import json
-import pandas as pd
-from django.db import models, transaction # Re-add transaction
+from django.forms.models import model_to_dict
+from django.utils import timezone
+from django.http import JsonResponse
 
-from .models import Doctor, Survey, Question, Answer, Agreement, SurveyResponse
-from .forms import SurveyUploadForm, DoctorProfileForm
+logger = logging.getLogger(__name__)
 
-# Utility function to handle static files for xhtml2pdf
-def link_callback(uri, rel):
-    sUrl = settings.STATIC_URL      # Typically /static/
-    sRoot = settings.STATIC_ROOT    # Typically /full/path/to/static/
-    mUrl = settings.MEDIA_URL       # Typically /media/
-    mRoot = settings.MEDIA_ROOT     # Typically /full/path/to/media/
-
-    print(f"DEBUG: link_callback called with uri: {uri}, rel: {rel}")
-    print(f"DEBUG: settings.STATIC_URL: {sUrl}, settings.STATIC_ROOT: {sRoot}")
-    print(f"DEBUG: settings.MEDIA_URL: {mUrl}, settings.MEDIA_ROOT: {mRoot}")
-
-    if uri.startswith(mUrl):
-        path = os.path.join(mRoot, uri.replace(mUrl, ""))
-        print(f"DEBUG: Resolved path (media): {path}")
-    elif uri.startswith(sUrl):
-        path = os.path.join(sRoot, uri.replace(sUrl, ""))
-        print(f"DEBUG: Resolved path (static 1): {path}")
-        if not os.path.exists(path):
-            path = find(uri.replace(sUrl, ''))
-            print(f"DEBUG: Resolved path (static 2 - find): {path}")
-    else:
-        print(f"DEBUG: URI not starting with static/media URL: {uri}")
-        return uri
-
+def doctor_surveys_list(request):
+    """View to display all surveys assigned to a doctor"""
+    if 'mobile' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
     try:
-        if path and os.path.isfile(path):
-            return path
-        # Fallback: return original URI so xhtml2pdf doesn't crash; asset may still render if accessible
-        print(f"PDF warn: unresolved asset: {uri} -> {path}")
-        return uri
-    except Exception as e:
-        # Last-resort fallback: do not break PDF generation
-        print(f"PDF warn: link_callback error for {uri}: {e}")
-        return uri
+        doctor = None
+        doctor_id = request.session.get('doctor_id')
+        if doctor_id:
+            doctor = Doctor.objects.get(id=doctor_id)
+            
+            pending_tasks = request.session.get('pending_tasks', [])
+            if pending_tasks:
+                for task in pending_tasks:
+                    messages.info(request, task)
+                del request.session['pending_tasks']
+        else:
+            mobile = request.session.get('mobile')
+            if mobile:
+                try:
+                    doctor = Doctor.objects.get(mobile=mobile)
+                except Doctor.DoesNotExist:
+                    custom_user = CustomUser.objects.get(mobile=mobile)
+                    doctor = Doctor.objects.get(custom_user=custom_user)
+        if not doctor:
+            raise Doctor.DoesNotExist("Doctor not found in session context")
+        
+        # Get all surveys assigned to this doctor
+        assigned_surveys = Survey.objects.filter(assigned_to=doctor)
+        
+        # Get survey responses to track completion status
+        completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).values_list('survey_id', flat=True)
+        
+        context = {
+            'doctor': doctor,
+            'surveys': assigned_surveys,
+            'completed_surveys': list(completed_surveys)
+        }
+        
+        return render(request, 'wtestapp/doctor_surveys.html', context)
+    except (CustomUser.DoesNotExist, Doctor.DoesNotExist):
+        messages.error(request, "User or doctor profile not found")
+        return redirect('login')
 
+def survey_detail(request, survey_id):
+    """View to display and handle survey questions and responses"""
+    if 'mobile' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    try:
+        doctor = None
+        doctor_id = request.session.get('doctor_id')
+        if doctor_id:
+            doctor = Doctor.objects.get(id=doctor_id)
+        else:
+            mobile = request.session.get('mobile')
+            if mobile:
+                try:
+                    doctor = Doctor.objects.get(mobile=mobile)
+                except Doctor.DoesNotExist:
+                    custom_user = CustomUser.objects.get(mobile=mobile)
+                    doctor = Doctor.objects.get(custom_user=custom_user)
+        if not doctor:
+            raise Doctor.DoesNotExist("Doctor not found in session context")
+        survey = get_object_or_404(Survey, id=survey_id)
+        
+        # Check if survey is assigned to this doctor
+        if doctor not in survey.assigned_to.all():
+            messages.error(request, "This survey is not assigned to you")
+            return redirect('surveys')
+        
+        # If user is explicitly viewing, don't redirect even if completed
+        view_mode = request.GET.get('view') == '1'
+        existing_response = SurveyResponse.objects.filter(doctor=doctor, survey=survey, is_completed=True).first()
+        if existing_response and not view_mode:
+            messages.info(request, "You have already completed this survey")
+            return redirect('survey_done', response_id=existing_response.id)
+        
+        # Get or create survey response
+        survey_response, created = SurveyResponse.objects.get_or_create(
+            doctor=doctor,
+            survey=survey,
+            defaults={'is_completed': False}
+        )
+        
+        # Read JSON file for questions
+        survey_json_data = None
+        questions_from_json = []
+        existing_answers_json = {}
+        if survey.survey_json:
+            try:
+                import json
+                with survey.survey_json.open('r') as f:
+                    survey_json_data = json.load(f)
+                    # Extract and normalize questions from JSON
+                    raw_questions = []
+                    if isinstance(survey_json_data, dict):
+                        # Prefer 'questions', but auto-detect common alternatives
+                        raw_questions = (
+                            survey_json_data.get('questions')
+                            or survey_json_data.get('items')
+                            or survey_json_data.get('fields')
+                            or survey_json_data.get('form')
+                            or []
+                        )
+                    elif isinstance(survey_json_data, list):
+                        raw_questions = survey_json_data
+
+                    normalized_questions = []
+                    for q in raw_questions:
+                        if not isinstance(q, dict):
+                            continue
+                        text = (
+                            q.get('text')
+                            or q.get('question')
+                            or q.get('question_text')
+                            or q.get('label')
+                            or q.get('title')
+                            or ''
+                        )
+                        qtype = (
+                            q.get('type')
+                            or q.get('question_type')
+                            or ('radio' if (q.get('options') or q.get('choices') or q.get('options_list')) else 'text')
+                        )
+                        # Map common aliases to our template-supported types
+                        type_map = {
+                            'single': 'radio',
+                            'multiple': 'checkbox',
+                            'boolean': 'yesno',
+                            'long_text': 'textarea',
+                        }
+                        qtype = type_map.get(str(qtype).lower(), str(qtype).lower())
+
+                        options = (
+                            q.get('options')
+                            or q.get('choices')
+                            or q.get('option')
+                            or q.get('values')
+                            or q.get('data')
+                            or []
+                        )
+                        required = bool(q.get('required') or q.get('is_required') or q.get('mandatory'))
+
+                        normalized_questions.append({
+                            'text': text,
+                            'type': qtype,
+                            'options': options,
+                            'required': required,
+                        })
+
+                    questions_from_json = normalized_questions
+
+                    # Preload existing answers mapped by question text for JSON mode
+                    related_questions = Question.objects.filter(survey=survey)
+                    question_text_to_id = {q.question_text: q.id for q in related_questions}
+                    if question_text_to_id:
+                        for qtext, qid in question_text_to_id.items():
+                            ans = Answer.objects.filter(survey_response=survey_response, question_id=qid).first()
+                            if ans and ans.answer_text is not None:
+                                existing_answers_json[qtext] = ans.answer_text
+            except Exception as e:
+                logger.error(f"Error reading survey JSON: {str(e)}")
+                messages.error(request, "Error loading survey questions")
+        
+        # Fallback to database questions if no JSON
+        questions_from_db = Question.objects.filter(survey=survey).order_by('order')
+        
+        # Handle form submission
+        if request.method == 'POST':
+            submit_action = request.POST.get('submit_action', 'submit')
+            # Process answers from JSON questions
+            if questions_from_json:
+                for idx, q in enumerate(questions_from_json):
+                    # Normalize text and type
+                    qtext = (
+                        q.get('text')
+                        or q.get('question')
+                        or q.get('question_text')
+                        or q.get('label')
+                        or q.get('title')
+                        or f'Question {idx+1}'
+                    )
+                    qtype = (
+                        q.get('type')
+                        or q.get('question_type')
+                        or ('radio' if (q.get('options') or q.get('choices') or q.get('option') or q.get('values') or q.get('data')) else 'text')
+                    )
+                    options = (
+                        q.get('options')
+                        or q.get('choices')
+                        or q.get('option')
+                        or q.get('values')
+                        or q.get('data')
+                        or []
+                    )
+
+                    # Ensure a matching Question exists for storing Answer records
+                    question_obj, _ = Question.objects.get_or_create(
+                        survey=survey,
+                        question_text=qtext,
+                        defaults={
+                            'question_type': qtype if qtype in dict(Question.QUESTION_TYPES) else 'text',
+                            'options': options if isinstance(options, list) else [],
+                            'order': idx,
+                            'is_required': bool(q.get('required') or q.get('is_required') or q.get('mandatory')),
+                        }
+                    )
+
+                    # Read answer(s) from POST
+                    name_key = f'question_{idx}'
+                    if str(qtype).lower() == 'checkbox':
+                        selected = request.POST.getlist(name_key)
+                        answer_value = ', '.join(selected)
+                    else:
+                        answer_value = request.POST.get(name_key, '')
+
+                    # Save or update Answer
+                    Answer.objects.update_or_create(
+                        survey_response=survey_response,
+                        question=question_obj,
+                        defaults={'answer_text': answer_value}
+                    )
+
+                # Update completion state based on action
+                if submit_action == 'save':
+                    survey_response.is_completed = False
+                else:
+                    survey_response.is_completed = True
+                    survey_response.completed_at = timezone.now()
+                survey_response.save()
+                
+            else:
+                # Process answers from database questions
+                for question in questions_from_db:
+                    # For DB questions, support checkboxes via getlist
+                    key = f'question_{question.id}'
+                    if question.question_type == 'checkbox':
+                        selected = request.POST.getlist(key)
+                        answer_text = ', '.join(selected)
+                    else:
+                        answer_text = request.POST.get(key, '')
+                    
+                    # Save or update answer
+                    answer, created = Answer.objects.update_or_create(
+                        survey_response=survey_response,
+                        question=question,
+                        defaults={'answer_text': answer_text}
+                    )
+                
+                # Update completion state based on action
+                if submit_action == 'save':
+                    survey_response.is_completed = False
+                else:
+                    survey_response.is_completed = True
+                    survey_response.completed_at = timezone.now()
+                survey_response.save()
+            
+            # On save, keep user on the page; on submit, go to done page
+            if submit_action == 'save':
+                # If AJAX autosave, return JSON
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({ 'status': 'saved' })
+                messages.success(request, "Draft saved")
+                return redirect('survey_detail', survey_id=survey.id)
+            else:
+                messages.success(request, "Survey completed successfully")
+                return redirect('survey_done', response_id=survey_response.id)
+        
+        # Get existing answers if any
+        existing_answers = {}
+        for answer in Answer.objects.filter(survey_response=survey_response):
+            existing_answers[answer.question.id] = answer.answer_text
+        
+        context = {
+            'doctor': doctor,
+            'survey': survey,
+            'questions': questions_from_db,  # Database questions (fallback)
+            'questions_json': questions_from_json,  # JSON questions
+            'existing_answers': existing_answers,
+            'survey_json_data': survey_json_data,
+            'existing_answers_json': existing_answers_json,
+            'view_mode': view_mode
+        }
+        
+        return render(request, 'wtestapp/survey_detail.html', context)
+    
+    except (CustomUser.DoesNotExist, Doctor.DoesNotExist) as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('login')
+
+def survey_done(request, response_id):
+    """View to display after survey completion"""
+    if 'mobile' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    try:
+        doctor = None
+        doctor_id = request.session.get('doctor_id')
+        if doctor_id:
+            doctor = Doctor.objects.get(id=doctor_id)
+        else:
+            mobile = request.session.get('mobile')
+            if mobile:
+                try:
+                    doctor = Doctor.objects.get(mobile=mobile)
+                except Doctor.DoesNotExist:
+                    custom_user = CustomUser.objects.get(mobile=mobile)
+                    doctor = Doctor.objects.get(custom_user=custom_user)
+        if not doctor:
+            raise Doctor.DoesNotExist("Doctor not found in session context")
+        survey_response = get_object_or_404(SurveyResponse, id=response_id, doctor=doctor)
+        
+        context = {
+            'doctor': doctor,
+            'survey_response': survey_response,
+            'survey': survey_response.survey
+        }
+        
+        return render(request, 'wtestapp/survey_done.html', context)
+    
+    except (CustomUser.DoesNotExist, Doctor.DoesNotExist):
+        messages.error(request, "User or doctor profile not found")
+        return redirect('login')
 
 def index(request):
     return redirect('login')
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import transaction, IntegrityError
+from .models import CustomUser, Doctor, Survey, Agreement
+import random
 
-def _get_portal_from_request(request):
-    path = request.path.lower()
-    if path.startswith('/cp/'):
-        return 'CP'
-    if path.startswith('/gc/'):
-        return 'GC'
-    return None
-
+def get_user_completion_status(doctor):
+    """Check what tasks are pending for a doctor"""
+    pending_tasks = []
+    redirect_url = None
+    
+    profile_complete = all([
+        doctor.first_name,
+        doctor.last_name,
+        doctor.email,
+        doctor.profession,
+        doctor.specialty
+    ])
+    
+    if not profile_complete:
+        pending_tasks.append('Profile is incomplete')
+        if not redirect_url:
+            redirect_url = 'doctor_profile'
+    
+    agreement_signed = Agreement.objects.filter(doctor=doctor, signed_at__isnull=False).exists()
+    if not agreement_signed:
+        pending_tasks.append('Please review and sign the agreement to proceed')
+        if not redirect_url:
+            assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
+            if assigned_survey:
+                redirect_url = ('agreement_page', {'survey_id': assigned_survey.id})
+            else:
+                redirect_url = 'doctor_profile'
+    
+    assigned_surveys = Survey.objects.filter(assigned_to=doctor)
+    completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).values_list('survey_id', flat=True)
+    pending_surveys = assigned_surveys.exclude(id__in=completed_surveys)
+    
+    if pending_surveys.exists():
+        pending_tasks.append('Complete your pending surveys to finish your registration')
+        if not redirect_url:
+            redirect_url = ('survey_detail', {'survey_id': pending_surveys.first().id})
+    
+    return {
+        'has_pending': len(pending_tasks) > 0,
+        'pending_tasks': pending_tasks,
+        'redirect_url': redirect_url,
+        'all_complete': len(pending_tasks) == 0
+    }
 
 def login(request):
     if request.method == 'POST':
         mobile = request.POST.get('mobile')
-        if mobile:
-            username = f"doctor_{mobile}"
-            user, created = User.objects.get_or_create(username=username)
-            if created:
-                user.set_unusable_password()
-                user.save()
+        if mobile and len(mobile) == 10 and mobile.isdigit():
+            # Generate a 6-digit OTP
+            otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
             
-            # Store mobile and portal in session to pass to verify_otp for Doctor object update
+            # Store mobile and OTP in session
             request.session['mobile'] = mobile
-            request.session['username'] = username
-            portal = _get_portal_from_request(request)
-            if portal:
-                request.session['portal_type'] = portal
-
-            messages.success(request, f'OTP sent to {mobile}. (Simulated OTP: 1234)')
+            request.session['otp'] = otp
+            
+            # For development, print OTP to console and show success message
+            print(f"OTP for {mobile}: {otp}")
+            messages.success(request, f'OTP sent to {mobile}')
+            
+            # Add debug message to display OTP on page
+            messages.info(request, f'For testing: Your OTP is {otp}')
+            
             return redirect('verify_otp')
         else:
-            messages.error(request, 'Mobile number is required.')
+            messages.error(request, 'Please enter a valid 10-digit mobile number')
+    
     return render(request, 'wtestapp/login.html')
 
-
 def verify_otp(request):
+    mobile = request.session.get('mobile')
+    if not mobile:
+        messages.error(request, 'Session expired. Please login again.')
+        return redirect('login')
+        
     if request.method == 'POST':
         otp = request.POST.get('otp')
-        if otp == '1234':
-            mobile = request.session.get('mobile')
-            username = request.session.get('username')
-            portal = request.session.get('portal_type')
-            if mobile and username:
-                user = User.objects.get(username=username)
-
-                auth_login(request, user)
-
-                # Ensure Doctor object exists or is created here, with mobile updated
-                doctor, created = Doctor.objects.get_or_create(
-                    user=user,
-                    defaults={'mobile': mobile} # Ensure mobile is set on creation
-                )
-                if not created and doctor.mobile != mobile:
-                    doctor.mobile = mobile
-                # Set portal_type if not set
-                if portal and (doctor.portal_type != portal):
-                    doctor.portal_type = portal
-                doctor.save()
-
-                # Initialize agreement amount rotation for new users: start at Rs 2000
-                if created:
-                    request.session['agreement_amount_index'] = 1  # 0=>1000, 1=>2000, 2=>25000
-
-                if 'mobile' in request.session: del request.session['mobile']
-                if 'username' in request.session: del request.session['username']
-                if 'portal_type' in request.session: del request.session['portal_type']
-
-                messages.success(request, 'Login successful!')
-                return redirect('doctor_profile') # Always redirect to doctor_profile for initial check
-            else:
-                messages.error(request, 'Session data missing. Please try logging in again.')
-                return redirect('login')
-        else:
-            messages.error(request, 'Invalid OTP.')
-    return render(request, 'wtestapp/otp.html')
-
-
-@login_required
-def doctor_profile(request):
-    # This view acts as a gateway to either view or edit the profile
-    try:
-        doctor = Doctor.objects.get(user=request.user)
-        # First: Check profile completeness
-        if not all([
-            doctor.first_name, doctor.last_name, doctor.email, doctor.mobile,
-            doctor.address, doctor.specialty, doctor.mci_registration, doctor.pan
-        ]):
-            messages.info(request, "Please complete your doctor profile.")
-            return redirect('doctor_profile_edit')
-
-        # Second: If profile is complete, check agreement
-        if not doctor.agreement_accepted:
-            return redirect('agreement_page')
-
-        # Finally: everything ok, show profile view
-        return redirect('doctor_profile_view')
-    except Doctor.DoesNotExist:
-        # If Doctor object doesn't exist, it means a new user logged in
-        messages.info(request, "Please create your doctor profile.")
-        return redirect('doctor_profile_edit')
-
-
-@login_required
-def doctor_profile_view(request):
-    try:
-        doctor = Doctor.objects.get(user=request.user)
-    except Doctor.DoesNotExist:
-        # This should ideally not happen if doctor_profile redirects correctly
-        messages.error(request, "Doctor profile not found. Please complete your profile.")
-        return redirect('doctor_profile_edit')
+        stored_otp = request.session.get('otp')
         
-    context = {'doctor': doctor}
-    return render(request, 'wtestapp/doctor_profile_view.html', context)
-
-
-@login_required
-def doctor_profile_edit(request):
-    try:
-        doctor = Doctor.objects.get(user=request.user)
-    except Doctor.DoesNotExist:
-        doctor = Doctor(user=request.user)  # Create a new unsaved Doctor instance
-
-    if request.method == 'POST':
-        form = DoctorProfileForm(request.POST, request.FILES, instance=doctor)
-        if form.is_valid():
-            # Custom handling for has_gst = False to clear gst_number
-            if not form.cleaned_data.get('has_gst'):
-                doctor.gst_number = ''
-            # Always set profession to 'Dr.'
-            doctor.profession = 'Dr.'
-            # Ensure mobile is populated: try existing, posted, or derive from username
-            if not doctor.mobile:
-                posted_mobile = request.POST.get('mobile')
-                if posted_mobile:
-                    doctor.mobile = posted_mobile
-                else:
-                    uname = request.user.username or ''
-                    if uname.startswith('doctor_') and len(uname) > 7:
-                        doctor.mobile = uname.split('doctor_', 1)[1]
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            # After saving profile, proceed to Agreement page
-            return redirect('agreement_page')
-    else:
-        form = DoctorProfileForm(instance=doctor)
-
-    context = {'form': form, 'doctor': doctor}
-    return render(request, 'wtestapp/doctor_profile.html', context)
-
-
-@login_required
-def doctor_profile_gc(request):
-    try:
-        doctor = Doctor.objects.get(user=request.user)
-    except Doctor.DoesNotExist:
-        doctor = Doctor(user=request.user)
-
-    if request.method == 'POST':
-        form = DoctorProfileForm(request.POST, request.FILES, instance=doctor)
-        if form.is_valid():
-            if not form.cleaned_data.get('has_gst'):
-                doctor.gst_number = ''
-            if not form.cleaned_data.get('profession'):
-                doctor.profession = 'Doctor'
-            if not doctor.mobile:
-                posted_mobile = request.POST.get('mobile')
-                if posted_mobile:
-                    doctor.mobile = posted_mobile
-                else:
-                    uname = request.user.username or ''
-                    if uname.startswith('doctor_') and len(uname) > 7:
-                        doctor.mobile = uname.split('doctor_', 1)[1]
-            form.save()
-            messages.success(request, 'Profile (GC) updated successfully!')
-            return redirect('agreement_page')
-    else:
-        form = DoctorProfileForm(instance=doctor)
-
-    context = {'form': form, 'doctor': doctor}
-    return render(request, 'wtestapp/doctor_profile_gc.html', context)
-
-
-@login_required
-def survey_detail(request, survey_id):
-    survey = get_object_or_404(Survey, id=survey_id)
-    doctor = get_object_or_404(Doctor, user=request.user)
-
-    # Debugging: Print survey details and questions queryset
-    print(f"--- Debug: survey_detail view ---")
-    print(f"Survey ID: {survey.id}, Title: {survey.title}")
-    questions_queryset = survey.questions.all()
-    print(f"Questions Queryset: {questions_queryset}")
-    print(f"Number of questions: {questions_queryset.count()}")
-    for q in questions_queryset:
-        print(f"  Question ID: {q.id}, Text: {q.question_text}, Type: {q.question_type}, Options: {q.options}")
-    print(f"----------------------------------")
-
-    # Check if the doctor is assigned to this survey
-    if not doctor.surveys.filter(id=survey_id).exists():
-        messages.error(request, "You are not assigned to this survey.")
-        return redirect('doctor_surveys_list')
-
-    # Ensure or create a SurveyResponse for this doctor and survey
-    survey_response, _ = SurveyResponse.objects.get_or_create(doctor=doctor, survey=survey)
-
-    if request.method == 'POST':
-        submit_action = request.POST.get('submit_action', 'submit')
-        # Allow user to clear any saved answers so nothing is pre-selected
-        if submit_action == 'reset':
-            Answer.objects.filter(survey_response=survey_response).delete()
-            messages.success(request, "Selections cleared.")
-            return redirect('survey_detail', survey_id=survey.id)
-        for question in survey.questions.all():
-            if question.question_type == 'checkbox':
-                answer_values = request.POST.getlist(f'question_{question.id}')
-                answer_text = ", ".join(answer_values)
-            else:
-                answer_text = request.POST.get(f'question_{question.id}')
-
-            if answer_text is not None:
-                Answer.objects.update_or_create(
-                    question=question,
-                    survey_response=survey_response,
-                    defaults={'answer_text': answer_text}
-                )
-        if submit_action == 'submit':
-            # Mark response as completed
-            survey_response.is_completed = True
-            survey_response.completed_at = timezone.now()
-            survey_response.save()
-            messages.success(request, "Survey submitted successfully!")
-            # Remember last survey URL for Thank You page button
-            request.session['last_survey_url'] = reverse('survey_detail', args=[survey.id])
-            return redirect('survey_done')
-        else:
-            messages.success(request, "Survey saved. You can continue later.")
-            # Fall through to re-render the page with prefilled answers
-
-    # Prefill answers map for template
-    existing_answers = {a.question_id: a.answer_text for a in Answer.objects.filter(survey_response=survey_response)}
-    context = {
-        'survey': survey,
-        'questions': questions_queryset,
-        'answers_map': existing_answers,
-    }
-    return render(request, 'wtestapp/survey_detail.html', context)
-
-
-@login_required
-def survey_done(request):
-    last_url = request.session.get('last_survey_url')
-    context = { 'last_survey_url': last_url }
-    return render(request, 'wtestapp/survey_done.html', context)
-
-
-@login_required
-def doctor_surveys_list(request):
-    # Only allow access if profile is complete and agreement accepted
-    doctor, _ = Doctor.objects.get_or_create(user=request.user)
-    # Check profile completeness
-    if not all([
-        doctor.first_name, doctor.last_name, doctor.email, doctor.mobile,
-        doctor.address, doctor.specialty, doctor.mci_registration, doctor.pan
-    ]):
-        messages.info(request, "Please complete your doctor profile before accessing surveys.")
-        return redirect('doctor_profile_edit')
-    # Check agreement acceptance
-    if not doctor.agreement_accepted:
-        messages.info(request, "Please accept the participant agreement before accessing surveys.")
-        return redirect('agreement_page')
-    assigned_surveys = doctor.surveys.all()
-    # Filter by portal if doctor has a portal set
-    if doctor.portal_type:
-        assigned_surveys = assigned_surveys.filter(portal_type=doctor.portal_type)
-
-    context = {
-        'doctor': doctor,
-        'surveys': assigned_surveys,
-        'last_survey_url': request.session.get('last_survey_url'),
-    }
-    return render(request, 'wtestapp/doctor_surveys.html', context)
-
-
-@login_required
-def survey1(request):
-    """Session-based dummy survey with fixed questions; no backend models.
-    Saves answers in session under 'survey1_answers'.
-    """
-    answers = request.session.get('survey1_answers', {
-        'q1': '', 'q2': '', 'q3': [], 'q3_other': '', 'q4': [], 'q5': '', 'q5_detail': '', 'q6': '', 'q7': '', 'q8': ''
-    })
-
-    if request.method == 'POST':
-        action = request.POST.get('submit_action', 'save')
-        if action == 'reset':
-            request.session['survey1_answers'] = {
-                'q1': '', 'q2': '', 'q3': [], 'q3_other': '', 'q4': [], 'q5': '', 'q5_detail': '', 'q6': '', 'q7': '', 'q8': ''
-            }
-            messages.success(request, 'Selections cleared.')
-            return redirect('survey1')
-
-        # Collect answers
-        new_answers = {
-            'q1': request.POST.get('q1', ''),
-            'q2': request.POST.get('q2', ''),
-            'q3': request.POST.getlist('q3'),
-            'q3_other': request.POST.get('q3_other', ''),
-            'q4': request.POST.getlist('q4'),
-            'q5': request.POST.get('q5', ''),
-            'q5_detail': request.POST.get('q5_detail', ''),
-            'q6': request.POST.get('q6', ''),
-            'q7': request.POST.get('q7', ''),
-            'q8': request.POST.get('q8', ''),
-        }
-        request.session['survey1_answers'] = new_answers
-        request.session.modified = True
-
-        if action == 'submit':
-            messages.success(request, 'Survey submitted successfully!')
-            # Remember last survey URL for Thank You page
-            request.session['last_survey_url'] = reverse('survey1')
-            return redirect('survey_done')
-        else:
-            messages.success(request, 'Draft saved.')
-
-    q1_opts = ["Always","Often","Sometimes","Rarely","Never"]
-    q2_opts = [
-        "above 6 months","Above 1 years","Above 3 years",
-        "Depends on the skin condition","I do not recommend sunscreen for babies"
-    ]
-    q3_opts = [
-        "Routine outdoor exposure","Atopic or sensitive skin",
-        "During vacations/travel to sunny regions","Family history of photodermatoses",
-        "Post-treatment for skin conditions (e.g., after topical steroids)",
-        "To prevent tanning or pigmentation"
-    ]
-    q4_opts = [
-        "Mineral/physical filters (zinc oxide, titanium dioxide)",
-        "Fragrance-free formulation","Water resistance",
-        "Broad-spectrum protection (UVA/UVB)","SPF value"
-    ]
-    q6_opts = ["Very receptive","Somewhat receptive","Indifferent","Resistant"]
-    q8_opts = ["Cream","Lotion","Gel","Spray","Stick"]
-
-    context = {
-        'answers': request.session.get('survey1_answers', answers),
-        'q1_opts': q1_opts,
-        'q2_opts': q2_opts,
-        'q3_opts': q3_opts,
-        'q4_opts': q4_opts,
-        'q6_opts': q6_opts,
-        'q8_opts': q8_opts,
-    }
-    return render(request, 'wtestapp/survey1.html', context)
-
-
-@login_required
-def survey2(request):
-    """Session-based dummy survey 2 (Anaemia) using the same UI pattern as survey1."""
-    # Define questions schema
-    questions = [
-        { 'name': 'q1', 'title': 'What percent women present with Moderate (Hb 7-9.9 gm/dl) or Severe (Hb <6gm/dl) anaemia in your daily practice?', 'type': 'radio', 'options': ['<50%','50-60%','60-70%','70-80%','>80%'] },
-        { 'name': 'q2', 'title': 'What is the most common barrier to effective anaemia management in your practice?', 'type': 'radio', 'options': ['Patient non-compliance','Lack of diagnostic tools','Late antenatal registration','Limited access to IV iron'] },
-        { 'name': 'q3', 'title': 'What is your first-line treatment for moderate anaemia (Hb 7–9.9 g/dL) in the second trimester?', 'type': 'radio', 'options': ['Oral iron therapy','Intravenous iron therapy','Blood transfusion','Dietary modification only'] },
-        { 'name': 'q4', 'title': 'How effective do you find oral iron supplements in treating Moderate anaemia?', 'type': 'radio', 'options': ['Very effective','Effective','Moderately effective','Ineffective'] },
-        { 'name': 'q5', 'title': 'How do you decide between oral and intravenous iron therapy for a Moderate Anaemic patient?', 'type': 'radio', 'options': ['Patient Economic stature','Patient Compliance','Patient Preference','Previous response to treatment'] },
-        { 'name': 'q6', 'title': 'What is your preferred intravenous iron formulation for Moderate anaemia?', 'type': 'radio', 'options': ['Iron sucrose','Ferric carboxymaltose (FCM)','Iron dextran','Ferrous gluconate'] },
-        { 'name': 'q7', 'title': 'How do you monitor the effectiveness of Moderate & Severe anaemia treatment? (Can mark more than 1, if necessary)', 'type': 'checkbox', 'options': ['Follow-up Hb levels','Patient-reported symptoms','Serum ferritin levels'] },
-        { 'name': 'q8', 'title': 'How do you rate the safety profile of Ferric Carboxymaltose (FCM) in Moderate/Severe anaemia treatment?', 'type': 'radio', 'options': ['Excellent Safety','Good Safety','Moderately safe','Few Adverse Events Seen'] },
-        { 'name': 'q9', 'title': 'What is the most significant advantage of using FCM over other treatments?', 'type': 'radio', 'options': ['Faster replenishment of iron stores','Assured Hb Rise','Fewer side effects','Single-dose administration','Better patient compliance'] },
-        { 'name': 'q10', 'title': 'What is your primary indication for using 1000 mg FCM in pregnancy?', 'type': 'radio', 'options': ['Mild anaemia with Hb > 10 g/dL','Moderate anaemia with poor oral iron tolerance','Severe anaemia with low ferritin','Routine prophylaxis'] },
-        { 'name': 'q11', 'title': 'Would you recommend 1000 mg FCM as a standard treatment for moderate to severe anaemia in pregnancy?', 'type': 'radio', 'options': ['Yes, strongly recommend','Yes, with some reservations','Only in selected cases','No, prefer other treatments'] },
-        { 'name': 'q12', 'title': 'What is your biggest challenge in using 1000MG FCM in pregnancy?', 'type': 'radio', 'options': ['Cost','Availability','Patient acceptance','Institutional protocol restrictions','Risk of Adverse Events'] },
-        { 'name': 'q13', 'title': 'What is your usual follow-up protocol after 1000MG FCM administration?', 'type': 'radio', 'options': ['No follow-up unless symptomatic','Hb and ferritin after 2–3 weeks','Hb only after 4 weeks','Clinical assessment at next ANC visit'] },
-        { 'name': 'q14', 'title': 'What is your experience with patient tolerance to 1000 mg FCM infusion?', 'type': 'radio', 'options': ['Well tolerated, no issues','Mild side effects (headache, nausea)','Moderate reactions requiring observation','Avoid use due to past adverse events'] },
-        { 'name': 'q15', 'title': 'What is the most common side effect you observe with intravenous iron therapy?', 'type': 'radio', 'options': ['Nausea','Rash','Hypotension','No significant side effects'] },
-    ]
-
-    # Load existing answers from session or init blank
-    default_answers = {q['name']: ([] if q['type']=='checkbox' else '') for q in questions}
-    answers = request.session.get('survey2_answers', default_answers)
-
-    if request.method == 'POST':
-        action = request.POST.get('submit_action', 'save')
-        if action == 'reset':
-            request.session['survey2_answers'] = default_answers
-            messages.success(request, 'Selections cleared.')
-            return redirect('survey2')
-
-        # Gather answers
-        new_answers = {}
-        for q in questions:
-            if q['type'] == 'checkbox':
-                new_answers[q['name']] = request.POST.getlist(q['name'])
-            else:
-                new_answers[q['name']] = request.POST.get(q['name'], '')
-        request.session['survey2_answers'] = new_answers
-        request.session.modified = True
-
-        if action == 'submit':
-            messages.success(request, 'Survey submitted successfully!')
-            request.session['last_survey_url'] = reverse('survey2')
-            return redirect('survey_done')
-        else:
-            messages.success(request, 'Draft saved.')
-
-    context = { 'questions': questions, 'answers': request.session.get('survey2_answers', answers) }
-    return render(request, 'wtestapp/survey2.html', context)
-
-
-@login_required
-def logout_view(request):
-    auth_logout(request)
-    messages.info(request, "You have been logged out.")
-    return redirect('login')
-
-
-@login_required
-def upload_survey_file(request):
-    if request.method == 'POST':
-        form = SurveyUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            uploaded_file = request.FILES['file']
-            file_name = uploaded_file.name
-
+        if otp == stored_otp:
             try:
-                with transaction.atomic():
-                    created_surveys = []
-                    portal = _get_portal_from_request(request)
-                    if file_name.lower().endswith('.json'):
-                        survey_data = json.loads(uploaded_file.read().decode('utf-8'))
-                        if isinstance(survey_data, list):
-                            for single_survey_data in survey_data:
-                                print(f"--- Debug: Processing single JSON survey data ---")
-                                print(f"  Data: {single_survey_data}")
-                                s = _process_single_json_survey(single_survey_data)
-                                if s:
-                                    created_surveys.append(s)
-                                print(f"----------------------------------------------------")
-                        else:
-                            print(f"--- Debug: Processing single JSON survey data ---")
-                            print(f"  Data: {survey_data}")
-                            s = _process_single_json_survey(survey_data)
-                            if s:
-                                created_surveys.append(s)
-                            print(f"----------------------------------------------------")
-                        messages.success(request, "JSON Survey(s) uploaded and processed successfully!")
-                    elif file_name.lower().endswith(('.xls', '.xlsx')):
-                        df = pd.read_excel(uploaded_file)
-                        s = process_excel_survey(request, df)
-                        if s:
-                            created_surveys.append(s)
-                        messages.success(request, "Excel Survey uploaded and processed successfully!")
-                    else:
-                        messages.error(request, "Unsupported file format. Please upload a JSON or Excel file.")
-                        return render(request, 'wtestapp/upload_survey.html', {'form': form})
-
-                    # Tag surveys with portal and auto-assign uploaded surveys to current doctor
-                    try:
-                        doctor, _ = Doctor.objects.get_or_create(user=request.user)
-                        for s in created_surveys:
-                            if portal and s.portal_type != portal:
-                                s.portal_type = portal
-                                s.save()
-                            s.assigned_to.add(doctor)
-                    except Exception as e:
-                        print(f"Warn: could not auto-assign surveys to doctor: {e}")
-            except Exception as e:
-                messages.error(request, f"Error processing file: {e}")
-                return render(request, 'wtestapp/upload_survey.html', {'form': form})
-
-            # Redirect to My Surveys as requested
-            return redirect('doctor_surveys_list')
-    else:
-        form = SurveyUploadForm()
-
-    return render(request, 'wtestapp/upload_survey.html', {'form': form})
-
-@login_required
-def agreement_page(request):
-    doctor = get_object_or_404(Doctor, user=request.user)
-    # Ensure each doctor has a fixed agreement amount; initialize if missing
-    if not doctor.agreement_amount:
-        doctor.agreement_amount = _next_agreement_amount()
-        doctor.save(update_fields=["agreement_amount"])
-    context = {
-        'doctor': doctor,
-        'amount': doctor.agreement_amount,
-        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
-    }
-    return render(request, 'wtestapp/agreement_page.html', context)
-
-@login_required
-def accept_agreement(request):
-    if request.method == 'POST':
-        if request.POST.get('agree') == 'on':
-            doctor = get_object_or_404(Doctor, user=request.user)
-            signature_data = request.POST.get('signature_data', '')
-            signature_type = request.POST.get('signature_type', 'drawn')
-            agreement_text = request.POST.get('agreement_text', '').strip()
-            client_signed_date = request.POST.get('client_signed_date', '').strip()
-            if client_signed_date:
-                request.session['client_signed_date'] = client_signed_date
+                # Step 1: Get or create CustomUser
+                custom_user, user_created = CustomUser.objects.get_or_create(
+                    mobile=mobile,
+                    defaults={'username': mobile}
+                )
                 
-            Agreement.objects.update_or_create(
-                doctor=doctor,
-                defaults={
-                    'agreement_text': agreement_text or 'I hereby agree to the terms and conditions.',
-                    'digital_signature': signature_data if signature_data else None,
-                    'signature_type': signature_type,
-                    'ip_address': request.META.get('REMOTE_ADDR'),
-                    'user_agent': request.META.get('HTTP_USER_AGENT'),
-                }
+                # Step 2: Check if Doctor already exists for this mobile
+                try:
+                    doctor = Doctor.objects.get(mobile=mobile)
+                except Doctor.DoesNotExist:
+                    # Step 3: If Doctor doesn't exist, create one
+                    doctor = Doctor.objects.create(
+                        mobile=mobile,
+                        custom_user=custom_user
+                    )
+                
+                # Step 4: Set session variables
+                request.session['doctor_id'] = doctor.id
+                request.session['is_verified'] = True
+                
+                # Step 5: Clear OTP from session after successful verification
+                if 'otp' in request.session:
+                    del request.session['otp']
+                
+                # Step 6: Check completion status and redirect accordingly
+                status = get_user_completion_status(doctor)
+                
+                if status['all_complete']:
+                    return redirect('doctor_profile_view')
+                else:
+                    request.session['pending_tasks'] = status['pending_tasks']
+                    if isinstance(status['redirect_url'], tuple):
+                        url_name, kwargs = status['redirect_url']
+                        return redirect(url_name, **kwargs)
+                    else:
+                        return redirect(status['redirect_url'])
+            except Exception as e:
+                messages.error(request, f'Error creating profile: {str(e)}. Please try again.')
+                print(f"Error in verify_otp: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return redirect('verify_otp')
+        else:
+            messages.error(request, 'Invalid OTP. Please try again.')
+            
+    return render(request, 'wtestapp/verify_otp.html', {'mobile': mobile})
+
+def doctor_profile(request):
+    # Get doctor from session
+    doctor_id = request.session.get('doctor_id')
+    if not doctor_id:
+        messages.error(request, 'Please login first')
+        return redirect('login')
+        
+    try:
+        doctor = Doctor.objects.get(id=doctor_id)
+        
+        pending_tasks = request.session.get('pending_tasks', [])
+        if pending_tasks:
+            for task in pending_tasks:
+                messages.warning(request, task)
+            del request.session['pending_tasks']
+        
+        if request.method == 'POST':
+            # Personal Details
+            doctor.first_name = request.POST.get('first_name', '')
+            doctor.last_name = request.POST.get('last_name', '')
+            doctor.email = request.POST.get('email', '')
+            doctor.gender = request.POST.get('gender', '')
+            date_of_birth = request.POST.get('date_of_birth', '')
+            if date_of_birth:
+                doctor.date_of_birth = date_of_birth
+            
+            # Address
+            doctor.address = request.POST.get('address', '')
+            doctor.state = request.POST.get('state', '')
+            doctor.city = request.POST.get('city', '')
+            doctor.pincode = request.POST.get('pincode', '')
+            
+            # Professional Details
+            doctor.profession = request.POST.get('profession', '')
+            doctor.specialty = request.POST.get('specialty', '')
+            doctor.degree = request.POST.get('degree', '')
+            doctor.mci_registration = request.POST.get('mci_registration', '')
+            doctor.pan = request.POST.get('pan', '')
+            
+            # GST Information
+            has_gst = request.POST.get('has_gst', 'false')
+            doctor.has_gst = (has_gst == 'true')
+            if doctor.has_gst:
+                doctor.gst_number = request.POST.get('gst_number', '')
+                # GST Certificate upload
+                if 'gst_certificate' in request.FILES:
+                    doctor.gst_certificate = request.FILES['gst_certificate']
+            else:
+                doctor.gst_number = ''
+            
+            # File Uploads - Common for both GC and CP
+            if 'pan_copy' in request.FILES:
+                doctor.pan_copy = request.FILES['pan_copy']
+            
+            # Cancelled Cheque - Only for CP (Critical Patient)
+            if doctor.portal_type == 'CP' and 'cancelled_cheque' in request.FILES:
+                doctor.cancelled_cheque = request.FILES['cancelled_cheque']
+            
+            # Prescription - Common for both GC and CP
+            if 'prescription_file' in request.FILES:
+                doctor.prescription_file = request.FILES['prescription_file']
+            
+            doctor.save()
+            
+            messages.success(request, 'Profile saved successfully! Please review and sign the agreement.')
+
+            # Redirect to agreement page
+            # If an Agreement already exists for this doctor, prefer its survey
+            existing_agreement = Agreement.objects.filter(doctor=doctor).first()
+            if existing_agreement and existing_agreement.survey:
+                return redirect('agreement_page', survey_id=existing_agreement.survey.id)
+
+            # Otherwise prefer a survey explicitly assigned to this doctor
+            assigned_survey = (
+                Survey.objects.filter(assigned_to=doctor)
+                .order_by('-created_at')
+                .first()
             )
 
-            # Mark on Doctor for quick checks
-            doctor.agreement_accepted = True
-            doctor.save()
-            messages.success(request, "Participant Agreement accepted.")
-            # Redirect to assigned surveys list
-            return redirect('doctor_surveys_list')
-        else:
-            messages.error(request, "You must accept the agreement to continue.")
-    return redirect('agreement_page') # Redirect back to agreement page if not POST or agreement not checked
+            # Fallback: pick the most recent survey for this portal type
+            if not assigned_survey and doctor.portal_type:
+                assigned_survey = (
+                    Survey.objects.filter(portal_type=doctor.portal_type)
+                    .order_by('-created_at')
+                    .first()
+                )
 
-@login_required
-def download_agreement_pdf(request):
-    doctor = get_object_or_404(Doctor, user=request.user)
+            if not assigned_survey:
+                messages.error(request, 'No survey found. Please ask admin to create/assign a survey.')
+                return redirect('doctor_profile')
 
-    # Make sure the agreement has been accepted before allowing download
-    if not doctor.agreement_accepted:
-        messages.error(request, "You must accept the agreement before downloading the PDF.")
-        return redirect('agreement_page')
-
-    template_path = 'wtestapp/agreement_pdf_template.html'
-    # Use per-doctor fixed agreement amount; rotate through the sequence if missing
-    if not doctor.agreement_amount:
-        doctor.agreement_amount = _next_agreement_amount()
-        doctor.save(update_fields=["agreement_amount"])
-    amount = doctor.agreement_amount
-    signed_date = request.session.get('client_signed_date')
-
-    # Fetch latest agreement for signature rendering (if available)
-    agreement = Agreement.objects.filter(doctor=doctor).order_by('-signed_at').first()
-
-    # Resolve company signature image absolute path for xhtml2pdf (try multiple candidates)
-    company_sig_path = None
-    for rel in ['images/logo/sig.png', 'images/logo/Untitled design.png', 'images/logo/logo.png']:
-        try:
-            p = find(rel)
-            if not p and settings.STATIC_ROOT:
-                p = os.path.join(settings.STATIC_ROOT, rel)
-            if p and os.path.exists(p):
-                company_sig_path = p
-                break
-        except Exception:
-            continue
-
-    context = {
-        'doctor': doctor,
-        'survey_title': 'Inclinic experience of Topical Sunscreen in Paediatric',
-        'amount': amount,
-        'signed_date': signed_date,
-        'agreement': agreement,
-        'company_sig': company_sig_path,
-    }
-    template = get_template(template_path)
-    html = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="participant_agreement.pdf"'
-    pisa_status = pisa.CreatePDF(
-        html,                # the HTML to convert
-        dest=response,       # file handle to receive result
-        link_callback=link_callback) # Use the link_callback
-
-    if pisa_status.err:
-        return HttpResponse('We had some errors <pre>' + html + '</pre>')
-    return response
-
-# Helper to assign the next agreement amount in a rotating sequence
-def _next_agreement_amount():
-    amounts = [10000, 20000, 25000, 30000]
-    # Count doctors that already have an amount to rotate fairly
-    used_count = Doctor.objects.filter(agreement_amount__isnull=False).count()
-    return amounts[used_count % len(amounts)]
-
-
-@login_required
-def admin_dashboard_view(request):
-    """Simple admin dashboard filtered by portal type via ?portal=CP|GC.
-    This is a lightweight custom view; you can also use Django Admin.
-    """
-    portal = request.GET.get('portal')
-
-    doctors = Doctor.objects.all()
-    surveys = Survey.objects.all()
-    agreements = Agreement.objects.all()
-    responses = SurveyResponse.objects.all()
-
-    if portal in ('CP', 'GC'):
-        doctors = doctors.filter(portal_type=portal)
-        surveys = surveys.filter(portal_type=portal)
-        agreements = agreements.filter(doctor__portal_type=portal)
-        responses = responses.filter(survey__portal_type=portal)
-
-    context = {
-        'portal': portal,
-        'doctors': doctors.select_related('user').order_by('-created_at'),
-        'surveys': surveys.order_by('-created_at'),
-        'agreements': agreements.select_related('doctor__user').order_by('-signed_at'),
-        'responses': responses.select_related('doctor__user', 'survey').order_by('-started_at'),
-    }
-    return render(request, 'wtestapp/admin_dashboard.html', context)
-
-@login_required
-def doctor_status(request):
-    """Return JSON with doctor's profile completeness and agreement status."""
-    try:
-        doctor = Doctor.objects.get(user=request.user)
+            # Redirect to the agreement page using the chosen survey
+            return redirect('agreement_page', survey_id=assigned_survey.id)
+            
+        return render(request, 'wtestapp/doctor_profile.html', {'doctor': doctor})
+        
     except Doctor.DoesNotExist:
-        # If doctor not created yet, treat as incomplete and not agreed
-        return JsonResponse({
-            'exists': False,
-            'profile_complete': False,
-            'agreement_accepted': False,
-        })
+        messages.error(request, 'Doctor profile not found')
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f'Error loading profile: {str(e)}')
+        print(f"Error in doctor_profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect('login')
 
-    profile_complete = all([
-        doctor.first_name, doctor.last_name, doctor.email, doctor.mobile,
-        doctor.address, doctor.specialty, doctor.mci_registration, doctor.pan
-    ])
-    return JsonResponse({
-        'exists': True,
-        'profile_complete': profile_complete,
-        'agreement_accepted': bool(doctor.agreement_accepted),
+def doctor_profile_view(request):
+    doctor_id = request.session.get('doctor_id')
+    if not doctor_id:
+        return redirect('login')
+    
+    doctor = Doctor.objects.get(id=doctor_id)
+    
+    status = get_user_completion_status(doctor)
+    
+    if status['has_pending']:
+        for task in status['pending_tasks']:
+            messages.info(request, task)
+    
+    completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).order_by('-completed_at')
+    agreement = Agreement.objects.filter(doctor=doctor).first()
+    
+    return render(request, 'wtestapp/doctor_profile_view.html', {
+        'doctor': doctor,
+        'completed_surveys': completed_surveys,
+        'agreement': agreement
     })
 
-def _process_single_json_survey(survey_data):
-    print(f"--- Debug: _process_single_json_survey called ---")
-    print(f"Received survey_data: {survey_data}")
-    # Title/description fallbacks
-    survey_title = survey_data.get('title') or survey_data.get('survey_title') or survey_data.get('name')
-    if not survey_title:
-        raise ValueError("JSON survey data is missing the 'title' field.")
-    survey_description = survey_data.get('description') or survey_data.get('desc') or ''
+def doctor_profile_edit(request):
+    doctor_id = request.session.get('doctor_id')
+    if not doctor_id:
+        return redirect('login')
+    
+    doctor = Doctor.objects.get(id=doctor_id)
+    
+    if request.method == 'POST':
+        # Update doctor profile fields
+        doctor.name = request.POST.get('name')
+        doctor.email = request.POST.get('email')
+        doctor.specialization = request.POST.get('specialization')
+        doctor.hospital_name = request.POST.get('hospital_name')
+        doctor.city = request.POST.get('city')
+        doctor.medical_registration_no = request.POST.get('medical_registration_no')
+        doctor.save()
+        
+        messages.success(request, 'Profile updated successfully')
+        return redirect('doctor_profile')
+        
+    return render(request, 'wtestapp/doctor_profile_edit.html', {'doctor': doctor})
 
-    # Deduplicate any existing surveys with same title
-    existing = Survey.objects.filter(title=survey_title).order_by('id')
-    if existing.exists():
-        survey = existing.first()
-        # Delete duplicates beyond the first (we'll recreate questions from JSON anyway)
-        for dup in existing[1:]:
-            dup.delete()
-        # Update description if needed
-        if survey.description != survey_description:
-            survey.description = survey_description
-            survey.save()
-        created = False
-    else:
-        survey = Survey.objects.create(title=survey_title, description=survey_description)
-        created = True
-    print(f"Survey created/updated: {survey.title} (ID: {survey.id}, Created: {created})")
-
-    # Identify questions list robustly
-    questions_block = (
-        survey_data.get('questions')
-        or survey_data.get('Questions')
-        or survey_data.get('items')
-        or (survey_data if isinstance(survey_data, list) else [])
-    )
-
-    order_counter = 1
-    for q_data in questions_block:
-        question_text = q_data.get('question_text')
-        if not question_text:
-            # Common alt keys
-            question_text = q_data.get('question') or q_data.get('text') or q_data.get('label')
-
-        # Accept several aliases for type and normalize to our internal choices
-        question_type_raw = q_data.get('question_type') or q_data.get('type') or q_data.get('input') or None
-        qtype = str(question_type_raw).strip().lower()
-        type_map = {
-            'mcq': 'radio',
-            'single': 'radio',
-            'single_choice': 'radio',
-            'multiple': 'checkbox',
-            'multi': 'checkbox',
-            'multi_select': 'checkbox',
-            'yes/no': 'yesno',
-            'yes_no': 'yesno',
-            'yn': 'yesno',
-            'longtext': 'textarea',
-            'paragraph': 'textarea',
-            'number': 'number',
-            'email': 'email',
-            'phone': 'phone',
-            'rating': 'rating',
-            'text': 'text',
-            'textarea': 'textarea',
-            'radio': 'radio',
-            'checkbox': 'checkbox',
-        }
-        question_type = type_map.get(qtype, 'text') if qtype else 'text'
-        raw_options = (
-            q_data.get('options')
-            or q_data.get('choices')
-            or q_data.get('values')
-            or q_data.get('data')
-            or []
-        )  # options may be list/str/dict
-
-        # Normalize options into a simple list of strings
-        options = []
-        if isinstance(raw_options, list):
-            options = raw_options
-        elif isinstance(raw_options, str):
-            # comma-separated
-            options = [o.strip() for o in raw_options.split(',') if o.strip()]
-        elif isinstance(raw_options, dict):
-            # common patterns: {"questions": [...]}, {"options": [...]}
-            if 'questions' in raw_options and isinstance(raw_options['questions'], list):
-                options = raw_options['questions']
-            elif 'options' in raw_options and isinstance(raw_options['options'], list):
-                options = raw_options['options']
-            else:
-                # fallback: use values if strings, else keys
-                vals = list(raw_options.values())
-                if all(isinstance(v, str) for v in vals):
-                    options = vals
-                else:
-                    options = list(raw_options.keys())
-
-        # If type wasn't provided but options exist, default to single-choice radio
-        if (not question_type_raw) and options:
-            question_type = 'radio'
-
-        if not question_text:
-            print(f"Warning: Skipping question due to missing question_text in JSON data: {q_data}")
-            continue
-
-        q, q_created = Question.objects.update_or_create(
-            survey=survey,
-            question_text=question_text,
-            defaults={'question_type': question_type, 'options': options, 'order': order_counter}
-        )
-        order_counter += 1
-        print(f"  Question created/updated: {q.question_text} (ID: {q.id}, Type: {q.question_type}, Options: {q.options}, Created: {q_created})")
-    print(f"--- Debug: _process_single_json_survey finished ---")
-    return survey
-
-def process_excel_survey(request, df):
-    # Assuming the first row contains survey title and description
-    # Example: df.iloc[0, 0] = "Clinical Insights of Physicians"
-    # df.iloc[1, 0] = "To understand the effectiveness..."
-
-    if df.empty or df.shape[1] < 2:
-        raise ValueError("Excel file is empty or does not contain enough columns for survey title/description.")
-
-    survey_title = df.iloc[0, 1]  # Assuming title is in B1 (0-indexed col 1)
-    if pd.isna(survey_title) or str(survey_title).strip() == '':
-        raise ValueError("Excel file is missing the survey title in cell B1.")
-    survey_title = str(survey_title).strip()
-
-    survey_description = df.iloc[1, 1]  # Assuming description is in B2 (0-indexed col 1)
-    if pd.isna(survey_description):
-        survey_description = ''
-    else:
-        survey_description = str(survey_description).strip()
-
-    # Avoid MultipleObjectsReturned for same title
-    survey = Survey.objects.filter(title=survey_title).first()
-    created = False
-    if survey:
-        if survey.description != survey_description:
-            survey.description = survey_description
-            survey.save()
-    else:
-        survey = Survey.objects.create(title=survey_title, description=survey_description)
-        created = True
-
-    # Assuming questions start from row 5 (0-indexed row 4),
-    # with columns: B: Question Text, C: Question Type, D: Options (comma-separated string)
-
-    # Start iterating from index 4 (Excel row 5) to skip headers
-    order_counter = 1
-    for index, row in df.iloc[4:].iterrows(): 
-        # Check if the row is entirely empty
-        if row.isnull().all():
-            continue # Skip empty rows gracefully
+def agreement_page(request, survey_id):
+    if 'mobile' not in request.session:
+        messages.error(request, 'Please login first')
+        return redirect('login')
+    
+    try:
+        doctor_id = request.session.get('doctor_id')
+        if doctor_id:
+            doctor = Doctor.objects.get(id=doctor_id)
             
-        # Access columns by index, providing defaults for robustness
-        question_text_raw = row.iloc[1] if row.shape[0] > 1 else None # Column B
-        question_type_raw = row.iloc[2] if row.shape[0] > 2 else None # Column C
-        options_str_raw = row.iloc[3] if row.shape[0] > 3 else None   # Column D
+            pending_tasks = request.session.get('pending_tasks', [])
+            if pending_tasks:
+                for task in pending_tasks:
+                    messages.warning(request, task)
+                del request.session['pending_tasks']
+        else:
+            # Fallbacks for older sessions
+            mobile = request.session.get('mobile')
+            if not mobile:
+                raise Doctor.DoesNotExist("Missing mobile in session")
+            # Get via Doctor.mobile first (matches verify_otp flow)
+            try:
+                doctor = Doctor.objects.get(mobile=mobile)
+            except Doctor.DoesNotExist:
+                # As a last resort, map CustomUser -> Doctor via OneToOneField
+                custom_user = CustomUser.objects.get(mobile=mobile)
+                doctor = Doctor.objects.get(custom_user=custom_user)
+        survey = Survey.objects.get(id=survey_id)
+        
+        # Check if agreement already exists (by doctor only, OneToOne)
+        existing_agreement = Agreement.objects.filter(doctor=doctor).first()
+        # If admin has linked a specific survey in Agreement, use it for display
+        if existing_agreement and existing_agreement.survey:
+            survey = existing_agreement.survey
+        
+        if request.method == 'POST':
+            if 'signature_data' in request.POST and request.POST['signature_data']:
+                # One agreement per doctor due to OneToOne; attach current survey and amount
+                agreement, _ = Agreement.objects.get_or_create(doctor=doctor)
+                agreement.survey = survey
+                agreement.agreement_text = 'Agreement signed'
+                agreement.digital_signature = request.POST.get('signature_data', '')
+                agreement.signature_type = request.POST.get('signature_type', 'drawn')
+                agreement.signed_at = timezone.now()
+                # If admin pre-set an amount in Agreement, keep it; else use survey amount
+                agreement.amount = existing_agreement.amount if (existing_agreement and existing_agreement.amount) else survey.amount
+                agreement.save()
+                
+                # Update doctor's agreement status
+                doctor.agreement_accepted = True
+                doctor.save()
+                
+                messages.success(request, 'Agreement accepted successfully!')
+                # Go directly to the survey so the uploaded JSON/questions show immediately
+                return redirect('survey_detail', survey_id=survey.id)
+            else:
+                messages.error(request, 'Please provide a valid signature')
+        
+        # Get amount and survey title, preferring Agreement.amount if set
+        amount = existing_agreement.amount if (existing_agreement and existing_agreement.amount) else survey.amount
+        survey_title = survey.title
+        
+        # Get current date in the required format
+        current_date = timezone.now()
+        
+        return render(request, 'wtestapp/agreement_page.html', {
+            'doctor': doctor,
+            'survey': survey,
+            'amount': amount,
+            'existing_agreement': existing_agreement,
+            'signed_date': current_date,
+            'default_signed_date': current_date.strftime('%d/%m/%Y'),
+            'survey_title': survey_title
+        })
+        
+    except (Doctor.DoesNotExist, Survey.DoesNotExist) as e:
+        messages.error(request, 'Doctor or survey not found')
+        return redirect('doctor_profile')
+    except Exception as e:
+        messages.error(request, f'Error loading agreement: {str(e)}')
+        return redirect('doctor_profile')
 
-        question_text = str(question_text_raw).strip() if not pd.isna(question_text_raw) else ''
-        question_type = str(question_type_raw).strip() if not pd.isna(question_type_raw) else 'text'
-        options_str = str(options_str_raw).strip() if not pd.isna(options_str_raw) else ''
-        options = [o.strip() for o in options_str.split(',')] if options_str else []
+def gc_profile(request):
+    """View for GC role profile"""
+    mobile = request.session.get('mobile')
+    if not mobile:
+        return redirect('login')
+        
+    try:
+        user = CustomUser.objects.get(mobile=mobile)
+        doctor = Doctor.objects.get(mobile=mobile)
+    except (CustomUser.DoesNotExist, Doctor.DoesNotExist):
+        return redirect('login')
+        
+    if user.role != 'gc':
+        messages.error(request, 'You do not have access to this page.')
+        return redirect('doctor_profile')
+        
+    return render(request, 'wtestapp/gc_profile.html', {'doctor': doctor, 'user': user})
+    
+def cp_profile(request):
+    """View for CP role profile"""
+    mobile = request.session.get('mobile')
+    if not mobile:
+        return redirect('login')
+        
+    try:
+        user = CustomUser.objects.get(mobile=mobile)
+        doctor = Doctor.objects.get(mobile=mobile)
+    except (CustomUser.DoesNotExist, Doctor.DoesNotExist):
+        return redirect('login')
+        
+    if user.role != 'cp':
+        messages.error(request, 'You do not have access to this page.')
+        return redirect('doctor_profile')
+        
+    return render(request, 'wtestapp/cp_profile.html', {'doctor': doctor, 'user': user})
 
-        if not question_text:
-            messages.warning(request, f"Skipping row {index + 1} in Excel: Question text is empty or missing.")
-            continue
-
-        # Normalize type aliases similar to JSON handler
-        qtype = str(question_type).lower()
-        type_map = {
-            'mcq': 'radio', 'single': 'radio', 'single_choice': 'radio',
-            'multiple': 'checkbox', 'multi': 'checkbox', 'multi_select': 'checkbox',
-            'yes/no': 'yesno', 'yes_no': 'yesno', 'yn': 'yesno',
-            'longtext': 'textarea', 'paragraph': 'textarea',
-            'number': 'number', 'email': 'email', 'phone': 'phone', 'rating': 'rating',
-            'text': 'text', 'textarea': 'textarea', 'radio': 'radio', 'checkbox': 'checkbox'
-        }
-        question_type = type_map.get(qtype, 'text')
-
-        Question.objects.update_or_create(
-            survey=survey,
-            question_text=question_text,
-            defaults={'question_type': question_type, 'options': options, 'order': order_counter}
-        )
-        order_counter += 1
-
-    return survey
 
 
-def home(request):
-    return HttpResponse("<h1>Welcome to WTest Portal</h1><p><a href='/login/'>Login</a></p>")
+def download_survey_pdf(request, response_id):
+    """View to download a survey response as PDF"""
+    if 'doctor_id' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    try:
+        # Get the survey response
+        survey_response = get_object_or_404(SurveyResponse, id=response_id)
+        
+        # Security check - only allow the doctor who completed the survey to download it
+        if survey_response.doctor.id != request.session['doctor_id']:
+            messages.error(request, "You don't have permission to download this survey")
+            return redirect('surveys')
+        
+        # If the PDF is already generated, return it
+        if survey_response.pdf_file:
+            response = HttpResponse(survey_response.pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="survey_{response_id}.pdf"'
+            return response
+        else:
+            # Generate PDF on the fly
+            from django.template.loader import render_to_string
+            from xhtml2pdf import pisa
+            from io import BytesIO
+            
+            # Get all answers for this survey response
+            answers = Answer.objects.filter(survey_response=survey_response)
+            
+            # Prepare context for PDF template
+            context = {
+                'survey': survey_response.survey,
+                'doctor': survey_response.doctor,
+                'answers': answers,
+                'completed_at': survey_response.completed_at,
+            }
+            
+            # Render HTML content
+            html_string = render_to_string('wtestapp/survey_pdf_template.html', context)
+            
+            # Create PDF
+            result = BytesIO()
+            pdf = pisa.pisaDocument(BytesIO(html_string.encode("UTF-8")), result)
+            
+            if not pdf.err:
+                response = HttpResponse(result.getvalue(), content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="survey_{response_id}.pdf"'
+                return response
+            else:
+                return HttpResponse("Error generating PDF", status=500)
+    
+    except Exception as e:
+        messages.error(request, f"Error downloading survey: {str(e)}")
+        return redirect('surveys')
+
+def request_agreement_otp(request):
+    """Send OTP before downloading agreement PDF"""
+    if 'doctor_id' not in request.session:
+        return JsonResponse({'success': False, 'message': 'Please login first'})
+    
+    try:
+        doctor = Doctor.objects.get(id=request.session['doctor_id'])
+        
+        import random
+        otp = str(random.randint(100000, 999999))
+        
+        request.session['agreement_otp'] = otp
+        request.session['agreement_otp_time'] = timezone.now().isoformat()
+        
+        mobile = doctor.mobile
+        message = f"Your OTP to download agreement is: {otp}. Valid for 5 minutes."
+        
+        sms_sent = send_sms(mobile, message)
+        
+        if sms_sent:
+            return JsonResponse({
+                'success': True, 
+                'message': f'OTP sent to {mobile}',
+                'mobile': mobile,
+                'otp': otp
+            })
+        else:
+            return JsonResponse({'success': False, 'message': 'Failed to send OTP'})
+            
+    except Doctor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Doctor not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+def verify_agreement_otp(request):
+    """Verify OTP and allow PDF download"""
+    if 'doctor_id' not in request.session:
+        return JsonResponse({'success': False, 'message': 'Please login first'})
+    
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp', '').strip()
+        stored_otp = request.session.get('agreement_otp')
+        otp_time_str = request.session.get('agreement_otp_time')
+        
+        if not stored_otp or not otp_time_str:
+            return JsonResponse({'success': False, 'message': 'No OTP found. Please request a new one'})
+        
+        from datetime import datetime, timedelta
+        otp_time = datetime.fromisoformat(otp_time_str)
+        
+        if timezone.now() - otp_time > timedelta(minutes=5):
+            del request.session['agreement_otp']
+            del request.session['agreement_otp_time']
+            return JsonResponse({'success': False, 'message': 'OTP expired. Please request a new one'})
+        
+        if entered_otp == stored_otp:
+            request.session['agreement_verified'] = True
+            del request.session['agreement_otp']
+            del request.session['agreement_otp_time']
+            return JsonResponse({'success': True, 'message': 'OTP verified successfully'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid OTP'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+def download_agreement(request):
+    """View to download the agreement PDF"""
+    if 'doctor_id' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    if not request.session.get('agreement_verified'):
+        messages.error(request, "Please verify OTP first")
+        return redirect('doctor_profile_view')
+    
+    del request.session['agreement_verified']
+    
+    try:
+        doctor = Doctor.objects.get(id=request.session['doctor_id'])
+        agreement = Agreement.objects.filter(doctor=doctor).first()
+        
+        if agreement and agreement.pdf_file:
+            response = HttpResponse(agreement.pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="agreement.pdf"'
+            return response
+        else:
+            # If no specific agreement file, generate a default one
+            from django.template.loader import render_to_string
+            from xhtml2pdf import pisa
+            from io import BytesIO
+            import os
+            from django.conf import settings
+            
+            # Get the latest survey for amount and title
+            survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
+            if not survey:
+                # Fallback: get any survey for this doctor's portal type
+                if doctor.portal_type:
+                    survey = Survey.objects.filter(portal_type=doctor.portal_type).order_by('-created_at').first()
+            
+            amount = survey.amount if survey else 20000  # Default amount
+            survey_title = survey.title if survey else "Inclinic experience of Topical Sunscreen in Paediatric"
+            
+            # Get current date
+            current_date = timezone.now()
+            
+            # Prepare logo and signature paths - use absolute file paths for PDF generation
+            import os
+            from django.conf import settings
+            
+            # Get absolute file paths for PDF generation
+            logo_file_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'images', 'logo', 'logo.png')
+            sig_file_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'images', 'logo', 'sig.png')
+            
+            # Check if files exist and use absolute paths
+            logo_path = logo_file_path if os.path.exists(logo_file_path) else None
+            sig_path = sig_file_path if os.path.exists(sig_file_path) else None
+            
+            # Get doctor's signature if agreement exists
+            doctor_sig_path = None
+            if agreement and agreement.digital_signature:
+                # digital_signature is base64 encoded
+                sig_data = agreement.digital_signature
+                # If it already has the data URI prefix, use as-is; otherwise add it
+                if not sig_data.startswith('data:image'):
+                    # Remove any existing prefix before adding new one
+                    if ',' in sig_data:
+                        sig_data = sig_data.split(',', 1)[1]
+                    doctor_sig_path = f"data:image/png;base64,{sig_data}"
+                else:
+                    doctor_sig_path = sig_data
+            
+            # Render agreement template to HTML
+            html = render_to_string('wtestapp/agreement_pdf_template.html', {
+                'doctor': doctor,
+                'amount': amount,
+                'survey_title': survey_title,
+                'signed_date': current_date,
+                'default_signed_date': current_date.strftime('%d/%m/%Y'),
+                'logo_path': logo_path,
+                'sig_path': sig_path,
+                'doctor_sig_path': doctor_sig_path
+            })
+            
+            # Convert HTML to PDF
+            result = BytesIO()
+            pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+            
+            if not pdf.err:
+                response = HttpResponse(result.getvalue(), content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="agreement.pdf"'
+                return response
+            else:
+                messages.error(request, "Error generating agreement PDF")
+                return redirect('doctor_profile_view')
+            
+    except Doctor.DoesNotExist:
+        messages.error(request, "Doctor profile not found")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"Error downloading agreement: {str(e)}")
+        return redirect('doctor_profile_view')
+
+def get_doctor_survey_api(request):
+    """API to get doctor's survey ID for agreement"""
+    if 'doctor_id' not in request.session:
+        return JsonResponse({'success': False, 'message': 'Not logged in'})
+    
+    try:
+        doctor = Doctor.objects.get(id=request.session['doctor_id'])
+        
+        existing_agreement = Agreement.objects.filter(doctor=doctor).first()
+        if existing_agreement and existing_agreement.survey:
+            return JsonResponse({'success': True, 'survey_id': existing_agreement.survey.id})
+        
+        assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
+        
+        if not assigned_survey and doctor.portal_type:
+            assigned_survey = Survey.objects.filter(portal_type=doctor.portal_type).order_by('-created_at').first()
+        
+        if assigned_survey:
+            return JsonResponse({'success': True, 'survey_id': assigned_survey.id})
+        else:
+            return JsonResponse({'success': False, 'message': 'No survey found'})
+    except Doctor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Doctor not found'})
+
+def sign_agreement(request):
+    """View to handle agreement signing"""
+    if 'doctor_id' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    try:
+        doctor = Doctor.objects.get(id=request.session['doctor_id'])
+        
+        if request.method == 'POST':
+            signature_data = request.POST.get('signature')
+            if not signature_data:
+                messages.error(request, "Please provide your signature")
+                return redirect('doctor_profile_view')
+            
+            # Get or create agreement
+            agreement, created = Agreement.objects.get_or_create(doctor=doctor)
+            
+            # Update agreement details
+            agreement.digital_signature = signature_data
+            agreement.signed_at = timezone.now()
+            agreement.save()
+            
+            # Update doctor's agreement status
+            doctor.agreement_accepted = True
+            doctor.save()
+            
+            messages.success(request, "Agreement signed successfully!")
+            return redirect('doctor_profile_view')
+        
+        # For GET request, show signature page
+        return render(request, 'wtestapp/sign_agreement.html', {'doctor': doctor})
+        
+    except Doctor.DoesNotExist:
+        messages.error(request, "Doctor profile not found")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"Error signing agreement: {str(e)}")
+        return redirect('doctor_profile_view')
 
 

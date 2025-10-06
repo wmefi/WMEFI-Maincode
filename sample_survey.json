@@ -1,0 +1,46 @@
+{
+  "questions": [
+    {
+      "text": "How frequently do you prescribe or recommend?",
+      "type": "radio",
+      "required": true,
+      "options": ["Daily", "Weekly", "Monthly", "Rarely"]
+    },
+    {
+      "text": "What is your specialty?",
+      "type": "text",
+      "required": true
+    },
+    {
+      "text": "Do you have experience with this product?",
+      "type": "yesno",
+      "required": true
+    },
+    {
+      "text": "Please provide additional comments",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "text": "Select all that apply",
+      "type": "checkbox",
+      "required": false,
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
+    },
+    {
+      "text": "Your contact number",
+      "type": "phone",
+      "required": true
+    },
+    {
+      "text": "Your email address",
+      "type": "email",
+      "required": true
+    },
+    {
+      "text": "Years of experience",
+      "type": "number",
+      "required": true
+    }
+  ]
+}

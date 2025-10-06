@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verify OTP</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
     body{ min-height:100vh; margin:0; background: linear-gradient(135deg, rgba(100,197,203,.25), rgba(230,100,162,.25)); display:flex; align-items:center; justify-content:center; }
@@ -18,17 +19,24 @@
     .auth-left{ display:block; background:#f7f7f7; height:220px; }
     .auth-left img{ width:100%; height:100%; object-fit:cover; display:block; }
     .auth-body{ padding:28px; display:flex; flex-direction:column; justify-content:center; }
-    .form-box{ max-width: 380px; margin: 0 auto; text-align:center; width:100%; }
+    .form-box{ max-width: 380px; margin: 0 auto; width:100%; }
     .form-box .form-group{ text-align:left; }
     @media (min-width: 992px){ .auth-grid{ display:grid; grid-template-columns: 1.1fr .9fr; } .auth-left{ height:auto; min-height:520px; }
       .auth-body{ padding:40px; } }
 
-    .auth-heading{ font-weight:800; color:#9a547a; margin-bottom:6px; }
-    .auth-sub{ color:#7b3f63; margin-bottom:18px; }
+    .auth-heading{ font-weight:800; color:#9a547a; margin-bottom:6px; text-align:center; }
+    .auth-sub{ color:#7b3f63; margin-bottom:18px; text-align:center; }
+    .form-control{ border-color:#e7b3cd; }
     .form-control:focus{ border-color:var(--pink); box-shadow:0 0 0 .2rem rgba(230,100,162,.15); }
     .btn-primary{ background:var(--pink); border-color:var(--pink); font-weight:700; border-radius:10px; padding:.7rem 1rem; }
     .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
     .helper{ font-size:.875rem; color:#7b3f63; }
+    .debug-otp{ background:#d4edda; border: 2px solid #28a745; border-radius:8px; padding:10px; margin-top:15px; }
+    .debug-otp-title{ color: #155724; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; text-align:center; }
+    .debug-otp-code{ color: #28a745; font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; font-family: monospace; text-align:center; }
+    .otp-input{ font-size: 1.2rem; letter-spacing: 2px; text-align: center; font-weight: 600; }
+    .resend-link{ display:block; text-align:center; color:#9a547a; text-decoration:none; margin-top:15px; }
+    .resend-link:hover{ color:var(--pink); text-decoration:none; }
   </style>
 </head>
 <body>
@@ -42,30 +50,38 @@
       <div class="auth-left" aria-label="OTP visual">
         <img src="{% static 'images/logo/OTP_IMAGE.webp' %}" alt="OTP visual" />
       </div>
-      <div class="auth-body">
+      <div class="auth-body d-flex align-items-center justify-content-center">
         <div class="form-box">
-          <h4 class="auth-heading">Enter OTP</h4>
-          <div class="auth-sub">An OTP has been sent to {{ mobile|default:'your mobile number' }}.</div>
+          <h2 class="auth-heading">Enter OTP</h2>
+          <p class="auth-sub">An OTP has been sent to {{ request.session.mobile|default:'your mobile number' }}.</p>
 
           {% if messages %}
             {% for message in messages %}
-              <div class="alert alert-danger py-2">{{ message }}</div>
+              <div class="alert alert-{{ message.tags }} py-2" role="alert">
+                {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
-
-          <form method="post">
+          
+          <form method="post" action="{% url 'verify_otp' %}">
             {% csrf_token %}
             <div class="form-group">
-              <label for="otp">OTP Code</label>
-              <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter 4-digit OTP" pattern="[0-9]{4}" maxlength="4" required />
-              <small class="form-text text-muted helper">Enter the 4-digit code you received.</small>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                </div>
+                <input type="text" class="form-control otp-input" id="otp" name="otp" placeholder="Enter 6-digit OTP" required pattern="[0-9]{6}" maxlength="6">
+              </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Verify & Login</button>
+            <button type="submit" class="btn btn-primary btn-block mt-4">Verify OTP</button>
           </form>
+          
+          <a href="{% url 'login' %}" class="resend-link">
+            <i class="fas fa-redo-alt mr-1"></i> Didn't receive OTP? Try again
+          </a>
         </div>
       </div>
     </div>
   </div>
-
 </body>
 </html>

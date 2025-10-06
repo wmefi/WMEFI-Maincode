@@ -4,11 +4,96 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Upload Survey File</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-upload"></i> Upload New Survey</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="title">Survey Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="Enter survey title (or leave blank to use title from JSON)" >
+                            <small class="form-text text-muted">If left blank, title will be taken from JSON file</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="portal_type">Portal Type</label>
+                            <select class="form-control" id="portal_type" name="portal_type">
+                                <option value="">Select Portal Type</option>
+                                <option value="CP">CP (Critical Patient)</option>
+                                <option value="GC">GC (General Care)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="amount">Amount (₹)</label>
+                            <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter survey amount" value="0" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="survey_json">Upload Survey JSON File <span class="text-danger">*</span></label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="survey_json" name="survey_json" accept=".json" required>
+                                <label class="custom-file-label" for="survey_json">Choose JSON file...</label>
+                            </div>
+                            <small class="form-text text-muted">
+                                <strong>File requirements:</strong><br>
+                                • Format: JSON only (.json)<br>
+                                • Max size: 5 MB<br>
+                                • Should contain questions array with question_text and options
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong><i class="fas fa-info-circle"></i> JSON Format Example:</strong>
+                            <pre class="mb-0 mt-2" style="font-size: 12px;">{
+  "title": "Survey Title",
+  "questions": [
+    {
+      "id": 1,
+      "question_text": "Your question here?",
+      "options": ["Option 1", "Option 2", "Option 3"]
+    }
+  ]
+}</pre>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="/admin/wtestapp/survey/" class="btn btn-secondary mr-2">
+                                <i class="fas fa-arrow-left"></i> Back to Surveys
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload"></i> Upload Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+// Update custom file input label
+document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+    var fileName = e.target.files[0].name;
+    var label = document.querySelector('.custom-file-label');
+    label.textContent = fileName;
+});
+</script>
 {% endblock %}

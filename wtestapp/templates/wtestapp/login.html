@@ -25,11 +25,14 @@
       .auth-body{ padding:40px; } }
 
     .auth-heading{ font-weight:800; color:#9a547a; margin-bottom:6px; }
-    .input-group-text{ background:#fff; border-color:#e7b3cd; color:#9a547a; font-weight:700; }
-    .form-control{ border-color:#e7b3cd; }
-    .form-control:focus{ border-color:var(--pink); box-shadow:0 0 0 .2rem rgba(230,100,162,.15); }
-    .btn-primary{ background:var(--pink); border-color:var(--pink); font-weight:700; border-radius:10px; padding:.7rem 1rem; }
-    .btn-primary:hover{ background:var(--purple); border-color:var(--purple); }
+    .input-group-text{ background:#fff; border-color:#e7b3cd; color:#e664a2; font-weight:700; }
+    .form-control{ border-color:#e7b3cd; background: white; transition: all 0.3s ease; }
+    .form-control:hover{ border-color:#e664a2; box-shadow: 0 0 0 3px rgba(230,100,162,0.1); }
+    .form-control:focus{ border-color:#e664a2; box-shadow:0 0 0 3px rgba(230,100,162,0.15); outline: none; }
+    .btn-primary{ background:#e664a2 !important; border: 2px solid #e664a2 !important; color: white !important; font-weight:700; border-radius:12px; padding:.7rem 1rem; transition: all 0.3s ease; box-shadow: 0 3px 10px rgba(230,100,162,0.3); }
+    .btn-primary:hover{ background: white !important; color: #e664a2 !important; border-color:#e664a2 !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(230,100,162,0.4) !important; }
+    .btn-primary:active{ transform: translateY(0px) !important; background: white !important; color: #e664a2 !important; }
+    .btn-primary:focus{ outline: none !important; box-shadow: 0 0 0 3px rgba(230,100,162,0.2) !important; background:#e664a2 !important; color: white !important; }
     .helper{ font-size:.875rem; color:#7b3f63; }
     .foot-note{ text-align:center; color:#9a547a; margin-top:14px; font-size:.9rem; }
   </style>
@@ -48,35 +51,37 @@
         <img src="{% static 'images/logo/login_images.jpg' %}" alt="Login visual" />
       </div>
       <div class="auth-body d-flex align-items-center justify-content-center">
-        <div class="form-box w-100 mw-380 mx-auto text-center">
-          <h4 class="auth-heading">Login with Mobile</h4>
-          <div class="auth-sub">Enter your mobile number to receive an OTP.</div>
-
+        <div class="form-box w-100 mw-380 mx-auto">
+          <h2 class="auth-heading text-center">Login with Mobile</h2>
+          <p class="mb-4 text-center">Enter your mobile number to receive an OTP</p>
+          
           {% if messages %}
             {% for message in messages %}
-              <div class="alert alert-danger py-2">{{ message }}</div>
+              <div class="alert alert-{{ message.tags }} py-2" role="alert">
+                {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
-
-          <form method="post">
+          
+          <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="form-group">
-              <label for="mobile" class="text-left">Mobile Number</label>
+              <label for="mobile">Mobile Number</label>
               <div class="input-group">
                 <div class="input-group-prepend">
                   <span class="input-group-text"><i class="fas fa-flag mr-1"></i> +91</span>
                 </div>
                 <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="Enter 10-digit mobile" pattern="[0-9]{10}" maxlength="10" required />
               </div>
-              <small class="form-text text-muted helper text-left">We’ll send an OTP to this number.</small>
+              <small class="form-text text-muted helper">We'll send an OTP to this number.</small>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Send OTP</button>
+            <button type="submit" class="btn btn-primary btn-block mt-4">Send OTP</button>
           </form>
 
-          <div class="foot-note text-left">Having trouble? Contact support at <a href="mailto:connect@wmefi.co.in">connect@wmefi.co.in</a></div>
+          <div class="foot-note mt-4 text-center">Having trouble? Contact support at <a href="mailto:connect@wmefi.co.in">connect@wmefi.co.in</a></div>
         </div>
       </div>
     </div>
   </div>
-
 </body>
+</html>
