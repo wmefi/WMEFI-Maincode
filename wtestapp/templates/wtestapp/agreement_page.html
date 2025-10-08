@@ -80,6 +80,29 @@
         </div>
       </div>
 
+      {% if is_already_signed %}
+      <div class="alert alert-success" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h5 style="margin: 0 0 15px 0; font-size: 18px;"><i class="fas fa-check-circle"></i> Agreement Already Signed</h5>
+        <p style="margin: 0 0 20px 0; font-size: 14px;">You successfully signed this agreement on <strong>{{ existing_agreement.signed_at|date:"F d, Y \a\t h:i A" }}</strong></p>
+        <div style="border: 2px solid #28a745; border-radius: 8px; padding: 20px; background: white; text-align: center;">
+          <p style="margin: 0 0 15px 0; font-size: 14px; color: #666; font-weight: 600;">Your Digital Signature:</p>
+          {% if existing_agreement.digital_signature %}
+            {% if existing_agreement.signature_type == 'typed' %}
+              <div style="border: 1px solid #ddd; padding: 20px 40px; background: #fafafa; display: inline-block; font-family: Arial, sans-serif; font-size: 28px; font-weight: 600; color: #000;">
+                {{ existing_agreement.digital_signature|slice:"6:" }}
+              </div>
+            {% else %}
+              <img src="{{ existing_agreement.digital_signature }}" alt="Your Signature" style="max-width: 300px; max-height: 100px; border: 1px solid #ddd; padding: 10px; background: #fafafa; display: inline-block;">
+            {% endif %}
+          {% else %}
+          <p style="color: #999; font-style: italic;">Signature not available</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="text-right mt-4">
+        <a href="{% url 'survey_detail' survey_id=survey.id %}" class="btn btn-primary btn-lg" style="font-size: 16px; padding: 12px 35px;"><i class="fas fa-arrow-right"></i> Continue to Survey</a>
+      </div>
+      {% else %}
       <div class="form-group mb-4">
         <label class="font-weight-bold" style="font-size: 15px; color: #7b3f63; margin-bottom: 10px; display: block;">Digital Signature</label>
         <div class="mb-2" style="font-size: 13px; color: #666;">Draw your signature below or type your name.</div>
@@ -103,6 +126,7 @@
       <div class="text-right">
         <button type="submit" class="btn btn-primary btn-lg" style="font-size: 16px; padding: 10px 28px;">Accept & Continue</button>
       </div>
+      {% endif %}
     </form>
   </div>
 </div>

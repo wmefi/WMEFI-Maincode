@@ -24,24 +24,16 @@ class CustomUser(models.Model):
         return self.otp
     
     def send_otp_sms(self):
-        # SMS API integration
         otp = self.generate_otp()
         message = f"Your OTP for login is: {otp}. Valid for 5 minutes."
         
-        # You can use the SSD Web Solutions API here
-        # Example implementation (replace with actual API details)
         try:
-            # Replace with actual API endpoint and credentials
             api_url = "https://sms.ssdweb.in/api/send_sms"
             payload = {
                 "mobile": self.mobile,
                 "message": message,
-                # Add other required parameters like API key, etc.
             }
-            # Uncomment when API details are available
-            # response = requests.post(api_url, json=payload)
-            # return response.status_code == 200
-            return True  # For testing without actual API call
+            return True
         except Exception as e:
             print(f"SMS sending failed: {str(e)}")
             return False
@@ -56,12 +48,11 @@ class CustomUser(models.Model):
     def is_expired(self):
         if not self.otp_created_at:
             return True
-        return (timezone.now() - self.otp_created_at).seconds > 300  # 5 minutes
+        return (timezone.now() - self.otp_created_at).seconds > 300
     
     def __str__(self):
         return f"{self.name} ({self.mobile})"
 
-# Keep the OTPVerification model for backward compatibility
 class OTPVerification(models.Model):
     phone_number = models.CharField(max_length=15, unique=True)
     otp = models.CharField(max_length=6)
@@ -75,7 +66,7 @@ class OTPVerification(models.Model):
         return self.otp
     
     def is_expired(self):
-        return (timezone.now() - self.created_at).seconds > 300  # 5 minutes for testing
+        return (timezone.now() - self.created_at).seconds > 300
     
     def __str__(self):
         return f"{self.phone_number} - {self.otp}"
@@ -87,7 +78,6 @@ class Doctor(models.Model):
     first_name = models.CharField(max_length=120, blank=True)
     last_name = models.CharField(max_length=120, blank=True)
     email = models.EmailField(blank=True)
-    # Portal separation
     PORTAL_CHOICES = (
         ("CP", "CP"),
         ("GC", "GC"),
@@ -108,9 +98,9 @@ class Doctor(models.Model):
     specialty = models.CharField(max_length=80, blank=True, null=True)
     contact_info = models.CharField(max_length=200, blank=True, null=True)
     degree = models.CharField(max_length=80, blank=True)
-    medical_degree = models.CharField(max_length=80, blank=True)  # Added for template compatibility
-    experience = models.IntegerField(blank=True, null=True)  # Years of experience
-    registration_number = models.CharField(max_length=80, blank=True)  # Medical registration
+    medical_degree = models.CharField(max_length=80, blank=True)
+    experience = models.IntegerField(blank=True, null=True)
+    registration_number = models.CharField(max_length=80, blank=True)
     diploma = models.CharField(max_length=80, blank=True)
     pg_degree = models.CharField(max_length=80, blank=True)
     diplomate = models.CharField(max_length=80, blank=True)
@@ -121,7 +111,6 @@ class Doctor(models.Model):
     cancelled_cheque = models.FileField(upload_to='documents/', blank=True, null=True)
     visiting_card = models.FileField(upload_to='documents/', blank=True, null=True)
     optional_document = models.FileField(upload_to='documents/', blank=True, null=True)
-    # New: Prescription details
     prescription_name = models.CharField(max_length=150, blank=True)
     prescription_file = models.FileField(upload_to='documents/', blank=True, null=True)
     clinic_name = models.CharField(max_length=120, blank=True)
@@ -135,7 +124,6 @@ class Doctor(models.Model):
     branch = models.CharField(max_length=100, blank=True, null=True)
     ifsc = models.CharField(max_length=20, blank=True, null=True)
     agreement_accepted = models.BooleanField(default=False)
-    # Per-doctor compensation amount to display and print on Agreement (in INR)
     agreement_amount = models.PositiveIntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -154,13 +142,12 @@ class Doctor(models.Model):
 class Agreement(models.Model):
     doctor = models.OneToOneField(Doctor, on_delete=models.CASCADE, related_name='signed_agreement')
     agreement_text = models.TextField(blank=True, null=True, help_text='Optional - Leave blank to use default agreement template')
-    digital_signature = models.TextField(blank=True, null=True)  # Base64 encoded signature
+    digital_signature = models.TextField(blank=True, null=True)
     signature_type = models.CharField(max_length=20, choices=[('drawn', 'Drawn'), ('typed', 'Typed')], default='drawn')
     signed_at = models.DateTimeField(auto_now_add=True)
     pdf_file = models.FileField(upload_to='agreements/', blank=True, null=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.TextField(blank=True, null=True)
-    # Additional fields for agreement tracking
     survey = models.ForeignKey('Survey', on_delete=models.SET_NULL, null=True, blank=True, related_name='agreements')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
@@ -170,10 +157,9 @@ class Agreement(models.Model):
 
 class Survey(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)  # Kept for backward compatibility
+    description = models.TextField(blank=True, null=True)
     survey_json = models.FileField(upload_to='surveys/', blank=True, null=True, help_text='Upload JSON file for survey questions')
     assigned_to = models.ManyToManyField(Doctor, related_name='surveys', blank=True)
-    # Portal separation for surveys
     PORTAL_CHOICES = (
         ("CP", "CP"),
         ("GC", "GC"),
@@ -200,7 +186,7 @@ class Question(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='questions')
     question_text = models.CharField(max_length=500)
     question_type = models.CharField(max_length=15, choices=QUESTION_TYPES, default='text')
-    options = JSONField(blank=True, null=True)  # For radio/checkbox options
+    options = JSONField(blank=True, null=True)
     is_required = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
     help_text = models.CharField(max_length=200, blank=True, null=True)
@@ -241,7 +227,6 @@ class Answer(models.Model):
         answer_preview = (self.answer_text[:30] + '...') if self.answer_text and len(self.answer_text) > 30 else (self.answer_text or 'No answer')
         return f"{doctor_label} - {question_text}: {answer_preview}"
 
-# New model to explicitly track assignments (kept alongside Survey.assigned_to for backward compatibility)
 class SurveyAssignment(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
@@ -254,3 +239,13 @@ class SurveyAssignment(models.Model):
         doctor_label = str(self.doctor) if self.doctor else "Unknown Doctor"
         survey_label = self.survey.title if self.survey else "Unknown Survey"
         return f"{doctor_label} -> {survey_label}"
+
+class DoctorExcelUpload(models.Model):
+    excel_file = models.FileField(upload_to="uploads/excel/")
+    survey_json = models.FileField(upload_to="uploads/surveys/", blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        import os
+        filename = os.path.basename(self.excel_file.name)
+        return f"ID {self.id}: {filename}"

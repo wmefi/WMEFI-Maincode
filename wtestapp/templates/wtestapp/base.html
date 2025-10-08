@@ -196,19 +196,17 @@
                     </li>
                     {% endif %}
                     
-                    {% if profile_complete and not agreement_signed %}
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="goToAgreement(event)">
-                            <i class="fas fa-file-signature"></i> Sign Agreement
+                            <i class="fas fa-file-signature"></i> Agreement
                         </a>
                     </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="checkSurveyAccess(event)">
+                            <i class="fas fa-clipboard-list"></i> My Surveys
+                        </a>
+                    </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="checkSurveyAccess(event)">
-                        <i class="fas fa-clipboard-list"></i> My Surveys
-                    </a>
-                </li>
                 {% if request.session.doctor_id %}
                 <li class="nav-item">
                     <span class="nav-link user-info">
@@ -325,19 +323,34 @@
         function goToAgreement(event) {
             event.preventDefault();
             
-            fetch('/api/get-doctor-survey/')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.survey_id) {
-                        window.location.href = '/agreement/' + data.survey_id + '/';
-                    } else {
-                        alert('No survey assigned. Please contact admin.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    window.location.href = "{% url 'doctor_profile' %}";
-                });
+            // Check if profile is complete first
+            {% if request.session.doctor_id %}
+                var profileComplete = {{ profile_complete|yesno:"true,false" }};
+                
+                if (!profileComplete) {
+                    // Show modal if profile incomplete
+                    $('#profileIncompleteModal').modal('show');
+                    return;
+                }
+                
+                // Profile complete, fetch survey and go to agreement
+                fetch('/api/get-doctor-survey/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.survey_id) {
+                            window.location.href = '/agreement/' + data.survey_id + '/';
+                        } else {
+                            alert('No survey assigned. Please contact admin.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        window.location.href = "{% url 'doctor_profile' %}";
+                    });
+            {% else %}
+                // Not logged in, redirect to login
+                window.location.href = "{% url 'login' %}";
+            {% endif %}
         }
     </script>
 </body>

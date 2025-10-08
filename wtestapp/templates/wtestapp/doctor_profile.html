@@ -314,10 +314,41 @@
                         <select class="form-control" id="state" name="state" required>
                             {% with current_state=doctor.state|default_if_none:'' %}
                                 <option value="" {% if not current_state %}selected disabled{% endif %}>Select State</option>
+                                <option value="Andaman and Nicobar Islands" {% if current_state == 'Andaman and Nicobar Islands' %}selected{% endif %}>Andaman and Nicobar Islands</option>
+                                <option value="Andhra Pradesh" {% if current_state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
                                 <option value="Arunachal Pradesh" {% if current_state == 'Arunachal Pradesh' %}selected{% endif %}>Arunachal Pradesh</option>
                                 <option value="Assam" {% if current_state == 'Assam' %}selected{% endif %}>Assam</option>
+                                <option value="Bihar" {% if current_state == 'Bihar' %}selected{% endif %}>Bihar</option>
+                                <option value="Chandigarh" {% if current_state == 'Chandigarh' %}selected{% endif %}>Chandigarh</option>
+                                <option value="Chhattisgarh" {% if current_state == 'Chhattisgarh' %}selected{% endif %}>Chhattisgarh</option>
+                                <option value="Dadra and Nagar Haveli and Daman and Diu" {% if current_state == 'Dadra and Nagar Haveli and Daman and Diu' %}selected{% endif %}>Dadra and Nagar Haveli and Daman and Diu</option>
+                                <option value="Goa" {% if current_state == 'Goa' %}selected{% endif %}>Goa</option>
+                                <option value="Gujarat" {% if current_state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+                                <option value="Haryana" {% if current_state == 'Haryana' %}selected{% endif %}>Haryana</option>
+                                <option value="Himachal Pradesh" {% if current_state == 'Himachal Pradesh' %}selected{% endif %}>Himachal Pradesh</option>
+                                <option value="Jammu & Kashmir" {% if current_state == 'Jammu & Kashmir' %}selected{% endif %}>Jammu & Kashmir</option>
+                                <option value="Jharkhand" {% if current_state == 'Jharkhand' %}selected{% endif %}>Jharkhand</option>
+                                <option value="Karnataka" {% if current_state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+                                <option value="Ladakh" {% if current_state == 'Ladakh' %}selected{% endif %}>Ladakh</option>
+                                <option value="Lakshadweep" {% if current_state == 'Lakshadweep' %}selected{% endif %}>Lakshadweep</option>
+                                <option value="Madhya Pradesh" {% if current_state == 'Madhya Pradesh' %}selected{% endif %}>Madhya Pradesh</option>
+                                <option value="Maharashtra" {% if current_state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+                                <option value="Manipur" {% if current_state == 'Manipur' %}selected{% endif %}>Manipur</option>
+                                <option value="Meghalaya" {% if current_state == 'Meghalaya' %}selected{% endif %}>Meghalaya</option>
+                                <option value="Mizoram" {% if current_state == 'Mizoram' %}selected{% endif %}>Mizoram</option>
+                                <option value="Nagaland" {% if current_state == 'Nagaland' %}selected{% endif %}>Nagaland</option>
+                                <option value="Odisha" {% if current_state == 'Odisha' %}selected{% endif %}>Odisha</option>
+                                <option value="Puducherry" {% if current_state == 'Puducherry' %}selected{% endif %}>Puducherry</option>
+                                <option value="Punjab" {% if current_state == 'Punjab' %}selected{% endif %}>Punjab</option>
+                                <option value="Rajasthan" {% if current_state == 'Rajasthan' %}selected{% endif %}>Rajasthan</option>
+                                <option value="Sikkim" {% if current_state == 'Sikkim' %}selected{% endif %}>Sikkim</option>
+                                <option value="Tamil Nadu" {% if current_state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                                <option value="Telangana" {% if current_state == 'Telangana' %}selected{% endif %}>Telangana</option>
+                                <option value="Tripura" {% if current_state == 'Tripura' %}selected{% endif %}>Tripura</option>
+                                <option value="Uttar Pradesh" {% if current_state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+                                <option value="Uttarakhand" {% if current_state == 'Uttarakhand' %}selected{% endif %}>Uttarakhand</option>
                                 <option value="West Bengal" {% if current_state == 'West Bengal' %}selected{% endif %}>West Bengal</option>
-                                {% if current_state and current_state not in 'Arunachal Pradesh,Assam,West Bengal' %}
+                                {% if current_state and current_state not in 'Andaman and Nicobar Islands,Andhra Pradesh,Arunachal Pradesh,Assam,Bihar,Chandigarh,Chhattisgarh,Dadra and Nagar Haveli and Daman and Diu,Goa,Gujarat,Haryana,Himachal Pradesh,Jammu & Kashmir,Jharkhand,Karnataka,Ladakh,Lakshadweep,Madhya Pradesh,Maharashtra,Manipur,Meghalaya,Mizoram,Nagaland,Odisha,Puducherry,Punjab,Rajasthan,Sikkim,Tamil Nadu,Telangana,Tripura,Uttar Pradesh,Uttarakhand,West Bengal' %}
                                     <option value="{{ current_state }}" selected>{{ current_state }}</option>
                                 {% endif %}
                             {% endwith %}
@@ -342,11 +373,104 @@
             <script>
                 // State to Cities/Districts mapping
                 const stateCityMap = {
+                    "Andaman and Nicobar Islands": [
+                        "Campbell Bay","Car Nicobar","Diglipur","Port Blair"
+                    ],
+                    "Andhra Pradesh": [
+                        "Amalapuram","Anakapalle","Anantapur","Bhimavaram","Chittoor","Cuddapah","Eluru","Gudiwada","Gudur","Guntur","Hindupur","Kakinada","Khammam","Kurnool","Machilipatnam","Nandyal","Narasaraopet","Nellore","Parvathipuram","Prakasam","Proddatur","Rajahmundry","Srikakulam","Tadepalligudem","Tenali","Tirupati","Vijayawada","Visakhapatnam","Vizianagaram"
+                    ],
                     "Arunachal Pradesh": [
                         "Changlang","Dibang Valley","East Kameng","East Siang","Kurung Kumey","Lohit","Lower Subansiri","Papum Pare","Tawang","Tirap","Upper Siang","Upper Subansiri","West Kameng","West Siang"
                     ],
                     "Assam": [
                         "Barpeta","Bongaigaon","Cachar","Darrang","Dhemaji","Dhubri","Dibrugarh","Goalpara","Golaghat","Hailakandi","Jorhat","Kamrup","Karbi Anglong","Karimganj","Kokrajhar","Lakhimpur","Marigaon (Morigaon)","Nagaon","Nalbari","North Cachar Hills (Dima Hasao)","Sibsagar (Sivasagar)","Sonitpur","Tinsukia","Guwahati"
+                    ],
+                    "Bihar": [
+                        "Aurangabad (Bihar)","Begusarai","Bhagalpur","Bhojpur","Darbhanga","East Champaran","Gaya","Madhubani","Monghyr","Muzaffarpur","Nalanda","Nawadha","Patna","Purnea","Rohtas","Saharsa","Samastipur","Saran","Sitamarhi","Siwan","Vaishali","West Champaran"
+                    ],
+                    "Chandigarh": [
+                        "Chandigarh"
+                    ],
+                    "Chhattisgarh": [
+                        "Bastar","Bilaspur","Durg","Raigarh","Raipur"
+                    ],
+                    "Dadra and Nagar Haveli and Daman and Diu": [
+                        "Dadra","Daman","Diu","Nagar Haveli"
+                    ],
+                    "Goa": [
+                        "Bicholim","Canacona","Mapusa","Margao","Mormugao","Panaji","Pernem","Ponda","Quepem","Vasco da Gama"
+                    ],
+                    "Gujarat": [
+                        "Ahmedabad City","Amreli","Anand","Banas Kantha","Bardoli","Bharuch","Bhavnagar","Gandhinagar","Gondal","Jamnagar","Junagadh","Kheda","Kutch","Mahesana","Navsari","Panchmahals","Patan","Porbandar","Rajkot","Sabarkantha","Surat","Surendranagar","Vadodara East","Vadodara West","Valsad","Vapi"
+                    ],
+                    "Haryana": [
+                        "Ambala","Bhiwani","Faridabad","Gurugram","Hissar","Karnal","Kurukshetra","Rohtak","Sonepat"
+                    ],
+                    "Himachal Pradesh": [
+                        "Chamba","Dehra Gopipur","Dharamsala","Hamirpur","Mandi","Rampur Bushahr","Shimla","Solan","Una"
+                    ],
+                    "Jammu & Kashmir": [
+                        "Ananthnag","Bandipura","Baramulla","Budgam","Doda","Jammu","Kargil","Kathua","Kulgam","Kupwara","Leh","Poonch","Pulwama","Rajauri","Reasi","Srinagar","Udhampur"
+                    ],
+                    "Jharkhand": [
+                        "Dhanbad","Giridih","Hazaribagh","Palamau","Ranchi","Santhal Parganas","Singhbhum"
+                    ],
+                    "Karnataka": [
+                        "Bagalkot","Belgaum","Bellary","Bengaluru East","Bengaluru South","Bengaluru West","Bidar","Bijapur","Channapatna","Chikmagalur","Chikodi","Chitradurga","Dharwad","Gadag","Gokak","Gulbarga","Hassan","Haveri","Karwar","Kodagu","Kolar","Mandya","Mangalore","Mysore","Nanjangud","Puttur","Raichur","Shimoga","Sirsi","Tumkur","Udupi"
+                    ],
+                    "Ladakh": [
+                        "Kargil","Leh"
+                    ],
+                    "Lakshadweep": [
+                        "Agatti","Amini","Andrott","Bitra","Kadmat","Kalpeni","Kavaratti","Minicoy"
+                    ],
+                    "Madhya Pradesh": [
+                        "Balaghat","Bhopal","Chhatarpur","Chhindwara","Guna","Gwalior","Hoshangabad","Indore City","Indore Mofussil","Jabalpur","Khandwa","Mandsaur","Morena","Ratlam","Rewa","Sagar","Satna","Sehore","Shahdol","Ujjain","Vidisha"
+                    ],
+                    "Maharashtra": [
+                        "Ahmed Nagar","Akola","Amravati","Aurangabad","Beed","Bhandara","Buldhana","Chandrapur","Dhule","Gadchiroli","Gondia","Hingoli","Jalgaon","Jalna","Kolhapur","Latur","Mumbai","Nagpur","Nanded","Nandurbar","Nashik","Osmanabad","Parbhani","Pune","Raigarh (MH)","Ratnagiri","Sangli","Satara","Sindhudurg","Solapur","Thane","Wardha","Washim"
+                    ],
+                    "Manipur": [
+                        "Bishnupur","Chandel","Churachandpur","Imphal East","Imphal West","Senapati","Tamenglong","Thoubal","Ukhrul"
+                    ],
+                    "Meghalaya": [
+                        "East Garo Hills","East Khasi Hills","Jaintia Hills","Meghalaya","R1 Bhoi","South Garo Hills","West Garo Hills","West Khasi Hills"
+                    ],
+                    "Mizoram": [
+                        "Aizawl","Champhai","Kolasib","Lawngtlai","Lunglei","Mammit","Serchhip"
+                    ],
+                    "Nagaland": [
+                        "Dimapur","Kiphire","Kohima","Longleng","Mokokchung","Mon","Peren","Phek","Tuensang","Wokha","Zunhebotto"
+                    ],
+                    "Odisha": [
+                        "Aska","Balangir","Balasore","Berhaspur","Bhadrak","Bhubaneswar","Cuttack City","Cuttack North","Cuttack South","Dhenkanal","Kalahandi","Keonjhar","Koraput","Mayurbhanj","Phulbani","Puri","Sambalpur","Sundargarh"
+                    ],
+                    "Puducherry": [
+                        "Karaikal","Mahe","Puducherry","Yanam"
+                    ],
+                    "Punjab": [
+                        "Amritsar","Barnala","Bathinda","Faridkot","Fatehgarh Sahib","Fazilka","Firozpur","Gurdaspur","Hoshiarpur","Jalandhar","Kapurthala","Ludhiana","Mansa","Moga","Mohali","Muktsar","Nawanshahr","Patiala","Ropar","Rupnagar","Sangrur","Tarn Taran"
+                    ],
+                    "Rajasthan": [
+                        "Ajmer","Alwar","Banswara","Baran","Barmer","Bharatpur","Bhilwara","Bikaner","Bundi","Chittorgarh","Churu","Dausa","Dholpur","Dungarpur","Ganganagar","Hanumangarh","Jaipur","Jaisalmer","Jalore","Jhalawar","Jhunjhunu","Jodhpur","Karauli","Kota","Nagaur","Pali","Rajsamand","Sawai Madhopur","Sikar","Sirohi","Tonk","Udaipur"
+                    ],
+                    "Sikkim": [
+                        "East Sikkim","North Sikkim","South Sikkim","West Sikkim"
+                    ],
+                    "Tamil Nadu": [
+                        "Anna H.O.","Arakkonam","Chengalpattu","Chennai City Central","Chennai City North","Chennai City South","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode","Kanchipuram","Kanniyakumari","Karaikudi","Karur","Kovilpatti","Krishnagiri","Kumbakonam","Madurai","Mayiladuthurai","Nagapattinam","Namakkal","Nilgiris","Pattukottai","Poducherry","Pollachi","Pudukottai","Ramanathapuram","Salem East","Salem West","Sivaganga","Srirangam","Tambaram","Thanjavur","Theni","Tiruchirapalli","Tirunelveli","Tirupattur","Tirupur","Tiruvannamalai","Tuticorin","Vellore","Virudhunagar","Vriddhachalam"
+                    ],
+                    "Telangana": [
+                        "Adilabad","Hanamkonda","Hyderabad City","Hyderabad South East","Karimnagar","Khammam","Mahabubnagar","Medak","Nalgonda","Nizamabad","Peddapalli","Sangareddy","Secunderabad","Suryapet","Wanaparthy","Warangal"
+                    ],
+                    "Tripura": [
+                        "Dhalai","Gomati","Khowai","North Tripura","Sepahijala","South Tripura","Unakoti","West Tripura"
+                    ],
+                    "Uttar Pradesh": [
+                        "Agra","Aligarh","Allahabad","Ambedkar Nagar","Auraiya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Faizabad","Farrukhabad","Fatehpur","Firozabad","Gautam Buddha Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Jyotiba Phule Nagar","Kannauj","Kanpur Dehat","Kanpur Nagar","Kaushambi","Kheri","Kushinagar","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Raebareli","Rampur","Saharanpur","Sant Kabir Nagar","Sant Ravidas Nagar","Shahjahanpur","Shrawasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"
+                    ],
+                    "Uttarakhand": [
+                        "Almora","Bageshwar","Chamoli","Champawat","Dehradun","Haridwar","Nainital","Pauri Garhwal","Pithoragarh","Rudraprayag","Tehri Garhwal","Udham Singh Nagar","Uttarkashi"
                     ],
                     "West Bengal": [
                         "Asansol","Bankura","Birbhum","Burdwan (Bardhaman)","Contai (Kanthi)","Cooch Behar","Darjiling (Darjeeling)","Hooghly","Howrah","Jalpaiguri","Kolkata","Malda","Midnapore (Paschim Medinipur)","Murshidabad","Nadia","North 24 Parganas","North Dinajpur (Uttar Dinajpur)","Purulia","South 24 Parganas","South Dinajpur (Dakshin Dinajpur)","Tamluk (East Medinipur)"
@@ -417,61 +541,61 @@
                         <select class="form-control" id="specialty" name="specialty" required>
                             {% with current=doctor.specialty|default_if_none:'' %}
                                 <option value="" {% if not current %}selected disabled{% endif %}>Select Specialty</option>
-                                <option value="General Physician / General Practitioner" {% if current == 'General Physician / General Practitioner' %}selected{% endif %}>General Physician / General Practitioner</option>
-                                <option value="Family Medicine Specialist" {% if current == 'Family Medicine Specialist' %}selected{% endif %}>Family Medicine Specialist</option>
-                                <option value="Internal Medicine Specialist" {% if current == 'Internal Medicine Specialist' %}selected{% endif %}>Internal Medicine Specialist</option>
-                                <option value="General Surgeon" {% if current == 'General Surgeon' %}selected{% endif %}>General Surgeon</option>
-                                <option value="Orthopedic Surgeon" {% if current == 'Orthopedic Surgeon' %}selected{% endif %}>Orthopedic Surgeon</option>
-                                <option value="Neurosurgeon" {% if current == 'Neurosurgeon' %}selected{% endif %}>Neurosurgeon</option>
-                                <option value="Cardiothoracic Surgeon" {% if current == 'Cardiothoracic Surgeon' %}selected{% endif %}>Cardiothoracic Surgeon</option>
-                                <option value="Vascular Surgeon" {% if current == 'Vascular Surgeon' %}selected{% endif %}>Vascular Surgeon</option>
-                                <option value="Plastic / Reconstructive Surgeon" {% if current == 'Plastic / Reconstructive Surgeon' %}selected{% endif %}>Plastic / Reconstructive Surgeon</option>
-                                <option value="Pediatric Surgeon" {% if current == 'Pediatric Surgeon' %}selected{% endif %}>Pediatric Surgeon</option>
-                                <option value="Urologist" {% if current == 'Urologist' %}selected{% endif %}>Urologist</option>
-                                <option value="ENT Surgeon" {% if current == 'ENT Surgeon' %}selected{% endif %}>ENT Surgeon</option>
-                                <option value="Ophthalmic Surgeon" {% if current == 'Ophthalmic Surgeon' %}selected{% endif %}>Ophthalmic Surgeon</option>
-                                <option value="Cardiologist" {% if current == 'Cardiologist' %}selected{% endif %}>Cardiologist</option>
-                                <option value="Neurologist" {% if current == 'Neurologist' %}selected{% endif %}>Neurologist</option>
-                                <option value="Pulmonologist / Chest Physician" {% if current == 'Pulmonologist / Chest Physician' %}selected{% endif %}>Pulmonologist / Chest Physician</option>
-                                <option value="Gastroenterologist" {% if current == 'Gastroenterologist' %}selected{% endif %}>Gastroenterologist</option>
-                                <option value="Nephrologist" {% if current == 'Nephrologist' %}selected{% endif %}>Nephrologist</option>
-                                <option value="Endocrinologist" {% if current == 'Endocrinologist' %}selected{% endif %}>Endocrinologist</option>
-                                <option value="Rheumatologist" {% if current == 'Rheumatologist' %}selected{% endif %}>Rheumatologist</option>
-                                <option value="Hematologist" {% if current == 'Hematologist' %}selected{% endif %}>Hematologist</option>
-                                <option value="Oncologist" {% if current == 'Oncologist' %}selected{% endif %}>Oncologist</option>
-                                <option value="Geriatrician" {% if current == 'Geriatrician' %}selected{% endif %}>Geriatrician</option>
-                                <option value="Pediatrician" {% if current == 'Pediatrician' %}selected{% endif %}>Pediatrician</option>
-                                <option value="Neonatologist" {% if current == 'Neonatologist' %}selected{% endif %}>Neonatologist</option>
-                                <option value="Pediatric Cardiologist" {% if current == 'Pediatric Cardiologist' %}selected{% endif %}>Pediatric Cardiologist</option>
-                                <option value="Pediatric Neurologist" {% if current == 'Pediatric Neurologist' %}selected{% endif %}>Pediatric Neurologist</option>
-                                <option value="Gynecologist" {% if current == 'Gynecologist' %}selected{% endif %}>Gynecologist</option>
-                                <option value="Obstetrician" {% if current == 'Obstetrician' %}selected{% endif %}>Obstetrician</option>
-                                <option value="Reproductive Medicine / Fertility Specialist" {% if current == 'Reproductive Medicine / Fertility Specialist' %}selected{% endif %}>Reproductive Medicine / Fertility Specialist</option>
-                                <option value="Medical Oncologist" {% if current == 'Medical Oncologist' %}selected{% endif %}>Medical Oncologist</option>
-                                <option value="Surgical Oncologist" {% if current == 'Surgical Oncologist' %}selected{% endif %}>Surgical Oncologist</option>
-                                <option value="Radiation Oncologist" {% if current == 'Radiation Oncologist' %}selected{% endif %}>Radiation Oncologist</option>
-                                <option value="Hemato-Oncologist" {% if current == 'Hemato-Oncologist' %}selected{% endif %}>Hemato-Oncologist</option>
-                                <option value="Radiologist" {% if current == 'Radiologist' %}selected{% endif %}>Radiologist</option>
-                                <option value="Pathologist" {% if current == 'Pathologist' %}selected{% endif %}>Pathologist</option>
-                                <option value="Nuclear Medicine Specialist" {% if current == 'Nuclear Medicine Specialist' %}selected{% endif %}>Nuclear Medicine Specialist</option>
-                                <option value="Dermatologist" {% if current == 'Dermatologist' %}selected{% endif %}>Dermatologist</option>
-                                <option value="Ophthalmologist" {% if current == 'Ophthalmologist' %}selected{% endif %}>Ophthalmologist</option>
-                                <option value="ENT Specialist / Otolaryngologist" {% if current == 'ENT Specialist / Otolaryngologist' %}selected{% endif %}>ENT Specialist / Otolaryngologist</option>
-                                <option value="Emergency Medicine Specialist" {% if current == 'Emergency Medicine Specialist' %}selected{% endif %}>Emergency Medicine Specialist</option>
-                                <option value="Intensivist" {% if current == 'Intensivist' %}selected{% endif %}>Intensivist</option>
                                 <option value="Anesthesiologist" {% if current == 'Anesthesiologist' %}selected{% endif %}>Anesthesiologist</option>
-                                <option value="Psychiatrist" {% if current == 'Psychiatrist' %}selected{% endif %}>Psychiatrist</option>
+                                <option value="Cardiologist" {% if current == 'Cardiologist' %}selected{% endif %}>Cardiologist</option>
+                                <option value="Cardiothoracic Surgeon" {% if current == 'Cardiothoracic Surgeon' %}selected{% endif %}>Cardiothoracic Surgeon</option>
                                 <option value="Clinical Psychologist" {% if current == 'Clinical Psychologist' %}selected{% endif %}>Clinical Psychologist</option>
-                                <option value="Rehabilitation Medicine Specialist" {% if current == 'Rehabilitation Medicine Specialist' %}selected{% endif %}>Rehabilitation Medicine Specialist</option>
-                                <option value="Pain Management Specialist" {% if current == 'Pain Management Specialist' %}selected{% endif %}>Pain Management Specialist</option>
+                                <option value="Dermatologist" {% if current == 'Dermatologist' %}selected{% endif %}>Dermatologist</option>
+                                <option value="Emergency Medicine Specialist" {% if current == 'Emergency Medicine Specialist' %}selected{% endif %}>Emergency Medicine Specialist</option>
+                                <option value="Endocrinologist" {% if current == 'Endocrinologist' %}selected{% endif %}>Endocrinologist</option>
+                                <option value="ENT Specialist / Otolaryngologist" {% if current == 'ENT Specialist / Otolaryngologist' %}selected{% endif %}>ENT Specialist / Otolaryngologist</option>
+                                <option value="ENT Surgeon" {% if current == 'ENT Surgeon' %}selected{% endif %}>ENT Surgeon</option>
+                                <option value="Family Medicine Specialist" {% if current == 'Family Medicine Specialist' %}selected{% endif %}>Family Medicine Specialist</option>
+                                <option value="Forensic Medicine Specialist" {% if current == 'Forensic Medicine Specialist' %}selected{% endif %}>Forensic Medicine Specialist</option>
+                                <option value="Gastroenterologist" {% if current == 'Gastroenterologist' %}selected{% endif %}>Gastroenterologist</option>
+                                <option value="General Physician / General Practitioner" {% if current == 'General Physician / General Practitioner' %}selected{% endif %}>General Physician / General Practitioner</option>
+                                <option value="General Surgeon" {% if current == 'General Surgeon' %}selected{% endif %}>General Surgeon</option>
+                                <option value="Geriatrician" {% if current == 'Geriatrician' %}selected{% endif %}>Geriatrician</option>
+                                <option value="Gynecologist" {% if current == 'Gynecologist' %}selected{% endif %}>Gynecologist</option>
+                                <option value="Hematologist" {% if current == 'Hematologist' %}selected{% endif %}>Hematologist</option>
+                                <option value="Hemato-Oncologist" {% if current == 'Hemato-Oncologist' %}selected{% endif %}>Hemato-Oncologist</option>
                                 <option value="Immunologist" {% if current == 'Immunologist' %}selected{% endif %}>Immunologist</option>
                                 <option value="Infectious Disease Specialist" {% if current == 'Infectious Disease Specialist' %}selected{% endif %}>Infectious Disease Specialist</option>
-                                <option value="Sports Medicine Specialist" {% if current == 'Sports Medicine Specialist' %}selected{% endif %}>Sports Medicine Specialist</option>
+                                <option value="Intensivist" {% if current == 'Intensivist' %}selected{% endif %}>Intensivist</option>
+                                <option value="Internal Medicine Specialist" {% if current == 'Internal Medicine Specialist' %}selected{% endif %}>Internal Medicine Specialist</option>
+                                <option value="Medical Oncologist" {% if current == 'Medical Oncologist' %}selected{% endif %}>Medical Oncologist</option>
+                                <option value="Neonatologist" {% if current == 'Neonatologist' %}selected{% endif %}>Neonatologist</option>
+                                <option value="Nephrologist" {% if current == 'Nephrologist' %}selected{% endif %}>Nephrologist</option>
+                                <option value="Neurologist" {% if current == 'Neurologist' %}selected{% endif %}>Neurologist</option>
+                                <option value="Neurosurgeon" {% if current == 'Neurosurgeon' %}selected{% endif %}>Neurosurgeon</option>
+                                <option value="Nuclear Medicine Specialist" {% if current == 'Nuclear Medicine Specialist' %}selected{% endif %}>Nuclear Medicine Specialist</option>
+                                <option value="Obstetrician" {% if current == 'Obstetrician' %}selected{% endif %}>Obstetrician</option>
                                 <option value="Occupational Medicine Specialist" {% if current == 'Occupational Medicine Specialist' %}selected{% endif %}>Occupational Medicine Specialist</option>
-                                <option value="Forensic Medicine Specialist" {% if current == 'Forensic Medicine Specialist' %}selected{% endif %}>Forensic Medicine Specialist</option>
+                                <option value="Oncologist" {% if current == 'Oncologist' %}selected{% endif %}>Oncologist</option>
+                                <option value="Ophthalmologist" {% if current == 'Ophthalmologist' %}selected{% endif %}>Ophthalmologist</option>
+                                <option value="Ophthalmic Surgeon" {% if current == 'Ophthalmic Surgeon' %}selected{% endif %}>Ophthalmic Surgeon</option>
+                                <option value="Orthopedic Surgeon" {% if current == 'Orthopedic Surgeon' %}selected{% endif %}>Orthopedic Surgeon</option>
+                                <option value="Pain Management Specialist" {% if current == 'Pain Management Specialist' %}selected{% endif %}>Pain Management Specialist</option>
+                                <option value="Pathologist" {% if current == 'Pathologist' %}selected{% endif %}>Pathologist</option>
+                                <option value="Pediatric Cardiologist" {% if current == 'Pediatric Cardiologist' %}selected{% endif %}>Pediatric Cardiologist</option>
+                                <option value="Pediatric Neurologist" {% if current == 'Pediatric Neurologist' %}selected{% endif %}>Pediatric Neurologist</option>
+                                <option value="Pediatric Surgeon" {% if current == 'Pediatric Surgeon' %}selected{% endif %}>Pediatric Surgeon</option>
+                                <option value="Pediatrician" {% if current == 'Pediatrician' %}selected{% endif %}>Pediatrician</option>
+                                <option value="Plastic / Reconstructive Surgeon" {% if current == 'Plastic / Reconstructive Surgeon' %}selected{% endif %}>Plastic / Reconstructive Surgeon</option>
                                 <option value="Preventive & Social Medicine Specialist" {% if current == 'Preventive & Social Medicine Specialist' %}selected{% endif %}>Preventive & Social Medicine Specialist</option>
+                                <option value="Psychiatrist" {% if current == 'Psychiatrist' %}selected{% endif %}>Psychiatrist</option>
+                                <option value="Pulmonologist / Chest Physician" {% if current == 'Pulmonologist / Chest Physician' %}selected{% endif %}>Pulmonologist / Chest Physician</option>
+                                <option value="Radiation Oncologist" {% if current == 'Radiation Oncologist' %}selected{% endif %}>Radiation Oncologist</option>
+                                <option value="Radiologist" {% if current == 'Radiologist' %}selected{% endif %}>Radiologist</option>
+                                <option value="Rehabilitation Medicine Specialist" {% if current == 'Rehabilitation Medicine Specialist' %}selected{% endif %}>Rehabilitation Medicine Specialist</option>
+                                <option value="Reproductive Medicine / Fertility Specialist" {% if current == 'Reproductive Medicine / Fertility Specialist' %}selected{% endif %}>Reproductive Medicine / Fertility Specialist</option>
+                                <option value="Rheumatologist" {% if current == 'Rheumatologist' %}selected{% endif %}>Rheumatologist</option>
+                                <option value="Sports Medicine Specialist" {% if current == 'Sports Medicine Specialist' %}selected{% endif %}>Sports Medicine Specialist</option>
+                                <option value="Surgical Oncologist" {% if current == 'Surgical Oncologist' %}selected{% endif %}>Surgical Oncologist</option>
+                                <option value="Urologist" {% if current == 'Urologist' %}selected{% endif %}>Urologist</option>
+                                <option value="Vascular Surgeon" {% if current == 'Vascular Surgeon' %}selected{% endif %}>Vascular Surgeon</option>
                                 {% if current %}
-                                {% if current not in 'General Physician / General Practitioner,Family Medicine Specialist,Internal Medicine Specialist,General Surgeon,Orthopedic Surgeon,Neurosurgeon,Cardiothoracic Surgeon,Vascular Surgeon,Plastic / Reconstructive Surgeon,Pediatric Surgeon,Urologist,ENT Surgeon,Ophthalmic Surgeon,Cardiologist,Neurologist,Pulmonologist / Chest Physician,Gastroenterologist,Nephrologist,Endocrinologist,Rheumatologist,Hematologist,Oncologist,Geriatrician,Pediatrician,Neonatologist,Pediatric Cardiologist,Pediatric Neurologist,Pediatric Surgeon,Gynecologist,Obstetrician,Reproductive Medicine / Fertility Specialist,Medical Oncologist,Surgical Oncologist,Radiation Oncologist,Hemato-Oncologist,Radiologist,Pathologist,Nuclear Medicine Specialist,Dermatologist,Ophthalmologist,ENT Specialist / Otolaryngologist,Emergency Medicine Specialist,Intensivist,Anesthesiologist,Psychiatrist,Clinical Psychologist,Rehabilitation Medicine Specialist,Pain Management Specialist,Immunologist,Infectious Disease Specialist,Sports Medicine Specialist,Occupational Medicine Specialist,Forensic Medicine Specialist,Preventive & Social Medicine Specialist' %}
+                                {% if current not in 'Anesthesiologist,Cardiologist,Cardiothoracic Surgeon,Clinical Psychologist,Dermatologist,Emergency Medicine Specialist,Endocrinologist,ENT Specialist / Otolaryngologist,ENT Surgeon,Family Medicine Specialist,Forensic Medicine Specialist,Gastroenterologist,General Physician / General Practitioner,General Surgeon,Geriatrician,Gynecologist,Hematologist,Hemato-Oncologist,Immunologist,Infectious Disease Specialist,Intensivist,Internal Medicine Specialist,Medical Oncologist,Neonatologist,Nephrologist,Neurologist,Neurosurgeon,Nuclear Medicine Specialist,Obstetrician,Occupational Medicine Specialist,Oncologist,Ophthalmologist,Ophthalmic Surgeon,Orthopedic Surgeon,Pain Management Specialist,Pathologist,Pediatric Cardiologist,Pediatric Neurologist,Pediatric Surgeon,Pediatrician,Plastic / Reconstructive Surgeon,Preventive & Social Medicine Specialist,Psychiatrist,Pulmonologist / Chest Physician,Radiation Oncologist,Radiologist,Rehabilitation Medicine Specialist,Reproductive Medicine / Fertility Specialist,Rheumatologist,Sports Medicine Specialist,Surgical Oncologist,Urologist,Vascular Surgeon' %}
                                     <option value="{{ current }}" selected>{{ current }}</option>
                                 {% endif %}
                                 {% endif %}

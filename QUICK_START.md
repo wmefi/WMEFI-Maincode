@@ -1,311 +1,217 @@
-# 🚀 Quick Start Guide - WTest Portal
+# Quick Start Guide - Survey System
 
-## ⚡ 5-Minute Setup
+## 🚀 For Admins
 
-### **1. Install Dependencies**
-```bash
-pip install -r requirements.txt
+### Step 1: Access Admin Panel
+```
+URL: http://localhost:8000/admin/
+Login with superuser credentials
 ```
 
-### **2. Run Database Migrations**
+### Step 2: View Survey Responses
+```
+Admin → Survey responses
+```
+**You'll see:**
+- List of all doctor submissions
+- Contact numbers
+- Survey titles
+- Completion status
+- Answer counts
+
+### Step 3: Export to Excel (Two Methods)
+
+**Method A - From Survey Responses:**
+```
+1. Survey responses page
+2. Select checkboxes (or "Select all")
+3. Action dropdown → "📊 Export Selected to Excel"
+4. Click "Go"
+```
+
+**Method B - From Answers (Recommended for filtering):**
+```
+1. Answers page
+2. Filter by survey/question type/date (optional)
+3. Select checkboxes (or "Select all")
+4. Action dropdown → "📊 Export Selected Answers to Excel"
+5. Click "Go"
+6. Excel auto-groups answers by doctor
+```
+
+### Step 4: Search by Contact Number
+```
+Search box → Type: 9876543210
+Press Enter
+```
+
+### Step 5: View Individual Answers
+```
+Admin → Answers
+Filter by survey or search by mobile number
+```
+
+---
+
+## 📝 For Doctors (Survey Users)
+
+### Step 1: Login
+```
+URL: http://localhost:8000/login/
+Enter mobile number
+Enter OTP
+```
+
+### Step 2: View Available Surveys
+```
+After login → Automatically redirected to Surveys page
+Or click "My Surveys" in menu
+```
+
+### Step 3: Fill Survey
+```
+1. Click "Start Survey"
+2. Fill all questions (all mandatory with *)
+3. Visual feedback on each answer:
+   - Green checkmark appears
+   - Section highlights briefly
+4. Yes/No questions may show follow-up text field
+5. Click "Submit Survey" when done
+```
+
+### Step 4: Features
+```
+✅ Auto-save: Answers save automatically every 600ms
+✅ Save Draft: Save partial progress
+✅ Checkbox: Only one option selectable
+✅ Visual feedback: Green highlights on selection
+✅ Validation: Can't submit without filling all fields
+```
+
+---
+
+## 🔧 For Developers
+
+### Database Models
+```python
+Doctor         # User who fills survey
+Survey         # Survey template with JSON
+Question       # Individual questions
+SurveyResponse # Doctor's submission
+Answer         # Individual answer to question
+```
+
+### Key Files
+```
+wtestapp/admin.py         # Admin panel config
+wtestapp/models.py        # Database models
+wtestapp/views.py         # Survey logic
+templates/survey_detail.html  # Survey UI
+```
+
+### Run Server
+```bash
+python manage.py runserver
+```
+
+### Create Superuser
+```bash
+python manage.py createsuperuser
+```
+
+### Migrations
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### **3. Create Superuser (Admin)**
-```bash
-python manage.py createsuperuser
-# Enter username, email, password when prompted
-```
-
-### **4. Configure SMS (Optional for Testing)**
-In `wtest/settings.py`, add:
-```python
-# For testing (shows OTP in console/messages)
-SMS_PROVIDER = 'debug'
-DEBUG = True
-```
-
-For production, configure Twilio or SSDWeb:
-```python
-# Twilio
-SMS_PROVIDER = 'twilio'
-TWILIO_ACCOUNT_SID = 'your_account_sid'
-TWILIO_AUTH_TOKEN = 'your_auth_token'
-TWILIO_FROM_NUMBER = '+1234567890'
-
-# OR SSDWeb
-SMS_PROVIDER = 'ssdweb'
-SMS_SSDWEB_URL = 'https://sms.ssdweb.in/user/#send_sms'
-SMS_SSDWEB_PARAMS = {
-    'authkey': 'your_auth_key',
-    'mobile': '{mobile}',
-    'message': '{message}',
-    'sender': 'YOURID'
-}
-```
-
-### **5. Run Server**
-```bash
-python manage.py runserver
-```
-
-Visit: **http://localhost:8000**
-
 ---
 
-## 👥 Testing the Flow
+## 📊 Excel Export Format
 
-### **Test User Login**
-1. Go to `http://localhost:8000/login/`
-2. Enter mobile: `9876543210` (any 10-digit number)
-3. In DEBUG mode, OTP will show in green message
-4. Enter OTP on verification page
-5. Complete profile → Sign agreement → Take surveys
-
-### **Admin Access**
-1. Go to `http://localhost:8000/admin/`
-2. Login with superuser credentials
-3. Create surveys, assign to doctors
-4. View responses and agreements
-
----
-
-## 📊 Creating Your First Survey
-
-### **Method 1: Django Admin**
-1. Login to `/admin/`
-2. Go to **Surveys** → **Add Survey**
-3. Enter title, description
-4. Add **Questions**:
-   - Question text
-   - Type (radio, checkbox, text, etc.)
-   - Options (JSON format for MCQ)
-   - Order
-5. **Assign to Doctors** via ManyToMany field
-
-### **Method 2: Upload JSON**
-1. Login as doctor
-2. Go to `/survey/upload/`
-3. Upload JSON file:
-```json
-{
-  "title": "Patient Screening Survey",
-  "description": "Initial patient assessment",
-  "questions": [
-    {
-      "question_text": "Patient Age Group?",
-      "question_type": "radio",
-      "options": ["0-18", "19-40", "41-60", "60+"]
-    },
-    {
-      "question_text": "Symptoms (select all)?",
-      "question_type": "checkbox",
-      "options": ["Fever", "Cough", "Fatigue", "Headache"]
-    },
-    {
-      "question_text": "Additional Notes",
-      "question_type": "textarea"
-    }
-  ]
-}
+### Columns in exported file:
+```
+| Response ID | Doctor Name | Contact Number | Email | Survey | Completed | Submitted At | Question 1 | Question 2 | ... |
 ```
 
-### **Method 3: Upload Excel**
-1. Create Excel file with format:
-   - **B1**: Survey Title
-   - **B2**: Description
-   - **Row 5+**: Questions
-     - Column B: Question Text
-     - Column C: Question Type (radio, checkbox, text, etc.)
-     - Column D: Options (comma-separated)
-
-Example:
+### Example row:
 ```
-A    | B                          | C         | D
------|----------------------------|-----------|-------------------
-1    | Survey Title               | Clinical  |
-2    | Description                | Patient   |
-3    |                            |           |
-4    | Headers                    |           |
-5    | Q1                         | What is your age? | number |
-6    | Q2                         | Gender?   | radio | Male,Female,Other
-7    | Q3                         | Symptoms? | checkbox | Fever,Cough,Fatigue
+| 1 | Dr. Sharma | 9876543210 | sharma@example.com | Sunscreen Survey | Yes | 2025-01-08 14:30:00 | Yes - Mild redness | SPF 50+ | Routine outdoor exposure |
 ```
 
 ---
 
-## 🔑 Portal Types (GC/CP)
+## 🎯 Common Tasks
 
-### **Assigning Roles**
-Doctors are assigned portal types (GC/CP) automatically based on URL:
-- Access via `/gc/` → Portal Type = GC
-- Access via `/cp/` → Portal Type = CP
-
-Alternatively, set manually in Django Admin:
-1. Go to `/admin/wtestapp/doctor/`
-2. Edit doctor
-3. Set **Portal Type** to GC or CP
-
-### **Filtering by Portal**
-Surveys automatically filter by doctor's portal type. To assign surveys to specific portals:
-1. Edit survey in admin
-2. Set **Portal Type** field
-3. Only doctors with matching portal see that survey
-
----
-
-## 📝 Common Tasks
-
-### **View All Doctors**
-```bash
-python manage.py shell
->>> from wtestapp.models import Doctor
->>> for d in Doctor.objects.all():
-...     print(f"{d.user.username} - {d.mobile} - {d.portal_type}")
+### Task 1: Upload new survey
+```
+1. Create JSON file with questions
+2. Admin → Doctor excel uploads
+3. Upload Excel (doctors) + JSON (survey)
+4. Auto-processes and assigns
 ```
 
-### **Assign Survey to Doctor**
-```bash
-python manage.py shell
->>> from wtestapp.models import Doctor, Survey
->>> doctor = Doctor.objects.get(mobile='9876543210')
->>> survey = Survey.objects.get(title='Patient Survey')
->>> survey.assigned_to.add(doctor)
->>> survey.save()
+### Task 2: Check survey completion rate
+```
+Admin → Survey responses
+Filter by survey
+Count completed vs. total
 ```
 
-### **Reset OTP**
-```bash
-python manage.py shell
->>> from wtestapp.models import OTPVerification
->>> otp = OTPVerification.objects.get(phone_number='9876543210')
->>> otp.generate_otp()  # Returns new OTP
+### Task 3: Find specific doctor's answers
+```
+Method 1: Survey responses → Search by mobile
+Method 2: Answers → Search by mobile
 ```
 
-### **Check Survey Responses**
-```bash
-python manage.py shell
->>> from wtestapp.models import SurveyResponse
->>> responses = SurveyResponse.objects.filter(is_completed=True)
->>> for r in responses:
-...     print(f"{r.doctor.user.username} - {r.survey.title} - {r.completed_at}")
+### Task 4: Download all responses
+```
+Survey responses → Select all → Export to Excel
 ```
 
 ---
 
-## 🎯 Testing Checklist
+## ⚠️ Important Notes
 
-- [ ] Login with mobile number works
-- [ ] OTP received (or shown in DEBUG)
-- [ ] Role display page shows after login
-- [ ] Profile form validates all required fields
-- [ ] State/city dropdowns populate
-- [ ] File uploads work (PAN, prescription)
-- [ ] Agreement signature (draw/type) works
-- [ ] Agreement PDF downloads
-- [ ] Surveys list shows assigned surveys
-- [ ] Questions render correctly (all types)
-- [ ] Save draft works
-- [ ] Submit survey marks as complete
-- [ ] Survey PDF downloads after completion
-- [ ] Admin dashboard accessible
-- [ ] Portal filtering (GC/CP) works
+1. **All questions mandatory by default** - Red asterisk (*) shown
+2. **Checkbox = Single-select** - Works like radio button
+3. **Yes/No follow-up** - Text field appears when "Yes" selected
+4. **Auto-save** - Don't worry about losing data
+5. **Contact number** - Unique identifier for doctors
+6. **Excel export** - Questions become column headers
 
 ---
 
-## 🐛 Common Issues & Fixes
+## 🐛 Troubleshooting
 
-### **Issue**: "No such table: wtestapp_doctor"
-**Fix**: Run migrations
+### Problem: Can't export to Excel
+**Solution:** 
 ```bash
-python manage.py makemigrations wtestapp
-python manage.py migrate
+pip install openpyxl pandas
 ```
 
-### **Issue**: Static files not loading
-**Fix**: Collect static files
-```bash
-python manage.py collectstatic --noinput
-```
+### Problem: Survey not showing for doctor
+**Solution:**
+- Check if survey assigned in Admin → Survey assignments
+- Check doctor's mobile number matches
 
-### **Issue**: PDF download fails
-**Fix**: Check media directory permissions
-```bash
-# Linux/Mac
-chmod -R 755 media/
+### Problem: Answers not saving
+**Solution:**
+- Check browser console (F12) for errors
+- Verify all required fields filled
+- Try "Save Draft" first
 
-# Windows
-# Ensure media folder exists and is writable
-```
-
-### **Issue**: OTP not expiring
-**Fix**: Check timezone settings
-```python
-# settings.py
-USE_TZ = True
-TIME_ZONE = 'Asia/Kolkata'
-```
-
-### **Issue**: Survey questions not showing
-**Fix**: Check question order and survey assignment
-```bash
-python manage.py shell
->>> from wtestapp.models import Survey, Question
->>> survey = Survey.objects.get(id=1)
->>> survey.questions.all()  # Should show questions
->>> survey.assigned_to.all()  # Should show assigned doctors
-```
+### Problem: Follow-up field not showing
+**Solution:**
+- Check JSON has `"follow_up"` field
+- Only works for `"type": "yesno"` questions
 
 ---
 
-## 📦 Production Deployment
+## 📞 Support
 
-### **Heroku**
-```bash
-# Install Heroku CLI
-heroku create your-app-name
-heroku addons:create heroku-postgresql:hobby-dev
-git push heroku main
-heroku run python manage.py migrate
-heroku run python manage.py createsuperuser
-```
-
-### **AWS/DigitalOcean**
-1. Setup Ubuntu server
-2. Install Python, PostgreSQL, Nginx
-3. Clone repository
-4. Install dependencies in virtual environment
-5. Configure Gunicorn
-6. Setup Nginx reverse proxy
-7. Enable SSL with Let's Encrypt
-
-### **Docker**
-```dockerfile
-# Dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["gunicorn", "wtest.wsgi:application", "--bind", "0.0.0.0:8000"]
-```
-
-```bash
-docker build -t wtest-portal .
-docker run -p 8000:8000 wtest-portal
-```
-
----
-
-## 📞 Support & Resources
-
-- **Documentation**: See `PROJECT_FLOW.md` for detailed flow
-- **Django Docs**: https://docs.djangoproject.com/
-- **Issue Tracker**: Contact admin
-- **Email**: connect@wmefi.co.in
-
----
-
-**Happy Coding! 🎉**
+For issues or questions:
+1. Check browser console (F12)
+2. Check Django logs
+3. Check ADMIN_SURVEY_RESPONSES_GUIDE.md
+4. Check SURVEY_IMPROVEMENTS.md

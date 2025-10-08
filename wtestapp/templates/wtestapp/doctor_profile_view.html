@@ -248,6 +248,48 @@
     background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%); 
     color: var(--primary); 
   }
+  .tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .tooltip-wrapper:hover .custom-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+  .custom-tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 300px;
+    width: auto;
+    background: linear-gradient(135deg, rgba(230, 100, 162, 0.98) 0%, rgba(192, 118, 158, 0.98) 100%);
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 6px 16px rgba(230, 100, 162, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .custom-tooltip i {
+    margin-right: 8px;
+    font-size: 14px;
+  }
+  .custom-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    right: 30px;
+    border: 7px solid transparent;
+    border-bottom-color: rgba(230, 100, 162, 0.98);
+  }
   .dropdown-content a i { 
     margin-right: 8px; 
     color: var(--primary); 
@@ -619,15 +661,15 @@
               {% endif %}
             </div>
           </div>
-          {% if agreement and agreement.signed_at %}
+          {% if agreement and agreement.signed_at and agreement.digital_signature %}
           <a href="javascript:void(0);" class="btn-outline download-link" onclick="showAgreementOTPModal()"><i class="fas fa-file-pdf"></i> Agreement PDF</a>
           {% else %}
-          <div class="tooltip-wrapper" style="position: relative; display: inline-block;">
-            <button class="btn-outline" style="opacity: 0.6; cursor: not-allowed;" disabled>
+          <div class="tooltip-wrapper">
+            <span class="btn-outline" style="opacity: 0.6; cursor: not-allowed; pointer-events: none;">
               <i class="fas fa-file-pdf"></i> Agreement PDF
-            </button>
+            </span>
             <span class="custom-tooltip">
-              <i class="fas fa-exclamation-circle"></i> Please sign the agreement first
+              <i class="fas fa-pen-fancy"></i> Please sign the agreement first
             </span>
           </div>
           {% endif %}

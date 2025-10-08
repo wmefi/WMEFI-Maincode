@@ -144,13 +144,16 @@ def survey_detail(request, survey_id):
                         # Map common aliases to our template-supported types
                         type_map = {
                             'single': 'radio',
+                            'single_choice': 'radio',
                             'multiple': 'checkbox',
+                            'multiple_choice': 'checkbox',
                             'boolean': 'yesno',
                             'long_text': 'textarea',
+                            'open_ended': 'textarea',
                         }
                         qtype = type_map.get(str(qtype).lower(), str(qtype).lower())
 
-                        options = (
+                        raw_options = (
                             q.get('options')
                             or q.get('choices')
                             or q.get('option')
@@ -158,12 +161,29 @@ def survey_detail(request, survey_id):
                             or q.get('data')
                             or []
                         )
+                        
+                        # Normalize options - handle both string and object formats
+                        normalized_options = []
+                        open_ended_options = []
+                        for opt in raw_options:
+                            if isinstance(opt, dict):
+                                # Object format: {"option": "Other", "type": "open_ended"}
+                                option_text = opt.get('option', opt.get('text', opt.get('label', '')))
+                                option_type = opt.get('type', '')
+                                normalized_options.append(option_text)
+                                if option_type == 'open_ended':
+                                    open_ended_options.append(option_text)
+                            elif isinstance(opt, str):
+                                # Simple string format
+                                normalized_options.append(opt)
+                        
                         required = bool(q.get('required') or q.get('is_required') or q.get('mandatory'))
 
                         normalized_questions.append({
                             'text': text,
                             'type': qtype,
-                            'options': options,
+                            'options': normalized_options,
+                            'open_ended_options': open_ended_options,
                             'required': required,
                         })
 
@@ -187,6 +207,42 @@ def survey_detail(request, survey_id):
         # Handle form submission
         if request.method == 'POST':
             submit_action = request.POST.get('submit_action', 'submit')
+            
+            # Validate that all questions are answered (only for submit, not save draft)
+            if submit_action == 'submit':
+                validation_errors = []
+                if questions_from_json:
+                    for idx, q in enumerate(questions_from_json):
+                        qtext = q.get('text', f'Question {idx+1}')
+                        qtype = q.get('type', 'text')
+                        name_key = f'question_{idx}'
+                        
+                        if str(qtype).lower() == 'checkbox':
+                            # Checkbox now works as single-select
+                            answer_value = request.POST.getlist(name_key)
+                            if not answer_value or not answer_value[0].strip():
+                                validation_errors.append(f"Question {idx+1} ({qtext[:50]}...) is required")
+                        else:
+                            answer_value = request.POST.get(name_key, '').strip()
+                            if not answer_value:
+                                validation_errors.append(f"Question {idx+1} ({qtext[:50]}...) is required")
+                else:
+                    for question in questions_from_db:
+                        key = f'question_{question.id}'
+                        if question.question_type == 'checkbox':
+                            answer_value = request.POST.getlist(key)
+                            if not answer_value or all(not v.strip() for v in answer_value):
+                                validation_errors.append(f"{question.question_text[:50]}... is required")
+                        else:
+                            answer_value = request.POST.get(key, '').strip()
+                            if not answer_value:
+                                validation_errors.append(f"{question.question_text[:50]}... is required")
+                
+                if validation_errors:
+                    for error in validation_errors[:3]:  # Show max 3 errors
+                        messages.error(request, error)
+                    return redirect('survey_detail', survey_id=survey.id)
+            
             # Process answers from JSON questions
             if questions_from_json:
                 for idx, q in enumerate(questions_from_json):
@@ -221,17 +277,25 @@ def survey_detail(request, survey_id):
                             'question_type': qtype if qtype in dict(Question.QUESTION_TYPES) else 'text',
                             'options': options if isinstance(options, list) else [],
                             'order': idx,
-                            'is_required': bool(q.get('required') or q.get('is_required') or q.get('mandatory')),
+                            'is_required': True,  # All questions are now mandatory
                         }
                     )
 
                     # Read answer(s) from POST
                     name_key = f'question_{idx}'
                     if str(qtype).lower() == 'checkbox':
+                        # Checkboxes now behave as single-select (only one can be checked at a time)
                         selected = request.POST.getlist(name_key)
-                        answer_value = ', '.join(selected)
+                        answer_value = selected[0] if selected else ''
                     else:
                         answer_value = request.POST.get(name_key, '')
+                    
+                    # Check for follow-up answer (for Yes/No questions)
+                    followup_key = f'question_{idx}_followup'
+                    followup_value = request.POST.get(followup_key, '')
+                    if followup_value:
+                        # Append follow-up to main answer
+                        answer_value = f"{answer_value} - {followup_value}"
 
                     # Save or update Answer
                     Answer.objects.update_or_create(
@@ -352,47 +416,88 @@ from .models import CustomUser, Doctor, Survey, Agreement
 import random
 
 def get_user_completion_status(doctor):
-    """Check what tasks are pending for a doctor"""
+    """Check what tasks are pending for a doctor - returns redirect in priority order"""
     pending_tasks = []
-    redirect_url = None
     
-    profile_complete = all([
-        doctor.first_name,
-        doctor.last_name,
-        doctor.email,
-        doctor.profession,
-        doctor.specialty
-    ])
+    # Step 1: Check profile completion
+    # Excel import only fills first_name, email, mobile
+    # User must fill: profession/specialty, address, city, state
+    profile_complete = bool(
+        doctor.first_name and 
+        doctor.email and
+        (doctor.profession or doctor.specialty) and
+        doctor.address and
+        doctor.city and
+        doctor.state
+    )
     
     if not profile_complete:
-        pending_tasks.append('Profile is incomplete')
-        if not redirect_url:
-            redirect_url = 'doctor_profile'
+        pending_tasks.append('Please complete your profile to proceed')
+        return {
+            'has_pending': True,
+            'pending_tasks': pending_tasks,
+            'redirect_url': 'doctor_profile',
+            'all_complete': False
+        }
     
-    agreement_signed = Agreement.objects.filter(doctor=doctor, signed_at__isnull=False).exists()
+    # Step 2: Check agreement signature
+    agreement_signed = Agreement.objects.filter(
+        doctor=doctor, 
+        digital_signature__isnull=False,
+        signed_at__isnull=False
+    ).exists()
+    
     if not agreement_signed:
-        pending_tasks.append('Please review and sign the agreement to proceed')
-        if not redirect_url:
-            assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
-            if assigned_survey:
-                redirect_url = ('agreement_page', {'survey_id': assigned_survey.id})
-            else:
-                redirect_url = 'doctor_profile'
+        pending_tasks.append('Please review and sign the agreement')
+        assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
+        if assigned_survey:
+            return {
+                'has_pending': True,
+                'pending_tasks': pending_tasks,
+                'redirect_url': ('agreement_page', {'survey_id': assigned_survey.id}),
+                'all_complete': False
+            }
+        else:
+            return {
+                'has_pending': True,
+                'pending_tasks': pending_tasks,
+                'redirect_url': 'doctor_profile',
+                'all_complete': False
+            }
     
+    # Step 3: Check survey completion
     assigned_surveys = Survey.objects.filter(assigned_to=doctor)
-    completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).values_list('survey_id', flat=True)
-    pending_surveys = assigned_surveys.exclude(id__in=completed_surveys)
+    if not assigned_surveys.exists():
+        return {
+            'has_pending': False,
+            'pending_tasks': [],
+            'redirect_url': 'doctor_profile_view',
+            'all_complete': True
+        }
+    
+    completed_survey_ids = SurveyResponse.objects.filter(
+        doctor=doctor, 
+        is_completed=True
+    ).values_list('survey_id', flat=True)
+    
+    pending_surveys = assigned_surveys.exclude(id__in=completed_survey_ids)
     
     if pending_surveys.exists():
-        pending_tasks.append('Complete your pending surveys to finish your registration')
-        if not redirect_url:
-            redirect_url = ('survey_detail', {'survey_id': pending_surveys.first().id})
+        first_pending = pending_surveys.first()
+        pending_tasks.append(f'Complete survey: {first_pending.title}')
+        return {
+            'has_pending': True,
+            'pending_tasks': pending_tasks,
+            'redirect_url': ('survey_detail', {'survey_id': first_pending.id}),
+            'all_complete': False
+        }
     
+    # All tasks completed
     return {
-        'has_pending': len(pending_tasks) > 0,
-        'pending_tasks': pending_tasks,
-        'redirect_url': redirect_url,
-        'all_complete': len(pending_tasks) == 0
+        'has_pending': False,
+        'pending_tasks': [],
+        'redirect_url': 'doctor_profile_view',
+        'all_complete': True
     }
 
 def login(request):
@@ -440,6 +545,9 @@ def verify_otp(request):
                 # Step 2: Check if Doctor already exists for this mobile
                 try:
                     doctor = Doctor.objects.get(mobile=mobile)
+                    if not doctor.custom_user:
+                        doctor.custom_user = custom_user
+                        doctor.save()
                 except Doctor.DoesNotExist:
                     # Step 3: If Doctor doesn't exist, create one
                     doctor = Doctor.objects.create(
@@ -542,35 +650,19 @@ def doctor_profile(request):
             
             doctor.save()
             
-            messages.success(request, 'Profile saved successfully! Please review and sign the agreement.')
-
-            # Redirect to agreement page
-            # If an Agreement already exists for this doctor, prefer its survey
-            existing_agreement = Agreement.objects.filter(doctor=doctor).first()
-            if existing_agreement and existing_agreement.survey:
-                return redirect('agreement_page', survey_id=existing_agreement.survey.id)
-
-            # Otherwise prefer a survey explicitly assigned to this doctor
-            assigned_survey = (
-                Survey.objects.filter(assigned_to=doctor)
-                .order_by('-created_at')
-                .first()
-            )
-
-            # Fallback: pick the most recent survey for this portal type
-            if not assigned_survey and doctor.portal_type:
-                assigned_survey = (
-                    Survey.objects.filter(portal_type=doctor.portal_type)
-                    .order_by('-created_at')
-                    .first()
-                )
-
-            if not assigned_survey:
-                messages.error(request, 'No survey found. Please ask admin to create/assign a survey.')
-                return redirect('doctor_profile')
-
-            # Redirect to the agreement page using the chosen survey
-            return redirect('agreement_page', survey_id=assigned_survey.id)
+            messages.success(request, 'Profile saved successfully!')
+            
+            # Check completion status and redirect to next pending step
+            status = get_user_completion_status(doctor)
+            
+            if status['redirect_url']:
+                if isinstance(status['redirect_url'], tuple):
+                    url_name, kwargs = status['redirect_url']
+                    return redirect(url_name, **kwargs)
+                else:
+                    return redirect(status['redirect_url'])
+            
+            return redirect('doctor_profile_view')
             
         return render(request, 'wtestapp/doctor_profile.html', {'doctor': doctor})
         
@@ -659,6 +751,8 @@ def agreement_page(request, survey_id):
         
         # Check if agreement already exists (by doctor only, OneToOne)
         existing_agreement = Agreement.objects.filter(doctor=doctor).first()
+        is_already_signed = existing_agreement and existing_agreement.digital_signature and existing_agreement.signed_at
+        
         # If admin has linked a specific survey in Agreement, use it for display
         if existing_agreement and existing_agreement.survey:
             survey = existing_agreement.survey
@@ -693,11 +787,19 @@ def agreement_page(request, survey_id):
         # Get current date in the required format
         current_date = timezone.now()
         
+        doctor_signature = existing_agreement.digital_signature if (existing_agreement and existing_agreement.digital_signature) else None
+        
+        # Debug logging
+        if doctor_signature:
+            logger.info(f"Doctor signature exists: length={len(doctor_signature)}, starts_with={doctor_signature[:30]}")
+        
         return render(request, 'wtestapp/agreement_page.html', {
             'doctor': doctor,
             'survey': survey,
             'amount': amount,
             'existing_agreement': existing_agreement,
+            'is_already_signed': is_already_signed,
+            'doctor_signature': doctor_signature,
             'signed_date': current_date,
             'default_signed_date': current_date.strftime('%d/%m/%Y'),
             'survey_title': survey_title
@@ -923,17 +1025,22 @@ def download_agreement(request):
             
             # Get doctor's signature if agreement exists
             doctor_sig_path = None
+            doctor_sig_text = None
+            signature_type = None
+            
             if agreement and agreement.digital_signature:
-                # digital_signature is base64 encoded
-                sig_data = agreement.digital_signature
-                # If it already has the data URI prefix, use as-is; otherwise add it
-                if not sig_data.startswith('data:image'):
-                    # Remove any existing prefix before adding new one
-                    if ',' in sig_data:
-                        sig_data = sig_data.split(',', 1)[1]
-                    doctor_sig_path = f"data:image/png;base64,{sig_data}"
+                signature_type = agreement.signature_type
+                
+                if signature_type == 'typed':
+                    doctor_sig_text = agreement.digital_signature[6:] if agreement.digital_signature.startswith('typed:') else agreement.digital_signature
                 else:
-                    doctor_sig_path = sig_data
+                    sig_data = agreement.digital_signature
+                    if not sig_data.startswith('data:image'):
+                        if ',' in sig_data:
+                            sig_data = sig_data.split(',', 1)[1]
+                        doctor_sig_path = f"data:image/png;base64,{sig_data}"
+                    else:
+                        doctor_sig_path = sig_data
             
             # Render agreement template to HTML
             html = render_to_string('wtestapp/agreement_pdf_template.html', {
@@ -944,7 +1051,9 @@ def download_agreement(request):
                 'default_signed_date': current_date.strftime('%d/%m/%Y'),
                 'logo_path': logo_path,
                 'sig_path': sig_path,
-                'doctor_sig_path': doctor_sig_path
+                'doctor_sig_path': doctor_sig_path,
+                'doctor_sig_text': doctor_sig_text,
+                'signature_type': signature_type
             })
             
             # Convert HTML to PDF
