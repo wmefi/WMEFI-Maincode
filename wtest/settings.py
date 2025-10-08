@@ -10,9 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os
 from pathlib import Path
-from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,14 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Load from environment; provide a safe dev default only for local use
-SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-me')
+SECRET_KEY = 'django-insecure-c$-2hc3l=(l9841mb0ldi!(#kx%tk3i+o3!px1^h97tar$#-u='
 
-# DEBUG and allowed hosts from environment (default to local-friendly values)
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()) + ['wtest-ehkq.onrender.com']
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
-
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -41,8 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'crispy_forms',
-    'crispy_bootstrap5',
     'wtestapp'
 ]
 
@@ -54,7 +48,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'wtest.urls'
@@ -83,8 +76,12 @@ WSGI_APPLICATION = 'wtest.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wtest',      
+        'USER': 'root',         
+        'PASSWORD': 'root',         
+        'HOST': '127.0.0.1',
+        'PORT': '3307',
     }
 }
 
@@ -124,46 +121,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Include app-level static; add project-level static only if the folder exists
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "wtestapp/static"),
+    BASE_DIR / 'wtestapp' / 'static',
 ]
-_project_static_dir = os.path.join(BASE_DIR, "static")
-if os.path.isdir(_project_static_dir):
-    STATICFILES_DIRS.append(_project_static_dir)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = '/login/'
-
-# Crispy Forms Configuration
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
-
-# Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# OTP and SMS Configuration (Add your Twilio credentials)
-TWILIO_ACCOUNT_SID = ''  # Add your Twilio Account SID
-TWILIO_AUTH_TOKEN = ''   # Add your Twilio Auth Token
-TWILIO_PHONE_NUMBER = '' # Add your Twilio Phone Number
-
-# WhatsApp Configuration
-WHATSAPP_API_URL = ''    # Add your WhatsApp API URL
-WHATSAPP_API_TOKEN = ''  # Add your WhatsApp API Token
-
-# Email Configuration for OTP backup
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''     # Add your email
-EMAIL_HOST_PASSWORD = '' # Add your email password

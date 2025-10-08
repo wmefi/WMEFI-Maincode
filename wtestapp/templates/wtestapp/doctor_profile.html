@@ -5,52 +5,234 @@
 
 {% block style %}
 <style>
+    * {
+        box-sizing: border-box;
+    }
     body {
-        background-color: #fdeef4;
-        transition: background-color 0.3s ease;
+        background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        padding: 20px 0;
     }
     .profile-details {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e664a2;
-        transition: all 0.3s ease-in-out;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(230, 100, 162, 0.15);
+        border: 2px solid #f7c8dc;
+        max-width: 1200px;
+        margin: 20px auto;
+        animation: fadeIn 0.5s ease-in;
     }
-    .profile-details:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    h4 {
+        color: #c0769e;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    h4:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #e664a2, #c0769e);
+        border-radius: 2px;
+    }
+    h5 {
+        color: #c0769e;
+        font-weight: 600;
+        font-size: 1.3rem;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+    .section-tag { 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 10px 20px; 
+        border: 2px solid #e7b3cd; 
+        border-radius: 50px; 
+        color: #9a547a; 
+        background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); 
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 10px rgba(230, 100, 162, 0.1);
+    }
+    .form-group {
+        margin-bottom: 25px;
     }
     .form-group label {
-        font-weight: bold;
-        color: #c0769e;
+        font-weight: 600;
+        color: #9a547a;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        display: block;
     }
-    .form-control:focus {
-        border-color: #e664a2;
-        box-shadow: 0 0 10px rgba(230, 100, 162, 0.5);
+    .form-control, select.form-control, textarea.form-control {
+        border: 2px solid #e7b3cd;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: #fafafa;
+        height: 48px;
     }
-    .btn-primary {
-        background-color: #e664a2;
+    textarea.form-control {
+        height: auto;
+        min-height: 100px;
+        resize: vertical;
+    }
+    select.form-control {
+        height: 48px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23c0769e' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+    .form-control:focus, select.form-control:focus, textarea.form-control:focus {
         border-color: #e664a2;
+        box-shadow: 0 0 0 4px rgba(230, 100, 162, 0.1);
+        background-color: #fff;
+        outline: none;
+    }
+    .form-control-static {
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #fdeef4 100%);
+        border: 2px solid #e7b3cd;
+        border-radius: 10px;
+        color: #7b3f63;
+        font-weight: 600;
+        height: 48px;
+        display: flex;
+        align-items: center;
+    }
+    .form-control-file {
+        border: 2px dashed #e7b3cd;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fafafa;
+        cursor: pointer;
         transition: all 0.3s ease;
     }
+    .form-control-file:hover {
+        border-color: #e664a2;
+        background: #fff;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%);
+        border: none;
+        transition: all 0.3s ease;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        font-size: 1rem;
+    }
     .btn-primary:hover {
-        background-color: #c0769e;
-        border-color: #c0769e;
-        transform: scale(1.05);
+        background: linear-gradient(135deg, #c0769e 0%, #9a547a 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(230, 100, 162, 0.4) !important;
     }
-    h4, h5 {
-        color: #c0769e;
-        font-weight: bold;
+    .btn-primary:active {
+        transform: translateY(-1px);
     }
-    /* Enhancements */
-    .section-tag { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px dashed #e7b3cd; border-radius:999px; color:#9a547a; background:#fff; font-weight:600; }
-    /* icon placeholders removed for professional look */
-    .form-group label .icon { display:none; }
-    .helper { color:#7b3f63; font-size: .85rem; }
-    .form-control, .custom-select { border-color:#e7b3cd; }
-    .form-control:focus, .custom-select:focus { border-color:#e664a2; box-shadow:0 0 0 .2rem rgba(230,100,162,.15); }
-    .divider { height:1px; background:#f2c3db; margin:8px 0 18px; }
+    .helper { 
+        color: #9a547a; 
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: block;
+    }
+    .divider { 
+        height: 2px; 
+        background: linear-gradient(90deg, transparent, #f2c3db, transparent);
+        margin: 30px 0;
+    }
+    .text-danger {
+        color: #e664a2;
+        font-weight: 600;
+    }
+    .text-success {
+        color: #28a745;
+        font-size: 0.9rem;
+        margin-top: 8px;
+    }
+    .alert {
+        padding: 14px 20px;
+        margin-bottom: 25px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border: none;
+        text-align: center;
+    }
+    .alert-success {
+        color: #0f5132;
+        background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%);
+        box-shadow: 0 5px 20px rgba(21, 87, 36, 0.15);
+        border-left: 5px solid #198754;
+    }
+    .alert-error, .alert-danger {
+        color: #721c24;
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        box-shadow: 0 4px 15px rgba(114, 28, 36, 0.1);
+    }
+    .form-check-label {
+        color: #7b3f63;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+    .form-check-input:checked {
+        background-color: #e664a2;
+        border-color: #e664a2;
+    }
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #f2c3db, transparent);
+        margin: 20px 0;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-details {
+            padding: 25px 20px;
+            margin: 10px;
+        }
+        h4 {
+            font-size: 1.5rem;
+        }
+        .section-tag {
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+        .form-control, select.form-control {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+    }
+    @media (max-width: 576px) {
+        .profile-details {
+            padding: 20px 15px;
+        }
+        h4 {
+            font-size: 1.3rem;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -95,6 +277,27 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="gender">Gender *</label>
+                        <select class="form-control" id="gender" name="gender" required>
+                            {% with current=doctor.gender|default_if_none:'' %}
+                                <option value="" {% if not current %}selected disabled{% endif %}>Select Gender</option>
+                                <option value="Male" {% if current == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if current == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if current == 'Other' %}selected{% endif %}>Other</option>
+                            {% endwith %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth *</label>
+                        <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ doctor.date_of_birth|date:'Y-m-d'|default_if_none:'' }}" required>
+                    </div>
+                </div>
+            </div>
             <div class="divider"></div>
             <div class="mb-2">
                 <span class="section-tag">Address</span>
@@ -108,13 +311,56 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="state">State *</label>
-                        <input type="text" class="form-control" id="state" name="state" placeholder="e.g., Maharashtra" value="{{ doctor.state|default_if_none:'' }}" required>
+                        <select class="form-control" id="state" name="state" required>
+                            {% with current_state=doctor.state|default_if_none:'' %}
+                                <option value="" {% if not current_state %}selected disabled{% endif %}>Select State</option>
+                                <option value="Andaman and Nicobar Islands" {% if current_state == 'Andaman and Nicobar Islands' %}selected{% endif %}>Andaman and Nicobar Islands</option>
+                                <option value="Andhra Pradesh" {% if current_state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
+                                <option value="Arunachal Pradesh" {% if current_state == 'Arunachal Pradesh' %}selected{% endif %}>Arunachal Pradesh</option>
+                                <option value="Assam" {% if current_state == 'Assam' %}selected{% endif %}>Assam</option>
+                                <option value="Bihar" {% if current_state == 'Bihar' %}selected{% endif %}>Bihar</option>
+                                <option value="Chandigarh" {% if current_state == 'Chandigarh' %}selected{% endif %}>Chandigarh</option>
+                                <option value="Chhattisgarh" {% if current_state == 'Chhattisgarh' %}selected{% endif %}>Chhattisgarh</option>
+                                <option value="Dadra and Nagar Haveli and Daman and Diu" {% if current_state == 'Dadra and Nagar Haveli and Daman and Diu' %}selected{% endif %}>Dadra and Nagar Haveli and Daman and Diu</option>
+                                <option value="Goa" {% if current_state == 'Goa' %}selected{% endif %}>Goa</option>
+                                <option value="Gujarat" {% if current_state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+                                <option value="Haryana" {% if current_state == 'Haryana' %}selected{% endif %}>Haryana</option>
+                                <option value="Himachal Pradesh" {% if current_state == 'Himachal Pradesh' %}selected{% endif %}>Himachal Pradesh</option>
+                                <option value="Jammu & Kashmir" {% if current_state == 'Jammu & Kashmir' %}selected{% endif %}>Jammu & Kashmir</option>
+                                <option value="Jharkhand" {% if current_state == 'Jharkhand' %}selected{% endif %}>Jharkhand</option>
+                                <option value="Karnataka" {% if current_state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+                                <option value="Ladakh" {% if current_state == 'Ladakh' %}selected{% endif %}>Ladakh</option>
+                                <option value="Lakshadweep" {% if current_state == 'Lakshadweep' %}selected{% endif %}>Lakshadweep</option>
+                                <option value="Madhya Pradesh" {% if current_state == 'Madhya Pradesh' %}selected{% endif %}>Madhya Pradesh</option>
+                                <option value="Maharashtra" {% if current_state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+                                <option value="Manipur" {% if current_state == 'Manipur' %}selected{% endif %}>Manipur</option>
+                                <option value="Meghalaya" {% if current_state == 'Meghalaya' %}selected{% endif %}>Meghalaya</option>
+                                <option value="Mizoram" {% if current_state == 'Mizoram' %}selected{% endif %}>Mizoram</option>
+                                <option value="Nagaland" {% if current_state == 'Nagaland' %}selected{% endif %}>Nagaland</option>
+                                <option value="Odisha" {% if current_state == 'Odisha' %}selected{% endif %}>Odisha</option>
+                                <option value="Puducherry" {% if current_state == 'Puducherry' %}selected{% endif %}>Puducherry</option>
+                                <option value="Punjab" {% if current_state == 'Punjab' %}selected{% endif %}>Punjab</option>
+                                <option value="Rajasthan" {% if current_state == 'Rajasthan' %}selected{% endif %}>Rajasthan</option>
+                                <option value="Sikkim" {% if current_state == 'Sikkim' %}selected{% endif %}>Sikkim</option>
+                                <option value="Tamil Nadu" {% if current_state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                                <option value="Telangana" {% if current_state == 'Telangana' %}selected{% endif %}>Telangana</option>
+                                <option value="Tripura" {% if current_state == 'Tripura' %}selected{% endif %}>Tripura</option>
+                                <option value="Uttar Pradesh" {% if current_state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+                                <option value="Uttarakhand" {% if current_state == 'Uttarakhand' %}selected{% endif %}>Uttarakhand</option>
+                                <option value="West Bengal" {% if current_state == 'West Bengal' %}selected{% endif %}>West Bengal</option>
+                                {% if current_state and current_state not in 'Andaman and Nicobar Islands,Andhra Pradesh,Arunachal Pradesh,Assam,Bihar,Chandigarh,Chhattisgarh,Dadra and Nagar Haveli and Daman and Diu,Goa,Gujarat,Haryana,Himachal Pradesh,Jammu & Kashmir,Jharkhand,Karnataka,Ladakh,Lakshadweep,Madhya Pradesh,Maharashtra,Manipur,Meghalaya,Mizoram,Nagaland,Odisha,Puducherry,Punjab,Rajasthan,Sikkim,Tamil Nadu,Telangana,Tripura,Uttar Pradesh,Uttarakhand,West Bengal' %}
+                                    <option value="{{ current_state }}" selected>{{ current_state }}</option>
+                                {% endif %}
+                            {% endwith %}
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="city">City *</label>
-                        <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Pune" value="{{ doctor.city|default_if_none:'' }}" required>
+                        <select class="form-control" id="city" name="city" data-current-city="{{ doctor.city|default_if_none:'' }}" required>
+                            <option value="" selected disabled>Select City/District</option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -124,6 +370,160 @@
                     </div>
                 </div>
             </div>
+            <script>
+                // State to Cities/Districts mapping
+                const stateCityMap = {
+                    "Andaman and Nicobar Islands": [
+                        "Campbell Bay","Car Nicobar","Diglipur","Port Blair"
+                    ],
+                    "Andhra Pradesh": [
+                        "Amalapuram","Anakapalle","Anantapur","Bhimavaram","Chittoor","Cuddapah","Eluru","Gudiwada","Gudur","Guntur","Hindupur","Kakinada","Khammam","Kurnool","Machilipatnam","Nandyal","Narasaraopet","Nellore","Parvathipuram","Prakasam","Proddatur","Rajahmundry","Srikakulam","Tadepalligudem","Tenali","Tirupati","Vijayawada","Visakhapatnam","Vizianagaram"
+                    ],
+                    "Arunachal Pradesh": [
+                        "Changlang","Dibang Valley","East Kameng","East Siang","Kurung Kumey","Lohit","Lower Subansiri","Papum Pare","Tawang","Tirap","Upper Siang","Upper Subansiri","West Kameng","West Siang"
+                    ],
+                    "Assam": [
+                        "Barpeta","Bongaigaon","Cachar","Darrang","Dhemaji","Dhubri","Dibrugarh","Goalpara","Golaghat","Hailakandi","Jorhat","Kamrup","Karbi Anglong","Karimganj","Kokrajhar","Lakhimpur","Marigaon (Morigaon)","Nagaon","Nalbari","North Cachar Hills (Dima Hasao)","Sibsagar (Sivasagar)","Sonitpur","Tinsukia","Guwahati"
+                    ],
+                    "Bihar": [
+                        "Aurangabad (Bihar)","Begusarai","Bhagalpur","Bhojpur","Darbhanga","East Champaran","Gaya","Madhubani","Monghyr","Muzaffarpur","Nalanda","Nawadha","Patna","Purnea","Rohtas","Saharsa","Samastipur","Saran","Sitamarhi","Siwan","Vaishali","West Champaran"
+                    ],
+                    "Chandigarh": [
+                        "Chandigarh"
+                    ],
+                    "Chhattisgarh": [
+                        "Bastar","Bilaspur","Durg","Raigarh","Raipur"
+                    ],
+                    "Dadra and Nagar Haveli and Daman and Diu": [
+                        "Dadra","Daman","Diu","Nagar Haveli"
+                    ],
+                    "Goa": [
+                        "Bicholim","Canacona","Mapusa","Margao","Mormugao","Panaji","Pernem","Ponda","Quepem","Vasco da Gama"
+                    ],
+                    "Gujarat": [
+                        "Ahmedabad City","Amreli","Anand","Banas Kantha","Bardoli","Bharuch","Bhavnagar","Gandhinagar","Gondal","Jamnagar","Junagadh","Kheda","Kutch","Mahesana","Navsari","Panchmahals","Patan","Porbandar","Rajkot","Sabarkantha","Surat","Surendranagar","Vadodara East","Vadodara West","Valsad","Vapi"
+                    ],
+                    "Haryana": [
+                        "Ambala","Bhiwani","Faridabad","Gurugram","Hissar","Karnal","Kurukshetra","Rohtak","Sonepat"
+                    ],
+                    "Himachal Pradesh": [
+                        "Chamba","Dehra Gopipur","Dharamsala","Hamirpur","Mandi","Rampur Bushahr","Shimla","Solan","Una"
+                    ],
+                    "Jammu & Kashmir": [
+                        "Ananthnag","Bandipura","Baramulla","Budgam","Doda","Jammu","Kargil","Kathua","Kulgam","Kupwara","Leh","Poonch","Pulwama","Rajauri","Reasi","Srinagar","Udhampur"
+                    ],
+                    "Jharkhand": [
+                        "Dhanbad","Giridih","Hazaribagh","Palamau","Ranchi","Santhal Parganas","Singhbhum"
+                    ],
+                    "Karnataka": [
+                        "Bagalkot","Belgaum","Bellary","Bengaluru East","Bengaluru South","Bengaluru West","Bidar","Bijapur","Channapatna","Chikmagalur","Chikodi","Chitradurga","Dharwad","Gadag","Gokak","Gulbarga","Hassan","Haveri","Karwar","Kodagu","Kolar","Mandya","Mangalore","Mysore","Nanjangud","Puttur","Raichur","Shimoga","Sirsi","Tumkur","Udupi"
+                    ],
+                    "Ladakh": [
+                        "Kargil","Leh"
+                    ],
+                    "Lakshadweep": [
+                        "Agatti","Amini","Andrott","Bitra","Kadmat","Kalpeni","Kavaratti","Minicoy"
+                    ],
+                    "Madhya Pradesh": [
+                        "Balaghat","Bhopal","Chhatarpur","Chhindwara","Guna","Gwalior","Hoshangabad","Indore City","Indore Mofussil","Jabalpur","Khandwa","Mandsaur","Morena","Ratlam","Rewa","Sagar","Satna","Sehore","Shahdol","Ujjain","Vidisha"
+                    ],
+                    "Maharashtra": [
+                        "Ahmed Nagar","Akola","Amravati","Aurangabad","Beed","Bhandara","Buldhana","Chandrapur","Dhule","Gadchiroli","Gondia","Hingoli","Jalgaon","Jalna","Kolhapur","Latur","Mumbai","Nagpur","Nanded","Nandurbar","Nashik","Osmanabad","Parbhani","Pune","Raigarh (MH)","Ratnagiri","Sangli","Satara","Sindhudurg","Solapur","Thane","Wardha","Washim"
+                    ],
+                    "Manipur": [
+                        "Bishnupur","Chandel","Churachandpur","Imphal East","Imphal West","Senapati","Tamenglong","Thoubal","Ukhrul"
+                    ],
+                    "Meghalaya": [
+                        "East Garo Hills","East Khasi Hills","Jaintia Hills","Meghalaya","R1 Bhoi","South Garo Hills","West Garo Hills","West Khasi Hills"
+                    ],
+                    "Mizoram": [
+                        "Aizawl","Champhai","Kolasib","Lawngtlai","Lunglei","Mammit","Serchhip"
+                    ],
+                    "Nagaland": [
+                        "Dimapur","Kiphire","Kohima","Longleng","Mokokchung","Mon","Peren","Phek","Tuensang","Wokha","Zunhebotto"
+                    ],
+                    "Odisha": [
+                        "Aska","Balangir","Balasore","Berhaspur","Bhadrak","Bhubaneswar","Cuttack City","Cuttack North","Cuttack South","Dhenkanal","Kalahandi","Keonjhar","Koraput","Mayurbhanj","Phulbani","Puri","Sambalpur","Sundargarh"
+                    ],
+                    "Puducherry": [
+                        "Karaikal","Mahe","Puducherry","Yanam"
+                    ],
+                    "Punjab": [
+                        "Amritsar","Barnala","Bathinda","Faridkot","Fatehgarh Sahib","Fazilka","Firozpur","Gurdaspur","Hoshiarpur","Jalandhar","Kapurthala","Ludhiana","Mansa","Moga","Mohali","Muktsar","Nawanshahr","Patiala","Ropar","Rupnagar","Sangrur","Tarn Taran"
+                    ],
+                    "Rajasthan": [
+                        "Ajmer","Alwar","Banswara","Baran","Barmer","Bharatpur","Bhilwara","Bikaner","Bundi","Chittorgarh","Churu","Dausa","Dholpur","Dungarpur","Ganganagar","Hanumangarh","Jaipur","Jaisalmer","Jalore","Jhalawar","Jhunjhunu","Jodhpur","Karauli","Kota","Nagaur","Pali","Rajsamand","Sawai Madhopur","Sikar","Sirohi","Tonk","Udaipur"
+                    ],
+                    "Sikkim": [
+                        "East Sikkim","North Sikkim","South Sikkim","West Sikkim"
+                    ],
+                    "Tamil Nadu": [
+                        "Anna H.O.","Arakkonam","Chengalpattu","Chennai City Central","Chennai City North","Chennai City South","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode","Kanchipuram","Kanniyakumari","Karaikudi","Karur","Kovilpatti","Krishnagiri","Kumbakonam","Madurai","Mayiladuthurai","Nagapattinam","Namakkal","Nilgiris","Pattukottai","Poducherry","Pollachi","Pudukottai","Ramanathapuram","Salem East","Salem West","Sivaganga","Srirangam","Tambaram","Thanjavur","Theni","Tiruchirapalli","Tirunelveli","Tirupattur","Tirupur","Tiruvannamalai","Tuticorin","Vellore","Virudhunagar","Vriddhachalam"
+                    ],
+                    "Telangana": [
+                        "Adilabad","Hanamkonda","Hyderabad City","Hyderabad South East","Karimnagar","Khammam","Mahabubnagar","Medak","Nalgonda","Nizamabad","Peddapalli","Sangareddy","Secunderabad","Suryapet","Wanaparthy","Warangal"
+                    ],
+                    "Tripura": [
+                        "Dhalai","Gomati","Khowai","North Tripura","Sepahijala","South Tripura","Unakoti","West Tripura"
+                    ],
+                    "Uttar Pradesh": [
+                        "Agra","Aligarh","Allahabad","Ambedkar Nagar","Auraiya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Faizabad","Farrukhabad","Fatehpur","Firozabad","Gautam Buddha Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Jyotiba Phule Nagar","Kannauj","Kanpur Dehat","Kanpur Nagar","Kaushambi","Kheri","Kushinagar","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Raebareli","Rampur","Saharanpur","Sant Kabir Nagar","Sant Ravidas Nagar","Shahjahanpur","Shrawasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"
+                    ],
+                    "Uttarakhand": [
+                        "Almora","Bageshwar","Chamoli","Champawat","Dehradun","Haridwar","Nainital","Pauri Garhwal","Pithoragarh","Rudraprayag","Tehri Garhwal","Udham Singh Nagar","Uttarkashi"
+                    ],
+                    "West Bengal": [
+                        "Asansol","Bankura","Birbhum","Burdwan (Bardhaman)","Contai (Kanthi)","Cooch Behar","Darjiling (Darjeeling)","Hooghly","Howrah","Jalpaiguri","Kolkata","Malda","Midnapore (Paschim Medinipur)","Murshidabad","Nadia","North 24 Parganas","North Dinajpur (Uttar Dinajpur)","Purulia","South 24 Parganas","South Dinajpur (Dakshin Dinajpur)","Tamluk (East Medinipur)"
+                    ]
+                };
+
+                function populateCities() {
+                    const stateSelect = document.getElementById('state');
+                    const citySelect = document.getElementById('city');
+                    const selectedState = stateSelect.value;
+                    const previous = citySelect.getAttribute('data-current-city') || '';
+
+                    // Clear all options
+                    citySelect.innerHTML = '';
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select City/District';
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    citySelect.appendChild(placeholder);
+
+                    const list = stateCityMap[selectedState] || [];
+                    list.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        if (previous && previous === name) opt.selected = true;
+                        citySelect.appendChild(opt);
+                    });
+
+                    // If previous value exists but not in list, keep it selectable
+                    if (previous && !list.includes(previous)) {
+                        const opt = document.createElement('option');
+                        opt.value = previous;
+                        opt.textContent = previous;
+                        opt.selected = true;
+                        citySelect.appendChild(opt);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', function(){
+                    const stateSelect = document.getElementById('state');
+                    const citySelect = document.getElementById('city');
+                    if (stateSelect && citySelect) {
+                        populateCities();
+                        stateSelect.addEventListener('change', function(){
+                            // Reset stored previous city when state changes
+                            citySelect.setAttribute('data-current-city','');
+                            populateCities();
+                        });
+                    }
+                });
+            </script>
             <div class="divider"></div>
             <div class="mb-2">
                 <span class="section-tag">Professional Details</span>
@@ -141,62 +541,61 @@
                         <select class="form-control" id="specialty" name="specialty" required>
                             {% with current=doctor.specialty|default_if_none:'' %}
                                 <option value="" {% if not current %}selected disabled{% endif %}>Select Specialty</option>
-                                <option value="General Physician / General Practitioner" {% if current == 'General Physician / General Practitioner' %}selected{% endif %}>General Physician / General Practitioner</option>
-                                <option value="Family Medicine Specialist" {% if current == 'Family Medicine Specialist' %}selected{% endif %}>Family Medicine Specialist</option>
-                                <option value="Internal Medicine Specialist" {% if current == 'Internal Medicine Specialist' %}selected{% endif %}>Internal Medicine Specialist</option>
-                                <option value="General Surgeon" {% if current == 'General Surgeon' %}selected{% endif %}>General Surgeon</option>
-                                <option value="Orthopedic Surgeon" {% if current == 'Orthopedic Surgeon' %}selected{% endif %}>Orthopedic Surgeon</option>
-                                <option value="Neurosurgeon" {% if current == 'Neurosurgeon' %}selected{% endif %}>Neurosurgeon</option>
-                                <option value="Cardiothoracic Surgeon" {% if current == 'Cardiothoracic Surgeon' %}selected{% endif %}>Cardiothoracic Surgeon</option>
-                                <option value="Vascular Surgeon" {% if current == 'Vascular Surgeon' %}selected{% endif %}>Vascular Surgeon</option>
-                                <option value="Plastic / Reconstructive Surgeon" {% if current == 'Plastic / Reconstructive Surgeon' %}selected{% endif %}>Plastic / Reconstructive Surgeon</option>
-                                <option value="Pediatric Surgeon" {% if current == 'Pediatric Surgeon' %}selected{% endif %}>Pediatric Surgeon</option>
-                                <option value="Urologist" {% if current == 'Urologist' %}selected{% endif %}>Urologist</option>
-                                <option value="ENT Surgeon" {% if current == 'ENT Surgeon' %}selected{% endif %}>ENT Surgeon</option>
-                                <option value="Ophthalmic Surgeon" {% if current == 'Ophthalmic Surgeon' %}selected{% endif %}>Ophthalmic Surgeon</option>
+                                <option value="Anesthesiologist" {% if current == 'Anesthesiologist' %}selected{% endif %}>Anesthesiologist</option>
                                 <option value="Cardiologist" {% if current == 'Cardiologist' %}selected{% endif %}>Cardiologist</option>
-                                <option value="Neurologist" {% if current == 'Neurologist' %}selected{% endif %}>Neurologist</option>
-                                <option value="Pulmonologist / Chest Physician" {% if current == 'Pulmonologist / Chest Physician' %}selected{% endif %}>Pulmonologist / Chest Physician</option>
-                                <option value="Gastroenterologist" {% if current == 'Gastroenterologist' %}selected{% endif %}>Gastroenterologist</option>
-                                <option value="Nephrologist" {% if current == 'Nephrologist' %}selected{% endif %}>Nephrologist</option>
+                                <option value="Cardiothoracic Surgeon" {% if current == 'Cardiothoracic Surgeon' %}selected{% endif %}>Cardiothoracic Surgeon</option>
+                                <option value="Clinical Psychologist" {% if current == 'Clinical Psychologist' %}selected{% endif %}>Clinical Psychologist</option>
+                                <option value="Dermatologist" {% if current == 'Dermatologist' %}selected{% endif %}>Dermatologist</option>
+                                <option value="Emergency Medicine Specialist" {% if current == 'Emergency Medicine Specialist' %}selected{% endif %}>Emergency Medicine Specialist</option>
                                 <option value="Endocrinologist" {% if current == 'Endocrinologist' %}selected{% endif %}>Endocrinologist</option>
-                                <option value="Rheumatologist" {% if current == 'Rheumatologist' %}selected{% endif %}>Rheumatologist</option>
-                                <option value="Hematologist" {% if current == 'Hematologist' %}selected{% endif %}>Hematologist</option>
-                                <option value="Oncologist" {% if current == 'Oncologist' %}selected{% endif %}>Oncologist</option>
+                                <option value="ENT Specialist / Otolaryngologist" {% if current == 'ENT Specialist / Otolaryngologist' %}selected{% endif %}>ENT Specialist / Otolaryngologist</option>
+                                <option value="ENT Surgeon" {% if current == 'ENT Surgeon' %}selected{% endif %}>ENT Surgeon</option>
+                                <option value="Family Medicine Specialist" {% if current == 'Family Medicine Specialist' %}selected{% endif %}>Family Medicine Specialist</option>
+                                <option value="Forensic Medicine Specialist" {% if current == 'Forensic Medicine Specialist' %}selected{% endif %}>Forensic Medicine Specialist</option>
+                                <option value="Gastroenterologist" {% if current == 'Gastroenterologist' %}selected{% endif %}>Gastroenterologist</option>
+                                <option value="General Physician / General Practitioner" {% if current == 'General Physician / General Practitioner' %}selected{% endif %}>General Physician / General Practitioner</option>
+                                <option value="General Surgeon" {% if current == 'General Surgeon' %}selected{% endif %}>General Surgeon</option>
                                 <option value="Geriatrician" {% if current == 'Geriatrician' %}selected{% endif %}>Geriatrician</option>
-                                <option value="Pediatrician" {% if current == 'Pediatrician' %}selected{% endif %}>Pediatrician</option>
+                                <option value="Gynecologist" {% if current == 'Gynecologist' %}selected{% endif %}>Gynecologist</option>
+                                <option value="Hematologist" {% if current == 'Hematologist' %}selected{% endif %}>Hematologist</option>
+                                <option value="Hemato-Oncologist" {% if current == 'Hemato-Oncologist' %}selected{% endif %}>Hemato-Oncologist</option>
+                                <option value="Immunologist" {% if current == 'Immunologist' %}selected{% endif %}>Immunologist</option>
+                                <option value="Infectious Disease Specialist" {% if current == 'Infectious Disease Specialist' %}selected{% endif %}>Infectious Disease Specialist</option>
+                                <option value="Intensivist" {% if current == 'Intensivist' %}selected{% endif %}>Intensivist</option>
+                                <option value="Internal Medicine Specialist" {% if current == 'Internal Medicine Specialist' %}selected{% endif %}>Internal Medicine Specialist</option>
+                                <option value="Medical Oncologist" {% if current == 'Medical Oncologist' %}selected{% endif %}>Medical Oncologist</option>
                                 <option value="Neonatologist" {% if current == 'Neonatologist' %}selected{% endif %}>Neonatologist</option>
+                                <option value="Nephrologist" {% if current == 'Nephrologist' %}selected{% endif %}>Nephrologist</option>
+                                <option value="Neurologist" {% if current == 'Neurologist' %}selected{% endif %}>Neurologist</option>
+                                <option value="Neurosurgeon" {% if current == 'Neurosurgeon' %}selected{% endif %}>Neurosurgeon</option>
+                                <option value="Nuclear Medicine Specialist" {% if current == 'Nuclear Medicine Specialist' %}selected{% endif %}>Nuclear Medicine Specialist</option>
+                                <option value="Obstetrician" {% if current == 'Obstetrician' %}selected{% endif %}>Obstetrician</option>
+                                <option value="Occupational Medicine Specialist" {% if current == 'Occupational Medicine Specialist' %}selected{% endif %}>Occupational Medicine Specialist</option>
+                                <option value="Oncologist" {% if current == 'Oncologist' %}selected{% endif %}>Oncologist</option>
+                                <option value="Ophthalmologist" {% if current == 'Ophthalmologist' %}selected{% endif %}>Ophthalmologist</option>
+                                <option value="Ophthalmic Surgeon" {% if current == 'Ophthalmic Surgeon' %}selected{% endif %}>Ophthalmic Surgeon</option>
+                                <option value="Orthopedic Surgeon" {% if current == 'Orthopedic Surgeon' %}selected{% endif %}>Orthopedic Surgeon</option>
+                                <option value="Pain Management Specialist" {% if current == 'Pain Management Specialist' %}selected{% endif %}>Pain Management Specialist</option>
+                                <option value="Pathologist" {% if current == 'Pathologist' %}selected{% endif %}>Pathologist</option>
                                 <option value="Pediatric Cardiologist" {% if current == 'Pediatric Cardiologist' %}selected{% endif %}>Pediatric Cardiologist</option>
                                 <option value="Pediatric Neurologist" {% if current == 'Pediatric Neurologist' %}selected{% endif %}>Pediatric Neurologist</option>
                                 <option value="Pediatric Surgeon" {% if current == 'Pediatric Surgeon' %}selected{% endif %}>Pediatric Surgeon</option>
-                                <option value="Gynecologist" {% if current == 'Gynecologist' %}selected{% endif %}>Gynecologist</option>
-                                <option value="Obstetrician" {% if current == 'Obstetrician' %}selected{% endif %}>Obstetrician</option>
-                                <option value="Reproductive Medicine / Fertility Specialist" {% if current == 'Reproductive Medicine / Fertility Specialist' %}selected{% endif %}>Reproductive Medicine / Fertility Specialist</option>
-                                <option value="Medical Oncologist" {% if current == 'Medical Oncologist' %}selected{% endif %}>Medical Oncologist</option>
-                                <option value="Surgical Oncologist" {% if current == 'Surgical Oncologist' %}selected{% endif %}>Surgical Oncologist</option>
-                                <option value="Radiation Oncologist" {% if current == 'Radiation Oncologist' %}selected{% endif %}>Radiation Oncologist</option>
-                                <option value="Hemato-Oncologist" {% if current == 'Hemato-Oncologist' %}selected{% endif %}>Hemato-Oncologist</option>
-                                <option value="Radiologist" {% if current == 'Radiologist' %}selected{% endif %}>Radiologist</option>
-                                <option value="Pathologist" {% if current == 'Pathologist' %}selected{% endif %}>Pathologist</option>
-                                <option value="Nuclear Medicine Specialist" {% if current == 'Nuclear Medicine Specialist' %}selected{% endif %}>Nuclear Medicine Specialist</option>
-                                <option value="Dermatologist" {% if current == 'Dermatologist' %}selected{% endif %}>Dermatologist</option>
-                                <option value="Ophthalmologist" {% if current == 'Ophthalmologist' %}selected{% endif %}>Ophthalmologist</option>
-                                <option value="ENT Specialist / Otolaryngologist" {% if current == 'ENT Specialist / Otolaryngologist' %}selected{% endif %}>ENT Specialist / Otolaryngologist</option>
-                                <option value="Emergency Medicine Specialist" {% if current == 'Emergency Medicine Specialist' %}selected{% endif %}>Emergency Medicine Specialist</option>
-                                <option value="Intensivist" {% if current == 'Intensivist' %}selected{% endif %}>Intensivist</option>
-                                <option value="Anesthesiologist" {% if current == 'Anesthesiologist' %}selected{% endif %}>Anesthesiologist</option>
-                                <option value="Psychiatrist" {% if current == 'Psychiatrist' %}selected{% endif %}>Psychiatrist</option>
-                                <option value="Clinical Psychologist" {% if current == 'Clinical Psychologist' %}selected{% endif %}>Clinical Psychologist</option>
-                                <option value="Rehabilitation Medicine Specialist" {% if current == 'Rehabilitation Medicine Specialist' %}selected{% endif %}>Rehabilitation Medicine Specialist</option>
-                                <option value="Pain Management Specialist" {% if current == 'Pain Management Specialist' %}selected{% endif %}>Pain Management Specialist</option>
-                                <option value="Immunologist" {% if current == 'Immunologist' %}selected{% endif %}>Immunologist</option>
-                                <option value="Infectious Disease Specialist" {% if current == 'Infectious Disease Specialist' %}selected{% endif %}>Infectious Disease Specialist</option>
-                                <option value="Sports Medicine Specialist" {% if current == 'Sports Medicine Specialist' %}selected{% endif %}>Sports Medicine Specialist</option>
-                                <option value="Occupational Medicine Specialist" {% if current == 'Occupational Medicine Specialist' %}selected{% endif %}>Occupational Medicine Specialist</option>
-                                <option value="Forensic Medicine Specialist" {% if current == 'Forensic Medicine Specialist' %}selected{% endif %}>Forensic Medicine Specialist</option>
+                                <option value="Pediatrician" {% if current == 'Pediatrician' %}selected{% endif %}>Pediatrician</option>
+                                <option value="Plastic / Reconstructive Surgeon" {% if current == 'Plastic / Reconstructive Surgeon' %}selected{% endif %}>Plastic / Reconstructive Surgeon</option>
                                 <option value="Preventive & Social Medicine Specialist" {% if current == 'Preventive & Social Medicine Specialist' %}selected{% endif %}>Preventive & Social Medicine Specialist</option>
+                                <option value="Psychiatrist" {% if current == 'Psychiatrist' %}selected{% endif %}>Psychiatrist</option>
+                                <option value="Pulmonologist / Chest Physician" {% if current == 'Pulmonologist / Chest Physician' %}selected{% endif %}>Pulmonologist / Chest Physician</option>
+                                <option value="Radiation Oncologist" {% if current == 'Radiation Oncologist' %}selected{% endif %}>Radiation Oncologist</option>
+                                <option value="Radiologist" {% if current == 'Radiologist' %}selected{% endif %}>Radiologist</option>
+                                <option value="Rehabilitation Medicine Specialist" {% if current == 'Rehabilitation Medicine Specialist' %}selected{% endif %}>Rehabilitation Medicine Specialist</option>
+                                <option value="Reproductive Medicine / Fertility Specialist" {% if current == 'Reproductive Medicine / Fertility Specialist' %}selected{% endif %}>Reproductive Medicine / Fertility Specialist</option>
+                                <option value="Rheumatologist" {% if current == 'Rheumatologist' %}selected{% endif %}>Rheumatologist</option>
+                                <option value="Sports Medicine Specialist" {% if current == 'Sports Medicine Specialist' %}selected{% endif %}>Sports Medicine Specialist</option>
+                                <option value="Surgical Oncologist" {% if current == 'Surgical Oncologist' %}selected{% endif %}>Surgical Oncologist</option>
+                                <option value="Urologist" {% if current == 'Urologist' %}selected{% endif %}>Urologist</option>
+                                <option value="Vascular Surgeon" {% if current == 'Vascular Surgeon' %}selected{% endif %}>Vascular Surgeon</option>
                                 {% if current %}
-                                {% if current not in 'General Physician / General Practitioner,Family Medicine Specialist,Internal Medicine Specialist,General Surgeon,Orthopedic Surgeon,Neurosurgeon,Cardiothoracic Surgeon,Vascular Surgeon,Plastic / Reconstructive Surgeon,Pediatric Surgeon,Urologist,ENT Surgeon,Ophthalmic Surgeon,Cardiologist,Neurologist,Pulmonologist / Chest Physician,Gastroenterologist,Nephrologist,Endocrinologist,Rheumatologist,Hematologist,Oncologist,Geriatrician,Pediatrician,Neonatologist,Pediatric Cardiologist,Pediatric Neurologist,Pediatric Surgeon,Gynecologist,Obstetrician,Reproductive Medicine / Fertility Specialist,Medical Oncologist,Surgical Oncologist,Radiation Oncologist,Hemato-Oncologist,Radiologist,Pathologist,Nuclear Medicine Specialist,Dermatologist,Ophthalmologist,ENT Specialist / Otolaryngologist,Emergency Medicine Specialist,Intensivist,Anesthesiologist,Psychiatrist,Clinical Psychologist,Rehabilitation Medicine Specialist,Pain Management Specialist,Immunologist,Infectious Disease Specialist,Sports Medicine Specialist,Occupational Medicine Specialist,Forensic Medicine Specialist,Preventive & Social Medicine Specialist' %}
+                                {% if current not in 'Anesthesiologist,Cardiologist,Cardiothoracic Surgeon,Clinical Psychologist,Dermatologist,Emergency Medicine Specialist,Endocrinologist,ENT Specialist / Otolaryngologist,ENT Surgeon,Family Medicine Specialist,Forensic Medicine Specialist,Gastroenterologist,General Physician / General Practitioner,General Surgeon,Geriatrician,Gynecologist,Hematologist,Hemato-Oncologist,Immunologist,Infectious Disease Specialist,Intensivist,Internal Medicine Specialist,Medical Oncologist,Neonatologist,Nephrologist,Neurologist,Neurosurgeon,Nuclear Medicine Specialist,Obstetrician,Occupational Medicine Specialist,Oncologist,Ophthalmologist,Ophthalmic Surgeon,Orthopedic Surgeon,Pain Management Specialist,Pathologist,Pediatric Cardiologist,Pediatric Neurologist,Pediatric Surgeon,Pediatrician,Plastic / Reconstructive Surgeon,Preventive & Social Medicine Specialist,Psychiatrist,Pulmonologist / Chest Physician,Radiation Oncologist,Radiologist,Rehabilitation Medicine Specialist,Reproductive Medicine / Fertility Specialist,Rheumatologist,Sports Medicine Specialist,Surgical Oncologist,Urologist,Vascular Surgeon' %}
                                     <option value="{{ current }}" selected>{{ current }}</option>
                                 {% endif %}
                                 {% endif %}
@@ -208,7 +607,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="degree">Degree</label>
+                        <label for="degree">Degree *</label>
                         <select class="form-control" id="degree" name="degree" required>
                             {% with current=doctor.degree|default_if_none:'' %}
                                 <option value="" {% if not current %}selected disabled{% endif %}>Select Degree</option>
@@ -236,153 +635,142 @@
                         </select>
                     </div>
                 </div>
-                
-            </div>
-            
-            <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="mciRegistration">MCI Registration No*</label>
+                        <label for="mciRegistration">MCI Registration No *</label>
                         <input type="text" class="form-control" id="mciRegistration" name="mci_registration" placeholder="Enter MCI Registration Number" value="{{ doctor.mci_registration|default_if_none:'' }}" required>
                     </div>
                 </div>
+            </div>
+            
+            <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="pan">PAN Card *</label>
                         <input type="text" class="form-control" id="pan" name="pan" placeholder="ABCDE1234F" value="{{ doctor.pan|default_if_none:'' }}" required>
                     </div>
                 </div>
-            </div>
-            
-            <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="confirmPan">Confirm PAN No. *</label>
-                        <input type="text" class="form-control" id="confirmPan" name="confirm_pan" value="{{ doctor.pan|default_if_none:'' }}" required>
+                        <input type="text" class="form-control" id="confirmPan" name="confirm_pan" placeholder="Re-enter PAN Number" value="{{ doctor.pan|default_if_none:'' }}" required>
                     </div>
                 </div>
             </div>
             
-            <h5 class="mt-4">GST Information</h5>
-            <hr>
+            <div class="divider"></div>
+            <div class="mb-2">
+                <span class="section-tag">GST Information</span>
+            </div>
+            
             <div class="form-group">
-                <label>Are you registered under GST? *</label>
-                <div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="has_gst" id="gstYes" value="true" {% if doctor.has_gst %}checked{% endif %} onchange="toggleGSTField()">
-                        <label class="form-check-label" for="gstYes">Yes</label>
+                <label style="font-size: 1rem; margin-bottom: 12px;">Are you registered under GST? <span class="text-danger">*</span></label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="has_gst" id="gstYes" value="true" {% if doctor.has_gst %}checked{% endif %} onchange="toggleGSTFields()" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label class="form-check-label" for="gstYes" style="font-size: 1rem; margin-left: 8px; cursor: pointer; font-weight: 500;">
+                            Yes
+                        </label>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="has_gst" id="gstNo" value="false" {% if not doctor.has_gst %}checked{% endif %} onchange="toggleGSTField()">
-                        <label class="form-check-label" for="gstNo">No</label>
+                    <div class="form-check" style="margin-left: 25px;">
+                        <input class="form-check-input" type="radio" name="has_gst" id="gstNo" value="false" {% if not doctor.has_gst %}checked{% endif %} onchange="toggleGSTFields()" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label class="form-check-label" for="gstNo" style="font-size: 1rem; margin-left: 8px; cursor: pointer; font-weight: 500;">
+                            No
+                        </label>
                     </div>
                 </div>
             </div>
             
-            <div id="gstNumberField" class="form-group" style="{% if not doctor.has_gst %}display: none;{% endif %}">
-                <label for="gstNumber">GST Number *</label>
-                <input type="text" class="form-control" id="gstNumber" name="gst_number" placeholder="22AAAAA0000A1Z5" value="{{ doctor.gst_number|default_if_none:'' }}">
+            <div id="gstDetailsSection" style="{% if not doctor.has_gst %}display: none;{% endif %}">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="gstNumber">GST Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="gstNumber" name="gst_number" placeholder="22AAAAA0000A1Z5" value="{{ doctor.gst_number|default_if_none:'' }}">
+                            <small class="helper">15-digit GST Identification Number</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="gstCertificate">Upload GST Certificate <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control-file" id="gstCertificate" name="gst_certificate" accept=".jpg,.jpeg,.png,.pdf">
+                            {% if doctor.gst_certificate %}
+                                <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.gst_certificate.url }}" target="_blank">{{ doctor.gst_certificate.name }}</a></p>
+                            {% endif %}
+                            <small class="form-text text-muted">Allowed: jpeg, png, jpg, pdf. Max size: 5 MB</small>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <script>
-                function toggleGSTField() {
+                function toggleGSTFields() {
                     const gstYes = document.getElementById('gstYes');
-                    const gstNumberField = document.getElementById('gstNumberField');
+                    const gstDetailsSection = document.getElementById('gstDetailsSection');
+                    const gstNumber = document.getElementById('gstNumber');
+                    const gstCertificate = document.getElementById('gstCertificate');
                     
                     if (gstYes.checked) {
-                        gstNumberField.style.display = 'block';
+                        gstDetailsSection.style.display = 'block';
+                        gstNumber.required = true;
+                        gstCertificate.required = true;
                     } else {
-                        gstNumberField.style.display = 'none';
+                        gstDetailsSection.style.display = 'none';
+                        gstNumber.required = false;
+                        gstCertificate.required = false;
                     }
                 }
                 
                 // Initialize on page load
                 document.addEventListener('DOMContentLoaded', function() {
-                    toggleGSTField();
+                    toggleGSTFields();
                 });
             </script>
             
             <div class="divider"></div>
             <div class="mb-2">
-                <span class="section-tag">Bank Details</span>
+                <span class="section-tag">Document Uploads {% if doctor.portal_type %}({{ doctor.portal_type }}){% endif %}</span>
             </div>
             <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="bankAccountName">Name as per Bank Account *</label>
-                        <input type="text" class="form-control" id="bankAccountName" name="bank_account_name" placeholder="As printed on bank passbook" value="{{ doctor.bank_account_name|default_if_none:'' }}" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="bankName">Bank Name *</label>
-                        <input type="text" class="form-control" id="bankName" name="bank_name" placeholder="e.g., SBI, HDFC" value="{{ doctor.bank_name|default_if_none:'' }}" required>
-                    </div>
-                </div>
-            </div>
             
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="accountNo">Account No *</label>
-                        <input type="text" class="form-control" id="accountNo" name="account_no" placeholder="Your bank account number" value="{{ doctor.account_no|default_if_none:'' }}" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="branch">Branch *</label>
-                        <input type="text" class="form-control" id="branch" name="branch" placeholder="Branch name" value="{{ doctor.branch|default_if_none:'' }}" required>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="ifsc">IFSC *</label>
-                        <input type="text" class="form-control" id="ifsc" name="ifsc" placeholder="e.g., SBIN0000456" value="{{ doctor.ifsc|default_if_none:'' }}" required>
-                    </div>
-                </div>
-            </div>
-            <div class="divider"></div>
-            <div class="mb-2">
-                <span class="section-tag">Document Uploads</span>
-            </div>
-            <hr>
+            <!-- PAN Card - Common for both GC and CP -->
             <div class="form-group">
                 <label for="panCopy">Upload PAN Card <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="panCopy" name="pan_copy" accept=".jpg,.jpeg,.png,.pdf" required>
+                <input type="file" class="form-control-file" id="panCopy" name="pan_copy" accept=".jpg,.jpeg,.png,.pdf">
                 {% if doctor.pan_copy %}
-                    <p>Current file: <a href="{{ doctor.pan_copy.url }}">{{ doctor.pan_copy.name }}</a></p>
+                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.pan_copy.url }}" target="_blank">{{ doctor.pan_copy.name }}</a></p>
                 {% endif %}
-                <small class="form-text text-muted">Allowed file types:jpeg,png,jpg,pdf.Max File size:5 MB</small>
+                <small class="form-text text-muted">Allowed file types: jpeg, png, jpg, pdf. Max File size: 5 MB</small>
             </div>
             
-            <!-- <div class="form-group">
+            <!-- Cancelled Cheque - Only for CP (Critical Patient) -->
+            {% if doctor.portal_type == 'CP' %}
+            <div class="form-group">
                 <label for="cancelledCheque">Upload Cancelled Cheque <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="cancelledCheque" name="cancelled_cheque" accept=".jpg,.jpeg,.png,.pdf" required>
+                <input type="file" class="form-control-file" id="cancelledCheque" name="cancelled_cheque" accept=".jpg,.jpeg,.png,.pdf">
                 {% if doctor.cancelled_cheque %}
-                    <p>Current file: <a href="{{ doctor.cancelled_cheque.url }}">{{ doctor.cancelled_cheque.name }}</a></p>
+                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.cancelled_cheque.url }}" target="_blank">{{ doctor.cancelled_cheque.name }}</a></p>
                 {% endif %}
-                <small class="form-text text-muted">Allowed file types:jpeg,png,jpg,pdf.Max File size:5 MB</small>
-            </div> -->
-            
-            <!-- <div class="form-group">
-                <label for="prescriptionName">Prescription Name</label>
-                <input type="text" class="form-control" id="prescriptionName" name="prescription_name" value="{{ doctor.prescription_name|default_if_none:'' }}" placeholder="Enter prescription name">
-            </div> -->
+                <small class="form-text text-muted">Allowed file types: jpeg, png, jpg, pdf. Max File size: 5 MB</small>
+            </div>
+            {% endif %}
 
+            <!-- Prescription - Common for both GC and CP -->
             <div class="form-group">
                 <label for="prescriptionFile">Upload Prescription <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="prescriptionFile" name="prescription_file" accept=".jpg,.jpeg,.png,.pdf" required>
+                <input type="file" class="form-control-file" id="prescriptionFile" name="prescription_file" accept=".jpg,.jpeg,.png,.pdf">
                 {% if doctor.prescription_file %}
-                    <p>Current file: <a href="{{ doctor.prescription_file.url }}" target="_blank">{{ doctor.prescription_file.name }}</a></p>
+                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.prescription_file.url }}" target="_blank">{{ doctor.prescription_file.name }}</a></p>
                 {% endif %}
                 <small class="form-text text-muted">Allowed: jpeg, png, jpg, pdf. Max size: 5 MB</small>
             </div>
 
-            <button type="submit" class="btn btn-primary">Save Profile</button>
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary px-4" style="font-size: 0.95rem; padding: 8px 25px; border-radius: 30px; box-shadow: 0 3px 10px rgba(230, 100, 162, 0.3);">
+                    <i class="fas fa-save mr-2"></i> Save and Next
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
         </form>
     </div>
 {% endblock %}

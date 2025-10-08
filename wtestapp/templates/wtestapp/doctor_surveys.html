@@ -15,12 +15,18 @@
   .btn-main{ background:var(--pink); border-color:var(--pink); color:#fff; font-weight:600; border-radius:10px; padding:8px 14px; }
   .btn-main:hover{ background:var(--purple); border-color:var(--purple); }
   .empty{ color:#7b3f63; background:#fff; border:1px dashed var(--pink); border-radius:14px; padding:18px; text-align:center; }
+  .btn-back{ background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); border: 2px solid var(--pink); color: var(--purple); padding: 10px 24px; font-size: 1.1rem; font-weight: 600; border-radius: 8px; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
+  .btn-back:hover{ background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%); color: #fff; border-color: var(--purple); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3); }
+  .btn-back i { margin-right: 8px; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="page-title mb-3">Your Assigned Surveys</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="page-title mb-0">Your Assigned Surveys</h2>
+    <a href="{% url 'doctor_profile_view' %}" class="btn-back"><i class="fas fa-user"></i> Back to Profile</a>
+  </div>
 
   {% if messages %}
     {% for message in messages %}
@@ -30,16 +36,6 @@
 
   {% if surveys %}
     <div class="survey-list">
-      <!-- Practice Survey always available -->
-      <div class="survey-item">
-        <div class="survey-meta">
-          <h5 class="survey-title">Practice Survey</h5>
-          <p class="survey-desc">A short survey you can try right now.</p>
-        </div>
-        <div>
-          <a href="{% url 'survey2' %}" class="btn btn-main">Start</a>
-        </div>
-      </div>
       {% for survey in surveys %}
         <div class="survey-item">
           <div class="survey-meta">
@@ -47,17 +43,25 @@
             {% if survey.description %}
               <p class="survey-desc">{{ survey.description|truncatechars:140 }}</p>
             {% endif %}
+            {% if survey.id in completed_surveys %}
+              <span style="color:#2e7d32; font-size:.9rem;"><i class="fas fa-check-circle"></i> Completed</span>
+            {% endif %}
           </div>
-          <div>
-            <a href="{% url 'survey_detail' survey.id %}" class="btn btn-main">Take Survey</a>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            {% if survey.id in completed_surveys %}
+              <a href="{% url 'survey_detail' survey.id %}?view=1" class="btn btn-outline-secondary" style="border-color:#64c5cb; color:#64c5cb;"><i class="fas fa-eye"></i> View</a>
+            {% else %}
+              <a href="{% url 'survey_detail' survey.id %}" class="btn btn-main">Take Survey</a>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
+    </div>
   {% else %}
     <div class="empty">
-      <a href="/gc/doctor/survey2/" class="btn btn-main mt-2">Start Survey</a>
+      <p style="margin-bottom: 15px;">No surveys assigned yet.</p>
       {% if last_survey_url %}
-        <a href="{{ last_survey_url }}" class="btn btn-main mt-2">View last submitted survey</a>
+        <a href="{{ last_survey_url }}" class="btn btn-main">View last submitted survey</a>
       {% endif %}
     </div>
   {% endif %}

@@ -7,155 +7,351 @@
     <title>{% block title %}Doctor Dashboard{% endblock %}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-      :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --navbg:#fce6f0; }
-      .navbar-custom{ background: linear-gradient(90deg, #fdeef4 0%, #ffffff 60%); border-bottom: 2px solid var(--pink); box-shadow: 0 6px 14px rgba(0,0,0,.06); }
-      .navbar-custom .navbar-brand img{ height: 56px; width: auto; }
-      .navbar-custom .nav-link{ color:#7b3f63; font-weight: 700; font-size: 1.15rem; padding: .75rem 1.25rem; border-radius: .5rem; transition: all .2s ease; }
-      .navbar-custom .navbar-nav .nav-item{ margin-left: 8px; }
-      .navbar-custom .navbar-brand{ margin-right: 16px; }
-      .navbar-custom .nav-link:hover{ color:#fff; background: var(--pink); text-decoration: none; }
-      .navbar-custom .nav-link.active{ color:#fff; background: var(--purple); }
-      .navbar-toggler{ border-color: var(--pink); }
-      .navbar-toggler-icon{ background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(198, 118, 158, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); }
+        /* Common Navbar Styling for All Pages */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%);
+            box-shadow: 0 4px 20px rgba(230, 100, 162, 0.3);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            background: #ffffff;
+            padding: 8px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            display: inline-block;
+            margin-left: 20px;
+        }
+        .navbar-brand:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4), 
+                        0 0 15px rgba(255, 255, 255, 0.3);
+            background: #ffffff;
+        }
+        .navbar-brand img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: block;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand:hover img {
+            filter: brightness(1.05) contrast(1.05);
+        }
+        /* Pulse animation on page load */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .navbar-brand {
+            animation: pulse 2s ease-in-out 3;
+        }
+        .navbar-toggler {
+            border: 2px solid #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        .navbar-nav .nav-link {
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 1.05rem;
+            padding: 10px 18px;
+            margin: 0 5px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+        }
+        .navbar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-nav .nav-link i {
+            font-size: 1.2rem;
+            margin-right: 6px;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 25px;
+            color: #fff;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .user-info i {
+            margin-right: 8px;
+        }
+        .social-icons .nav-link {
+            padding: 8px 12px;
+            font-size: 1.1rem;
+        }
+        .social-icons .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.15);
+        }
+        
+        @keyframes pulse-attention {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .navbar-custom {
+                padding: 10px 20px;
+            }
+            .navbar-brand {
+                padding: 6px;
+                margin-left: 15px;
+            }
+            .navbar-brand::before {
+                top: -4px;
+                left: -4px;
+                right: -4px;
+                bottom: -4px;
+            }
+            .navbar-brand img {
+                width: 50px;
+                height: 50px;
+            }
+            .navbar-nav {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 15px;
+                padding: 15px;
+                margin-top: 15px;
+            }
+            .navbar-nav .nav-link {
+                margin: 5px 0;
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .navbar-brand {
+                padding: 5px;
+                margin-left: 10px;
+            }
+            .navbar-brand::before {
+                top: -3px;
+                left: -3px;
+                right: -3px;
+                bottom: -3px;
+            }
+            .navbar-brand img {
+                width: 42px;
+                height: 42px;
+            }
+            .navbar-nav .nav-link {
+                font-size: 0.95rem;
+                padding: 8px 14px;
+            }
+        }
     </style>
     {% block style %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <a class="navbar-brand" href="#">
-            <img src="{% static 'images/logo/logo.png'%}" class="d-inline-block align-top" alt="Logo">
+    <!-- Common Navbar for All Pages -->
+    <nav class="navbar navbar-custom navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="{% url 'doctor_profile' %}">
+            <img src="{% static 'images/logo/logo.png' %}" alt="Logo">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/gc/doctor_profile/">Profile</a>
-                </li>
-                <li class="nav-item">
-                    <a
-                      id="mySurveysLink"
-                      class="nav-link"
-                      href="/gc/doctor/surveys/"
-                      data-status-url="/gc/doctor_status/"
-                      data-surveys-url="/gc/doctor/surveys/"
-                      data-edit-url="/gc/doctor_profile/edit/"
-                    >My Surveys</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-                <li class="nav-item">
-                    {% if request.user.is_authenticated and doctor %}
-                    <a class="nav-link" href="#">{{ doctor.user.username }}</a>
+            <ul class="navbar-nav ml-auto align-items-center">
+                {% if request.session.doctor_id %}
+                    {% if profile_complete %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'doctor_profile_view' %}">
+                            <i class="fas fa-user-md"></i> Profile
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'doctor_profile' %}">
+                            <i class="fas fa-user-edit"></i> Complete Profile
+                        </a>
+                    </li>
                     {% endif %}
-                </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="goToAgreement(event)">
+                            <i class="fas fa-file-signature"></i> Agreement
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="checkSurveyAccess(event)">
+                            <i class="fas fa-clipboard-list"></i> My Surveys
+                        </a>
+                    </li>
+                {% endif %}
+                {% if request.session.doctor_id %}
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fab fa-facebook"></i></a>
+                    <span class="nav-link user-info">
+                        <i class="fas fa-mobile-alt"></i> {{ request.session.mobile }}
+                    </span>
                 </li>
+                {% endif %}
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fab fa-linkedin"></i></a>
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fab fa-twitter"></i></a>
+                <li class="nav-item social-icons">
+                    <a class="nav-link" href="#" target="_blank">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                </li>
+                <li class="nav-item social-icons">
+                    <a class="nav-link" href="#" target="_blank">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </li>
+                <li class="nav-item social-icons">
+                    <a class="nav-link" href="#" target="_blank">
+                        <i class="fab fa-twitter"></i>
+                    </a>
                 </li>
             </ul>
         </div>
     </nav>
 
-    <div class="container mt-5">
+    <!-- Profile Incomplete Modal -->
+    <div class="modal fade" id="profileIncompleteModal" tabindex="-1" role="dialog" aria-labelledby="profileIncompleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 450px;">
+            <div class="modal-content" style="border-radius: 15px; border: 2px solid #e664a2;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); color: white; border-radius: 13px 13px 0 0;">
+                    <h5 class="modal-title" id="profileIncompleteModalLabel" style="font-weight: 600; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                        <i class="fas fa-exclamation-circle"></i> Complete Your Profile
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 1;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center" style="padding: 25px 15px; max-height: 80vh; overflow-y: auto;">
+                    {% load static %}
+                    <div style="margin-bottom: 15px;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 15px rgba(230, 100, 162, 0.3);">
+                            <i class="fas fa-user-edit" style="font-size: 32px; color: white;"></i>
+                        </div>
+                    </div>
+                    <h6 style="color: #7b3f63; font-weight: 700; margin-bottom: 20px; font-size: 17px; display: block;">Please Complete the Following Steps:</h6>
+                    <div style="text-align: left; padding: 0 20px; margin-bottom: 15px;">
+                        <p style="margin: 10px 0; color: #333; font-size: 15px; display: block; line-height: 1.6;">
+                            <i class="fas fa-user-edit" style="color: #28a745; margin-right: 10px; font-size: 16px;"></i> 
+                            <strong style="color: #333;">1. Complete Your Profile</strong>
+                        </p>
+                        <p style="margin: 10px 0; color: #333; font-size: 15px; display: block; line-height: 1.6;">
+                            <i class="fas fa-file-signature" style="color: #28a745; margin-right: 10px; font-size: 16px;"></i> 
+                            <strong style="color: #333;">2. Sign the Agreement</strong>
+                        </p>
+                        <p style="margin: 10px 0; color: #333; font-size: 15px; display: block; line-height: 1.6;">
+                            <i class="fas fa-arrow-right" style="color: #e664a2; margin-right: 10px; font-size: 16px;"></i> 
+                            <strong style="color: #333;">3. Access Surveys</strong>
+                        </p>
+                    </div>
+                    <div style="background: #fff3f8; padding: 12px 15px; border-radius: 8px; margin-top: 15px; display: block;">
+                        <p style="margin: 0; font-size: 14px; color: #7b3f63; font-weight: 600; display: block;">
+                            <i class="fas fa-info-circle" style="color: #e664a2; margin-right: 5px;"></i>
+                            Complete steps 1 and 2 to unlock your surveys!
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #dee2e6; justify-content: center;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="background: #6c757d; border: none; padding: 8px 20px; border-radius: 25px;">Close</button>
+                    <a href="{% url 'doctor_profile' %}" class="btn" style="background: #e664a2; color: white; border: none; padding: 8px 25px; border-radius: 25px;">
+                        <i class="fas fa-user-edit"></i> Go to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Gate Modal -->
-    <div class="modal fade" id="surveyGateModal" tabindex="-1" role="dialog" aria-labelledby="surveyGateModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="surveyGateModalLabel">Before You Continue</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="gate-hero mb-2">
-              <img src="{% static 'images/logo/Untitled design.png' %}" alt="Hero" />
-            </div>
-            <div id="gateMessage">Please complete your profile and accept the participant agreement to access My Surveys.</div>
-          </div>
-          <div class="modal-footer">
-            <a id="gateProfileBtn" href="/gc/doctor_profile/edit/" class="btn btn-primary">Complete Profile</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <style>
-      /* Narrow dialog, medium height, and subtle hover effects for modal buttons */
-      #surveyGateModal .modal-dialog { max-width: 420px; }
-      /* Remove enforced min-height so content defines height */
-      #surveyGateModal .modal-content { min-height: 0; }
-      @media (max-width: 575.98px) {
-        #surveyGateModal .modal-dialog { max-width: 92vw; }
-        #surveyGateModal .modal-content { min-height: 0; }
-      }
-      #surveyGateModal .modal-body { padding-top: 14px; padding-bottom: 12px; }
-      #gateMessage { margin-bottom: 0; }
-      .gate-hero { margin-bottom: 8px; }
-      #surveyGateModal .modal-footer { padding-top: 10px; padding-bottom: 10px; margin-top: 0; }
-      /* Make hero image fully fit inside modal width */
-      .gate-hero { width: 100%; overflow: hidden; border-radius: 10px; }
-      .gate-hero img { width: 100%; height: auto; max-height: 260px; object-fit: contain; display: block; }
-      #surveyGateModal .modal-footer .btn {
-        transition: all .18s ease;
-        box-shadow: 0 0 0 rgba(0,0,0,0);
-      }
-      #surveyGateModal .modal-footer .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(0,0,0,.12);
-        filter: brightness(1.02);
-      }
-    </style>
-
+    
     <script>
-      (function(){
-        var link = document.getElementById('mySurveysLink');
-        if(!link) return;
-        link.addEventListener('click', function(e){
-          // Let ctrl/cmd-click open new tab as normal
-          if (e.metaKey || e.ctrlKey) return;
-          e.preventDefault();
-          var statusUrl = link.getAttribute('data-status-url');
-          var surveysUrl = link.getAttribute('data-surveys-url');
-          var editUrl = link.getAttribute('data-edit-url');
-          fetch(statusUrl, {credentials: 'same-origin'})
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-              var profileComplete = !!data.profile_complete;
-              var agreementAccepted = !!data.agreement_accepted;
-              if (profileComplete && agreementAccepted){
-                window.location.href = surveysUrl;
-                return;
-              }
-              var gateMsg = document.getElementById('gateMessage');
-              gateMsg.textContent = 'Please complete your profile and accept the agreement to access My Surveys.';
-              var profileBtn = document.getElementById('gateProfileBtn');
-              profileBtn.style.display = profileComplete ? 'none' : 'inline-block';
-              profileBtn.setAttribute('href', editUrl);
-              // Show modal (Bootstrap 4)
-              $('#surveyGateModal').modal('show');
-            })
-            .catch(function(){
-              // On error fallback to surveys url
-              window.location.href = surveysUrl;
-            });
-        });
-      })();
+        function checkSurveyAccess(event) {
+            event.preventDefault();
+            
+            // Check if profile is complete and agreement is signed
+            {% if request.session.doctor_id %}
+                var profileComplete = {{ profile_complete|yesno:"true,false" }};
+                var agreementSigned = {{ agreement_signed|yesno:"true,false" }};
+                
+                if (profileComplete && agreementSigned) {
+                    // Allow access to surveys
+                    window.location.href = "{% url 'surveys' %}";
+                } else {
+                    // Show modal
+                    $('#profileIncompleteModal').modal('show');
+                }
+            {% else %}
+                // Not logged in, redirect to login
+                window.location.href = "{% url 'login' %}";
+            {% endif %}
+        }
+        
+        function goToAgreement(event) {
+            event.preventDefault();
+            
+            // Check if profile is complete first
+            {% if request.session.doctor_id %}
+                var profileComplete = {{ profile_complete|yesno:"true,false" }};
+                
+                if (!profileComplete) {
+                    // Show modal if profile incomplete
+                    $('#profileIncompleteModal').modal('show');
+                    return;
+                }
+                
+                // Profile complete, fetch survey and go to agreement
+                fetch('/api/get-doctor-survey/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.survey_id) {
+                            window.location.href = '/agreement/' + data.survey_id + '/';
+                        } else {
+                            alert('No survey assigned. Please contact admin.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        window.location.href = "{% url 'doctor_profile' %}";
+                    });
+            {% else %}
+                // Not logged in, redirect to login
+                window.location.href = "{% url 'login' %}";
+            {% endif %}
+        }
     </script>
 </body>
 </html>

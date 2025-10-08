@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Survey Response - {{ survey.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #e664a2;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            color: #c0769e;
+            margin: 0 0 10px 0;
+            font-size: 24pt;
+        }
+        .header p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .doctor-info {
+            background: #fdeef4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #e664a2;
+        }
+        .doctor-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .doctor-info td {
+            padding: 5px 10px;
+        }
+        .doctor-info .label {
+            font-weight: bold;
+            color: #c0769e;
+            width: 35%;
+        }
+        .survey-info {
+            margin-bottom: 25px;
+        }
+        .survey-info h2 {
+            color: #c0769e;
+            border-bottom: 2px solid #e664a2;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        .question-block {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #e7b3cd;
+            border-radius: 6px;
+        }
+        .question-text {
+            font-weight: bold;
+            color: #9a547a;
+            margin-bottom: 10px;
+            font-size: 12pt;
+        }
+        .answer-text {
+            padding: 10px;
+            background: #fdeef4;
+            border-left: 3px solid #e664a2;
+            margin-top: 8px;
+            color: #555;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e7b3cd;
+            text-align: center;
+            font-size: 9pt;
+            color: #999;
+        }
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 10pt;
+            color: #666;
+        }
+        .logo-header {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .logo-header img {
+            max-width: 50px;
+            max-height: 50px;
+            height: auto;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo at top right -->
+    <!-- <div class="logo-header">
+        {% if logo_path %}
+        <img src="{{ logo_path }}" alt="Logo">
+        {% endif %}
+    </div> -->
+    
+    <div class="doctor-info" style="background: none; padding: 10px 0; border: none; margin-bottom: 15px;">
+        <p style="margin: 3px 0; font-size: 11pt;"><strong>Doctor Name:</strong> Dr. {{ doctor.first_name }} {{ doctor.last_name }}</p>
+        <p style="margin: 3px 0; font-size: 11pt;"><strong>Mobile:</strong> {{ doctor.mobile }}</p>
+    </div>
+
+    <div class="header">
+        <h1>Clinical Survey Report</h1>
+        <p style="font-size: 14pt; color: #9a547a;">{{ survey.title }}</p>
+        {% if survey.description %}
+        <p>{{ survey.description }}</p>
+        {% endif %}
+    </div>
+
+    <div class="survey-info">
+        {% for answer in answers %}
+        <div class="question-block">
+            <div class="question-text">
+                Q{{ forloop.counter }}. {{ answer.question.question_text }}
+            </div>
+            <div class="answer-text">
+                {% if answer.answer_text and answer.answer_text != 'Not answered' %}
+                    {{ answer.answer_text }}
+                {% else %}
+                    <em style="color: #999;">Not answered</em>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #999; text-align: center; padding: 20px;">No responses recorded.</p>
+        {% endfor %}
+    </div>
+
+    <div class="footer">
+        <p>Generated on {{ survey_response.completed_at|date:"d F Y" }}</p>
+    </div>
+</body>
+</html>

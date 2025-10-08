@@ -2,106 +2,142 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Participant Agreement</title>
     <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 36px;
-            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #000;
+            margin: 0;
+            padding: 0;
         }
-        h1, h3, h4 {
-            color: #333;
+        h1 {
+            color: #000;
             text-align: center;
-            margin-bottom: 14px;
+            margin: 12px 0 18px 0;
+            font-size: 18px;
+            font-weight: bold;
         }
-        p { margin-bottom: 10px; }
-
-        /* Header with logo on the right (table layout for PDF compatibility) */
-        .pdf-header { width:100%; margin-bottom: 8px; }
-        .pdf-header td { vertical-align: middle; }
-        .pdf-logo { text-align: right; }
-        .pdf-logo img { width: 80px; height: auto; }
-
-        /* Signatures side-by-side */
-        .signature-section { margin-top: 28px; text-align: center; }
-        .signature-block {
-            display: inline-block;
-            width: 47%;
+        h3 {
+            color: #000;
+            text-align: center;
+            margin: 14px 0 12px 0;
+            font-size: 17px;
+            font-weight: bold;
+        }
+        p {
+            margin: 8px 0;
+            text-align: justify;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        ol {
+            margin: 12px 0;
+            padding-left: 22px;
+        }
+        ol li {
+            margin: 8px 0;
+            text-align: justify;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .logo-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo-header img {
+            width: 100px;
+            height: auto;
+            max-height: 70px;
+        }
+        
+        .signature-table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        .signature-table td {
             vertical-align: top;
-            text-align: center;
-            padding: 8px;
+            padding: 5px;
         }
-        .sig-line { border-top: 1px solid #333; margin: 8px auto 4px; width: 80%; }
-
-        .page-break { page-break-before: always; }
     </style>
 </head>
 <body>
-    <table class="pdf-header" cellspacing="0" cellpadding="0">
-        <tr>
-            <td>
-                <!-- left cell intentionally blank or could hold a small caption -->
-            </td>
-            <td class="pdf-logo">
-                <img src="{% static 'images/logo/logo.png' %}" alt="Company Logo">
-            </td>
-        </tr>
-    </table>
+    <div class="logo-header">
+        <img src="{% if logo_path %}{{ logo_path }}{% else %}{% static 'images/logo/logo.png' %}{% endif %}" alt="Company Logo">
+    </div>
+    
     <h1>Participant Agreement (Terms & Conditions)</h1>
-    {% with display_title=survey_title|default:'Current Management of Moderate & Severe Anaemia (Zone - 1)' %}
-    <h3 style="margin-top: 0;"><strong>Survey: {{ display_title }}</strong></h3>
-    {% endwith %}
-
-    <p>This Participant Agreement (“Agreement”) entered into on this 25th day of September, 2025 by and between <strong>WMEFI</strong> having its registered Office No.73, 7th floor, Kalpataru Avenue opp. ESIC Hospital, Akruli Road, Kandivali (East), Mumbai - 400 101 (hereinafter referred to as “The Company,” which expression unless repugnant to the context or meaning thereof shall deem to include their respective successors and assigns) of the One Part.</p>
+    
+    <p>This Participant Agreement ("Agreement") entered into on this <strong>{{ signed_date|date:"jS" }} day of {{ signed_date|date:"F, Y" }}</strong> by and between <strong>WMEFI</strong> having its registered office at No.73, 7th floor, Kalpataru Avenue opp. ESIC Hospital, Akruli road, Kandivali (East), Mumbai - 400 101 (hereinafter referred to as "The Company," which expression unless repugnant to the context or meaning thereof shall deem to include their respective successors and assigns) of the One Part.</p>
 
     <p>And</p>
 
-    <p><strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong> , an adult, Indian Inhabitant residing at ________________________________, (hereinafter referred to as “The Participant”) of the Second Part.
-    The Company and the Participant may hereinafter be individually referred as “Party” and collectively as “Parties” to this Agreement.</p>
+    <p><strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong>, an adult, Indian Inhabitant residing at {{ doctor.address|default:'' }}{% if doctor.city %}, {{ doctor.city }}{% endif %}{% if doctor.state %}, {{ doctor.state }}{% endif %}{% if doctor.pincode %} - {{ doctor.pincode }}{% else %}{% if not doctor.address and not doctor.city and not doctor.state %}__________{% endif %}{% endif %}, (hereinafter referred to as "The Participant") of the Second Part.</p>
+    
+    <p>The Company and the Participant may hereinafter be individually referred as "Party" and collectively as "Parties" to this Agreement.</p>
 
     <h3>WHEREAS</h3>
 
-    <p>The Company inter alia is engaged in the business of providing services such as Weston Medical Education Foundation Of India programs, conducting surveys, etc.</p>
-    <p>The Company is conducting a marketing survey titled “Current Management of Moderate & Severe Anaemia (Zone - 1)”.</p>
-    <p>The Participant has volunteered to participate in this survey by providing his valuable time, knowledge and experience in filling out the questionnaire provided by the company on the terms as set forth below.</p>
+    <p>A. The Company inter alia is engaged in the business of providing services such as Weston Medical Education Foundation of India programs, conducting surveys, etc.</p>
+    <p>B. The Company is conducting a marketing survey titled "{{ survey_title|default:'Survey' }}" with the primary objective of understanding {{ survey_title|default:'Survey' }}.</p>
+    <p>C. The Participant has volunteered to participate in this survey by providing his valuable time, knowledge and experience in filling out the questionnaire provided by the company on the terms as set forth below.</p>
 
     <h3>THE PARTIES WISH TO ENTER INTO THIS AGREEMENT ON THE TERMS AND CONDITIONS HERE IN:</h3>
 
-    <p>The Company engages the Participant in his/her professional capacity and not as a representative or delegate of any other body from the date of this Agreement, unless such appointment is terminated by either, the Company or the Participant upon written notice to the other Party, without assigning any reason. It is agreed and understood that the obligations regarding confidentiality, representations and warranties set out herein and compliance with law, shall survive the termination of this agreement.</p>
-    <p>The Participant agree to preserve the confidentiality and proprietary rights vested in all information discussed, shared and provided by the Company’s representative and by his/her participation in the survey and as may be required to be maintained by or under law.</p>
-    <p>The Participant agrees to partake in the survey and has expressed his willingness to devote his time to understand the Purpose of the survey being conducted. The Participant shall submit answers to all the questions in the questionnaire with accuracy, reliability and clarity keeping with the true spirit of the Purpose of the survey. Provide his/her expertise and knowledge to the Company in the therapeutic area. The Participant will advise, educate, consult and update the Company in its effort towards proper diagnosis, treatment and management of the disease, by suggesting new areas for development and other related areas.</p>
-    <p>The Participant represent that he/she is under no obligation which is inconsistent with this Agreement and that the Participant will not enter into any agreement with a third party, the terms of which may be inconsistent with this Agreement. The Participant undertakes that to the best of his/her knowledge, his/her participation pursuant to this Agreement shall not present a conflict of interest with existing or future work or commitments undertaken by the Participant on behalf of third parties. The Participant will have no influence whatsoever, in context with the content of this Agreement for the prescription or promotion of any product manufactured by the Company. Nevertheless, nothing herein prevents the Participant from working with any third party, company or organization. The Participant confirms that he/she has apprised himself/herself of all permits, licenses and consents required under applicable laws for participating and performing the activities in strict compliance with all laws, rules, regulations, notifications and guidelines as may be applicable from time to time.</p>
-    <p>In consideration of the participant providing his valuable time, effort and knowledge by partaking in the survey, the Company will compensate the participant <strong>Rs {{ amount }}/-</strong> for the service rendered. It is further acknowledged that no other monies of whatever kind of nature, other than as aforestated shall be paid by the Company to the participant, for whatever reason.</p>
-    <p>The payments referred to above are full and complete compensation for all obligations assumed under this Agreement. The Participant agrees that he/she shall be responsible for paying any personal taxes or income taxes, if any, pursuant to this Agreement.</p>
-    <p>The Participant consents to the Company holding and processing, both manually and electronically, all data that the Company may collect regarding the Participant for the purpose of administering and managing the Company’s business and the Company and/or its group companies may collect, maintain, use and/or disclose his/her personal information, including without limitation his/her name, his/her specialist practice area, and the value of any payment or benefit in kind that the Participant receives hereunder, such as fees, travel and accommodation or the expenses related to the Agreement.</p>
-    <p>The Participant shall keep any information or data including that of a personal nature, which are disclosed to, or acquired by the Participant, orally or otherwise, directly or indirectly from the Company, and or from the other participants, as confidential and the Participant agrees that the Participant will not disclose the same to third parties by publication or otherwise or use the same in any manner that is derogatory in nature than for any purpose. These obligations of confidentiality and non-use shall not apply to information and data which the Participant can show were already known to the Participant, information and data which are or become part of the public domain through no fault of the Participant and which are given to Participant by a third party who has a right to do so. The provisions of this clause will survive termination of this Agreement.</p>
-    <p>The Participant agrees and undertakes not to assign or delegate this Agreement or the activity of filling in the questionnaire for the Survey to a third party or his compounders, nurses secretary or assistants.</p>
-    <p>The Participant confirm that he/she shall not, at any time during the subsistence of this Agreement, infringe or violate or interfere with any patent, copyright, database right, design, trade secret, trademark and/or any intellectual property right and/or property right and/or any other rights available to or vested in any third party(ies).</p>
-    <p>The Participant agrees and acknowledges that in the course of discussion and participation in the Survey, any and all ideas, concepts, information, analyses, reports, brochures, handouts, documents or other work-product developed, generated or compiled shall be the property of the Company and shall be returned to the Company upon request or early termination of this Agreement. The Company will be fully entitled to use any and all ideas or suggestions and data received, created or generated during the Survey.</p>
-    <p>The Participant agrees to comply with all such applicable laws, and regulations in exercising their rights or performing his/her obligations under this Agreement including any other guidance or notification issued by any recognized body governing the ethics of Doctors which generally prohibits the promise, payment or giving of anything of value either directly or indirectly to any government official for the purposes of obtaining or retaining business or any improper advantage. The Participant also confirm that no payments which Participant may receive by any third parties to this Agreement will be used directly or indirectly to offer, pay, promise, give, or authorize payment of money or anything of value to any governmental or public official for the purpose of influencing any act or decision of such public official in his or her official capacity. The Participant agrees to indemnify and keep indemnified the Company and its Directors, officers and employees, in respect of breach of his/her obligations under this Agreement and or for non-compliance of all applicable laws pursuant to this Agreement herein.</p>
-    <p>The Participant admits and acknowledges that the Participant relationship with the Company a under this Agreement, is as an independent contractor and that there exists no relationship of employer and employee, partnership, joint venture, franchise or relationship of principal and agent between the Participant and the Company. Neither Party shall have any right or authority whatsoever to represent or bind the other Party in any way.</p>
-    <p>If any provision of this Agreement is held invalid by a court of competent jurisdiction, the remaining provisions shall nonetheless be enforceable according to the terms of thisAgreement</p>
-    <p>The Participant confirms that he/she is permitted under applicable laws, regulations and MCI guidelines to execute this Agreement and to participate in the Surveys conducted by the Company as contemplated herein.</p>
-    <p>The Participant believes that the Participants’ engagement as mentioned under this Agreement is permitted under Indian Medical Council, (Professional Conduct, Etiquette and Ethics) Regulation, as amended and updated from time to times. However in the event that the Medical Council of India or such other statutory Authority should issue new guidelines/circulars which may warrant modification/amendment/termination of this Agreement, either Party would be free to do so in order to abide by the new guidelines. The Participant would not hold the Company liable in any manner whatsoever for any damages, financial otherwise, which may result because of the above stated reasons.</p>
-    <p>This Agreement will be governed in all respects by Indian law and the parties hereby submit to the exclusive jurisdiction of the courts in Mumbai.</p>
-    <p>No person or entity other than the Participant is or shall be entitled to bring any action to enforce any provision of this Agreement, as a third party beneficiary or otherwise.</p>
+    <ol>
+        <li>The Company engages the Participant in his/her professional capacity and not as a representative or delegate of any other body from the date of this Agreement, unless such appointment is terminated by either, the Company or the Participant upon written notice to the other Party, without assigning any reason. It is agreed and understood that the obligations regarding confidentiality, representations and warranties set out herein and compliance with law, shall survive the termination of this agreement.</li>
+        <li>The Participant agrees to preserve the confidentiality and proprietary rights vested in all information discussed, shared and provided by the Company's representative and by his/her participation in the survey and as may be required to be maintained by or under law.</li>
+        <li>The Participant agrees to partake in the survey and has expressed his willingness to devote his time to understand the Purpose of the survey being conducted. The Participant shall submit answers to all the questions in the questionnaire with accuracy, reliability and clarity keeping with the true spirit of the Purpose of the survey. The Participant will also provide his/her expertise and knowledge to the Company in the therapeutic area and will advise, educate, consult and update the Company in its effort towards proper diagnosis, treatment and management of the disease, by suggesting new areas for development and other related areas.</li>
+        <li>The Participant represents that he/she is under no obligation which is inconsistent with this Agreement and that the Participant will not enter into any agreement with a third party, the terms of which may be inconsistent with this Agreement. The Participant undertakes that to the best of his/her knowledge, his/her participation pursuant to this Agreement shall not present a conflict of interest with existing or future work or commitments undertaken by the Participant on behalf of third parties. The Participant will have no influence whatsoever, in context with the content of this Agreement for the prescription or promotion of any product manufactured by the Company; nevertheless, nothing herein prevents the Participant from working with any third party, company or organization. The Participant confirms that he/she has apprised himself/herself of all permits, licenses and consents required under applicable laws for participating and performing the activities in strict compliance with all laws, rules, regulations, notifications and guidelines as may be applicable from time to time.</li>
+        <li>In consideration of the participant providing his valuable time, effort and knowledge by partaking in the survey, the Company will compensate the participant <strong>Rs. {{ amount|default:'20,000' }}/-</strong> for the service rendered. It is further acknowledged that no other monies of whatever kind of nature, other than as aforestated shall be paid by the Company to the participant, for whatever reason.</li>
+        <li>The payments referred to above are full and complete compensation for all obligations assumed under this Agreement. The Participant agrees that he/she shall be responsible for paying any personal taxes or income taxes, if any, pursuant to this Agreement.</li>
+        <li>The Participant consents to the Company holding and processing, both manually and electronically, all data that the Company may collect regarding the Participant for the purpose of administering and managing the Company's business and the Company and/or its group companies may collect, maintain, use and/or disclose his/her personal information, including without limitation his/her name, his/her specialist practice area, and the value of any payment or benefit in kind that the Participant receives hereunder, such as fees, travel and accommodation or the expenses related to the Agreement.</li>
+        <li>The Participant shall keep any information or data including that of a personal nature, which are disclosed to, or acquired by the Participant, orally or otherwise, directly or indirectly from the Company, and or from the other participants, as confidential and the Participant agrees that the Participant will not disclose the same to third parties by publication or otherwise or use the same in any manner that is derogatory in nature than for any purpose. These obligations of confidentiality and non-use shall not apply to information and data which the Participant can show were already known to the Participant, information and data which are or become part of the public domain through no fault of the Participant and which are given to Participant by a third party who has a right to do so. The provisions of this clause will survive termination of this Agreement.</li>
+        <li>The Participant agrees and undertakes not to assign or delegate this Agreement or the activity of filling in the questionnaire for the Survey to a third party or his compounders, nurses secretary or assistants.</li>
+        <li>The Participant confirms that he/she shall not, at any time during the subsistence of this Agreement, infringe or violate or interfere with any patent, copyright, database right, design, trade secret, trademark and/or any intellectual property right and/or property right and/or any other rights available to or vested in any third party(ies).</li>
+        <li>The Participant agrees and acknowledges that in the course of discussion and participation in the Survey, any and all ideas, concepts, information, analyses, reports, brochures, handouts, documents or other work-product developed, generated or compiled shall be the property of the Company and shall be returned to the Company upon request or early termination of this Agreement. The Company will be fully entitled to use any and all ideas or suggestions and data received, created or generated during the Survey.</li>
+        <li>The Participant agrees to comply with all such applicable laws, and regulations in exercising their rights or performing his/her obligations under this Agreement including any other guidance or notification issued by any recognized body governing the ethics of Doctors which generally prohibits the promise, payment or giving of anything of value either directly or indirectly to any government official for the purposes of obtaining or retaining business or any improper advantage. The Participant also confirms that no payments which Participant may receive by any third parties to this Agreement will be used directly or indirectly to offer, pay, promise, give, or authorize payment of money or anything of value to any governmental or public official for the purpose of influencing any act or decision of such public official in his or her official capacity. The Participant agrees to indemnify and keep indemnified the Company and its Directors, officers and employees, in respect of breach of his/her obligations under this Agreement and or for non-compliance of all applicable laws pursuant to this Agreement herein.</li>
+        <li>The Participant admits and acknowledges that the Participant relationship with the Company under this Agreement, is as an independent contractor and that there exists no relationship of employer and employee, partnership, joint venture, franchise or relationship of principal and agent between the Participant and the Company. Neither Party shall have any right or authority whatsoever to represent or bind the other Party in any way.</li>
+        <li>If any provision of this Agreement is held invalid by a court of competent jurisdiction, the remaining provisions shall nonetheless be enforceable according to the terms of this Agreement.</li>
+        <li>The Participant confirms that he/she is permitted under applicable laws, regulations and National Medical Commission guidelines to execute this Agreement and to participate in the Surveys conducted by the Company as contemplated herein.</li>
+        <li>The Participant believes that the Participant's engagement as mentioned under this Agreement is permitted under National Medical Commission (Professional Conduct, Etiquette and Ethics) Regulations, as amended and updated from time to time. However, in the event that the National Medical Commission or such other statutory Authority should issue new guidelines/circulars which may warrant modification/amendment/termination of this Agreement, either Party would be free to do so in order to abide by the new guidelines. The Participant would not hold the Company liable in any manner whatsoever for any damages, financial otherwise, which may result because of the above stated reasons.</li>
+        <li>This Agreement will be governed in all respects by Indian law and the parties hereby submit to the exclusive jurisdiction of the courts in Mumbai.</li>
+        <li>No person or entity other than the Participant is or shall be entitled to bring any action to enforce any provision of this Agreement, as a third party beneficiary or otherwise.</li>
+    </ol>
 
-    <p style="text-align: center; margin-top: 30px;"><strong>IN WITNESS WHEREOF, the Parties have caused this Agreement to be executed on the date mentioned herein above.</strong></p>
+    <p style="text-align: center; margin-top: 20px; margin-bottom: 15px; font-size: 14px;"><strong>IN WITNESS WHEREOF, the Parties have caused this Agreement to be executed on the date mentioned herein above.</strong></p>
 
-    <table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 10px;">
+    <table class="signature-table">
         <tr>
-            <td width="50%" style="text-align:center; vertical-align:top;">
-                <p><strong>For WMEFI</strong></p>
-                <p>Signature</p>
-                <p><strong>Dr. Prasad Vadde</strong></p>
-                <p>General Manager – Medical Affairs</p>
-                <p>Date : 25th September 2025</p>
+            <td style="width: 48%; padding-right: 15px; text-align: left;">
+                <p style="margin: 4px 0; font-size: 14px; font-weight: bold;">For WMEFI</p>
+                <div style="margin: 10px 0; min-height: 50px; text-align: left;">
+                    <img src="{% if sig_path %}{{ sig_path }}{% else %}{% static 'images/logo/sig.png' %}{% endif %}" alt="Signature" style="width: 80px; height: 40px;">
+                </div>
+                <p style="margin: 4px 0; font-size: 14px; font-weight: bold;">Dr. Prasad Vadde</p>
+                <p style="margin: 3px 0; font-size: 14px;">General Manager – Medical Affairs</p>
+                <p style="margin: 3px 0; font-size: 14px;">Date: {{ signed_date|date:"d/m/Y"|default:default_signed_date }}</p>
             </td>
-            <td width="50%" style="text-align:center; vertical-align:top;">
-                <p><strong>For Dr. {{ doctor.first_name|upper }} {{ doctor.last_name|upper }}</strong></p>
-                <p>Signature &amp; Stamp</p>
-                <p>Date : 25th September 2025</p>
+            <td style="width: 4%;"></td>
+            <td style="width: 48%; padding-left: 15px; text-align: right;">
+                <p style="margin: 4px 0; font-size: 14px; font-weight: bold; text-align: right;">For Dr. {{ doctor.first_name }} {{ doctor.last_name }}</p>
+                <div style="margin: 10px 0; min-height: 50px; text-align: right;">
+                    {% if signature_type == 'typed' and doctor_sig_text %}
+                        <span style="font-family: Arial, sans-serif; font-size: 16px;">{{ doctor_sig_text }}</span>
+                    {% elif doctor_sig_path %}
+                        <img src="{{ doctor_sig_path }}" alt="Signature" style="width: 80px; height: 40px;">
+                    {% endif %}
+                </div>
+                <p style="margin: 4px 0; font-size: 14px; text-align: right;">Signature & Stamp</p>
+                <p style="margin: 3px 0; font-size: 14px; text-align: right;">Date: {{ signed_date|date:"d/m/Y"|default:default_signed_date }}</p>
             </td>
         </tr>
     </table>

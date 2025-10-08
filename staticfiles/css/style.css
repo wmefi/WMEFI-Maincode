@@ -3415,3 +3415,58 @@ table.projects tr td:first-child {
     height: 100%;
     min-height: 720px;
 }
+
+/* === Doctor Profile Theme (e664a2 / 7b3f63) === */
+:root{
+  --accent:#e664a2;
+  --deep:#7b3f63;
+  --accent-100:#fbeaf3;
+  --accent-200:#f4d2e4;
+}
+
+.profile-details{
+  background:#fff;
+  padding:24px;
+  border-radius:14px;
+  border:1px solid var(--accent);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+.profile-details .form-group label{
+  font-weight:600;
+  color:var(--deep);
+}
+.profile-details .form-control,
+.profile-details .custom-select{
+  border-color:#e7b3cd;
+}
+.profile-details .form-control:focus,
+.profile-details .custom-select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 .2rem rgba(230,100,162,.15);
+}
+.section-tag{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 12px; border:1px dashed var(--accent-200);
+  border-radius:999px; color:var(--deep); background:#fff; font-weight:600;
+}
+.divider{ height:1px; background:var(--accent-200); margin:8px 0 18px; }
+
+.btn-main{
+  background:var(--accent)!important;
+  border-color:var(--accent)!important;
+  color:#fff!important;
+  transition: all .2s ease;
+}
+.btn-main:hover{ background:var(--deep)!important; border-color:var(--deep)!important; }
+
+@media (max-width: 992px){
+  .profile-details{ padding:20px; }
+}
+@media (max-width: 576px){
+  .profile-details{ padding:16px; border-radius:10px; }
+  .profile-details .form-group{ margin-bottom:12px; }
+  .section-tag{ padding:5px 10px; font-size:.9rem; }
+  .btn-main{ width:100%; }
+}
+/* === End Doctor Profile Theme === */
+

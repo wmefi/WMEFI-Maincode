@@ -1,0 +1,103 @@
+{
+    "title": "Clinical Insights Survey on Effectiveness of Natural Ingredients (Shatavari)",
+    "questions": [
+        {
+            "id": 1,
+            "question_text": "How frequently do you prescribe or recommend galactagogues to your breastfeeding patients?",
+            "options": [
+                "Rarely/Never",
+                "Occasionally (1-2 patients per month)",
+                "Frequently (3-5 patients per month)",
+                "Very Frequently (More than 5 patients per month)"
+            ]
+        },
+        {
+            "id": 2,
+            "question_text": "For which of the following situations do you most commonly consider galactagogues?",
+            "options": [
+                "Perceived insufficient milk supply (PIMS)",
+                "Preterm infants",
+                "Mothers returning to work",
+                "Mothers adopting infants",
+                "Induced lactation"
+            ]
+        },
+        {
+            "id": 3,
+            "question_text": "What is your typical first-line approach for managing perceived insufficient milk supply?",
+            "options": [
+                "Reassurance and education on breastfeeding techniques",
+                "Frequent breastfeeding/pumping",
+                "Galactagogues",
+                "Referral to a lactation consultant"
+            ]
+        },
+        {
+            "id": 4,
+            "question_text": "Which galactagogues do you commonly recommend or prescribe?",
+            "options": [
+                "Domperidone",
+                "Metoclopramide",
+                "Herbal supplements"
+            ]
+        },
+        {
+            "id": 5,
+            "question_text": "What factors influence your decision to recommend or prescribe a galactagogue?",
+            "options": [
+                "Underlying cause of insufficient milk supply",
+                "Infant's age and health",
+                "Maternal health and medications",
+                "Patient preference",
+                "Availability and cost of galactagogue"
+            ]
+        },
+        {
+            "id": 6,
+            "question_text": "How comfortable are you with prescribing or recommending galactagogues?",
+            "options": [
+                "Not at all comfortable",
+                "Somewhat comfortable",
+                "Comfortable",
+                "Very comfortable"
+            ]
+        },
+        {
+            "id": 7,
+            "question_text": "What is your understanding of the evidence supporting the efficacy of galactagogues?",
+            "options": [
+                "Limited evidence, mainly anecdotal",
+                "Moderate evidence for some galactagogues",
+                "Strong evidence for most galactagogues",
+                "No evidence of benefit"
+            ]
+        },
+        {
+            "id": 8,
+            "question_text": "Have you used Shatavari in your patients with lactation insufficiency?",
+            "options": [
+                "Yes",
+                "No"
+            ]
+        },
+        {
+            "id": 9,
+            "question_text": "How would you rate efficacy of Shatavari as a galactagogue?",
+            "options": [
+                "Good",
+                "Very Good",
+                "Excellent"
+            ]
+        },
+        {
+            "id": 10,
+            "question_text": "How do you typically monitor the effectiveness of galactagogues in your patients?",
+            "options": [
+                "Infant weight gain",
+                "Frequency of breastfeeding/pumping",
+                "Maternal reports of milk supply",
+                "Test weighing"
+            ]
+        }
+    ]
+}
