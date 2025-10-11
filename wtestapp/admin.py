@@ -59,11 +59,24 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                 
                 doctor_name = str(row_dict.get("Dr name as per PAN", "") or "").strip()
                 doctor_email = str(row_dict.get("Dr email ID", "") or "").strip()
+                specialty = str(row_dict.get("speciality", "") or "").strip()
                 
                 if pd.isna(row_dict.get("Dr Contact number")):
                     doctor_mobile = ""
                 else:
                     doctor_mobile = str(int(float(row_dict.get("Dr Contact number")))).strip()
+                
+                # Extract manager and territory details
+                territory = str(row_dict.get("Territory To Which Doctor Is Associated", "") or row_dict.get("Territory", "") or "").strip()
+                emp1_name = str(row_dict.get("Emp1 Name", "") or "").strip()
+                emp1_mobile_raw = row_dict.get("Emp1 Mobile", "")
+                emp1_mobile = str(int(float(emp1_mobile_raw))).strip() if not pd.isna(emp1_mobile_raw) else ""
+                
+                emp2_name = str(row_dict.get("Emp2 Name", "") or "").strip()
+                emp2_mobile_raw = row_dict.get("emp2 Mobile", "")
+                emp2_mobile = str(int(float(emp2_mobile_raw))).strip() if not pd.isna(emp2_mobile_raw) else ""
+                
+                designation = str(row_dict.get("Desig", "") or "").strip()
                 
                 survey_col = None
                 for col in df.columns:
@@ -87,12 +100,27 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                         "first_name": doctor_name,
                         "email": doctor_email,
                         "contact_info": doctor_mobile,
+                        "specialty": specialty,
+                        "territory": territory,
+                        "emp1_name": emp1_name,
+                        "emp1_mobile": emp1_mobile,
+                        "emp2_name": emp2_name,
+                        "emp2_mobile": emp2_mobile,
+                        "designation": designation,
                     },
                 )
                 
+                # Update existing doctor with all fields
                 doctor.first_name = doctor_name
                 doctor.email = doctor_email
                 doctor.contact_info = doctor_mobile
+                doctor.specialty = specialty
+                doctor.territory = territory
+                doctor.emp1_name = emp1_name
+                doctor.emp1_mobile = emp1_mobile
+                doctor.emp2_name = emp2_name
+                doctor.emp2_mobile = emp2_mobile
+                doctor.designation = designation
                 doctor.last_name = ""
                 doctor.save()
                 
@@ -195,11 +223,24 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                     
                     doctor_name = str(row_dict.get("Dr name as per PAN", "") or "").strip()
                     doctor_email = str(row_dict.get("Dr email ID", "") or "").strip()
+                    specialty = str(row_dict.get("speciality", "") or "").strip()
                     
                     if pd.isna(row_dict.get("Dr Contact number")):
                         doctor_mobile = ""
                     else:
                         doctor_mobile = str(int(float(row_dict.get("Dr Contact number")))).strip()
+                    
+                    # Extract manager and territory details
+                    territory = str(row_dict.get("Territory To Which Doctor Is Associated", "") or row_dict.get("Territory", "") or "").strip()
+                    emp1_name = str(row_dict.get("Emp1 Name", "") or "").strip()
+                    emp1_mobile_raw = row_dict.get("Emp1 Mobile", "")
+                    emp1_mobile = str(int(float(emp1_mobile_raw))).strip() if not pd.isna(emp1_mobile_raw) else ""
+                    
+                    emp2_name = str(row_dict.get("Emp2 Name", "") or "").strip()
+                    emp2_mobile_raw = row_dict.get("emp2 Mobile", "")
+                    emp2_mobile = str(int(float(emp2_mobile_raw))).strip() if not pd.isna(emp2_mobile_raw) else ""
+                    
+                    designation = str(row_dict.get("Desig", "") or "").strip()
                     
                     survey_col = None
                     for col in df.columns:
@@ -225,16 +266,31 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                             "first_name": doctor_name,
                             "email": doctor_email,
                             "contact_info": doctor_mobile,
+                            "specialty": specialty,
+                            "territory": territory,
+                            "emp1_name": emp1_name,
+                            "emp1_mobile": emp1_mobile,
+                            "emp2_name": emp2_name,
+                            "emp2_mobile": emp2_mobile,
+                            "designation": designation,
                         },
                     )
                     
+                    # Update existing doctor with all fields
                     doctor.first_name = doctor_name
                     doctor.email = doctor_email
                     doctor.contact_info = doctor_mobile
+                    doctor.specialty = specialty
+                    doctor.territory = territory
+                    doctor.emp1_name = emp1_name
+                    doctor.emp1_mobile = emp1_mobile
+                    doctor.emp2_name = emp2_name
+                    doctor.emp2_mobile = emp2_mobile
+                    doctor.designation = designation
                     doctor.last_name = ""
                     doctor.save()
                     
-                    logger.info(f"Saved Doctor: ID={doctor.id}, Name='{doctor.first_name}', Mobile='{doctor.mobile}'")
+                    logger.info(f"Saved Doctor: ID={doctor.id}, Name='{doctor.first_name}', Mobile='{doctor.mobile}', Territory='{territory}', Manager='{emp1_name}'")
                     imported_doctors.append(doctor)
 
                     final_survey_name = survey_name if survey_name else "Auto Imported Survey"
@@ -497,4 +553,3 @@ class SurveyResponseAdmin(admin.ModelAdmin):
     export_to_excel.short_description = '📊 Export Selected to Excel'
 
 
-# Answer admin removed - not needed for users

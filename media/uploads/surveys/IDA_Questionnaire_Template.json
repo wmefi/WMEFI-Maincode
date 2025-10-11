@@ -1,0 +1,43 @@
+{
+  "Section A: Clinical Practice Profile": {
+    "cases_per_week": {
+      "Pregnant women": "",
+      "Non-pregnant women": ""
+    }
+  },
+  "Section B: Treatment Decision Drivers": {
+    "Severity of Anaemia": "",
+    "Efficacy in Hb rise": "",
+    "Type of Iron Salt": "",
+    "Elemental Iron Content": "",
+    "GI Tolerability": ""
+  },
+  "Section C: Salt Preference & Rationale": {
+    "preferred_salt": "",
+    "reasons": {
+      "Ferrous Ascorbate": "",
+      "Ferrous Fumarate": "",
+      "Ferrous Ammonium Citrate": "",
+      "Ferrous Pyrophosphate": "",
+      "Iron Polymaltose Complex": "",
+      "Amino Acid Chelate": "",
+      "Any other please specify": ""
+    }
+  },
+  "Section D: Dosage": {
+    "adjust_by_severity": "",
+    "recommended_dose": {
+      "Mild Anaemia": "",
+      "Moderate Anaemia": "",
+      "Severe Anaemia": ""
+    }
+  },
+  "Section E: Monitoring & Outcomes": {
+    "target_hb": "",
+    "monitor_days": "",
+    "expected_hb_rise": "",
+    "gi_side_effect_percent": "",
+    "ferritin_test_recommended": "",
+    "ferritin_rise_with_FA": ""
+  }
+}

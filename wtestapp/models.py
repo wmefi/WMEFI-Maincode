@@ -125,6 +125,15 @@ class Doctor(models.Model):
     ifsc = models.CharField(max_length=20, blank=True, null=True)
     agreement_accepted = models.BooleanField(default=False)
     agreement_amount = models.PositiveIntegerField(blank=True, null=True)
+    
+    # Manager/Territory fields from Excel
+    territory = models.CharField(max_length=200, blank=True, null=True, help_text="Territory/Location")
+    emp1_name = models.CharField(max_length=150, blank=True, null=True, help_text="Manager 1 Name (ZSM/BDM/ZM)")
+    emp1_mobile = models.CharField(max_length=15, blank=True, null=True, help_text="Manager 1 Mobile")
+    emp2_name = models.CharField(max_length=150, blank=True, null=True, help_text="Manager 2 Name")
+    emp2_mobile = models.CharField(max_length=15, blank=True, null=True, help_text="Manager 2 Mobile")
+    designation = models.CharField(max_length=50, blank=True, null=True, help_text="Designation (ZSM/BDM/ZM/etc)")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

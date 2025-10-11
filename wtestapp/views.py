@@ -1100,21 +1100,10 @@ def get_doctor_survey_api(request):
         return JsonResponse({'success': False, 'message': 'Doctor not found'})
 
 def admin_dashboard(request):
-    """Admin dashboard view"""
-    doctors = Doctor.objects.all().order_by('-created_at')
-    surveys = Survey.objects.all().order_by('-created_at')
-    agreements = Agreement.objects.filter(signed_at__isnull=False).order_by('-signed_at')
-    
-    context = {
-        'doctors': doctors,
-        'surveys': surveys,
-        'agreements': agreements,
-        'total_doctors': doctors.count(),
-        'total_surveys': surveys.count(),
-        'total_agreements': agreements.count(),
-    }
-    
-    return render(request, 'wtestapp/admin_dashboard.html', context)
+    """Admin dashboard view - renders React dashboard"""
+    # For React dashboard, we just render the template
+    # The React app will fetch data from API endpoints
+    return render(request, 'wtestapp/admin_minidash_view.html')
 
 def sign_agreement(request):
     """View to handle agreement signing"""

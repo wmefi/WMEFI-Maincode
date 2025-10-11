@@ -37,11 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Add CORS headers support
     'wtestapp'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
+    'corsheaders.middleware.CorsMiddleware',  # Add CORS middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -49,6 +52,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS settings - allow same origin requests
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'wtest.urls'
 
@@ -81,7 +91,7 @@ DATABASES = {
         'USER': 'root',         
         'PASSWORD': 'root',         
         'HOST': '127.0.0.1',
-        'PORT': '3307',
+        'PORT': '3307',  # Port 3307 has newer MariaDB & your data
     }
 }
 
@@ -125,6 +135,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'wtestapp' / 'static',
 ]
+
+# WhiteNoise configuration for serving static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'

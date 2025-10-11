@@ -1,0 +1,99 @@
+{
+    "survey_title": "In-clinic Experience of Topical Sunscreen in Paediatric",
+    "description": "We request you to provide your valuable feedback based on your clinical experience regarding the usage pattern of topical sunscreen in the paediatric category.",
+    "questions": [
+        {
+            "id": 1,
+            "question": "How often do you recommend sunscreen for infants and toddlers in your clinical practice?",
+            "type": "single_choice",
+            "options": [
+                "Always",
+                "Often",
+                "Sometimes",
+                "Rarely",
+                "Never"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "At what minimum age do you typically advise starting sunscreen use in babies?",
+            "type": "single_choice",
+            "options": [
+                "Above 6 months",
+                "Above 1 year",
+                "Above 3 years",
+                "Depends on the skin condition",
+                "I do not recommend sunscreen for babies"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "Under which conditions or indications do you usually recommend sunscreen for babies?",
+            "type": "multiple_choice",
+            "options": [
+                "Routine outdoor exposure",
+                "Atopic or sensitive skin",
+                "During vacations/travel to sunny regions",
+                "Family history of photodermatoses",
+                "Post-treatment for skin conditions (e.g., after topical steroids)",
+                "To prevent tanning or pigmentation",
+                {
+                    "option": "Other",
+                    "type": "open_ended"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "question": "What key factors do you consider while recommending a baby sunscreen?",
+            "type": "multiple_choice",
+            "options": [
+                "Mineral/physical filters (zinc oxide, titanium dioxide)",
+                "Fragrance-free formulation",
+                "Water resistance",
+                "Broad-spectrum protection (UVA/UVB)",
+                "SPF value"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "Have you observed any common skin reactions or issues related to sunscreen use in babies?",
+            "type": "single_choice",
+            "options": [
+                {
+                    "option": "Yes",
+                    "type": "open_ended"
+                },
+                "No"
+            ]
+        },
+        {
+            "id": 6,
+            "question": "In your experience, how receptive are parents to sunscreen recommendations for their babies?",
+            "type": "single_choice",
+            "options": [
+                "Very receptive",
+                "Somewhat receptive",
+                "Indifferent",
+                "Resistant"
+            ]
+        },
+        {
+            "id": 7,
+            "question": "Which sunscreen brands do you most frequently recommend for children under 5?",
+            "type": "open_ended"
+        },
+        {
+            "id": 8,
+            "question": "What formulation do you prefer recommending for babies?",
+            "type": "single_choice",
+            "options": [
+                "Cream",
+                "Lotion",
+                "Gel",
+                "Spray",
+                "Stick"
+            ]
+        }
+    ]
+}

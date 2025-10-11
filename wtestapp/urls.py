@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from . import views
+from . import views, api_views
 
 urlpatterns = [
     path('login/', views.login, name='login'),
@@ -19,4 +19,8 @@ urlpatterns = [
     path('sign-agreement/', views.sign_agreement, name='sign_agreement'),
     path('api/get-doctor-survey/', views.get_doctor_survey_api, name='get_doctor_survey_api'),
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    
+    # API endpoints for React dashboard
+    path('api/researchers/', api_views.api_researchers_list, name='api_researchers_list'),
+    path('api/dashboard-stats/', api_views.api_dashboard_stats, name='api_dashboard_stats'),
 ]
