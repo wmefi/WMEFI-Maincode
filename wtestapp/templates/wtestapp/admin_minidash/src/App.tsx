@@ -43,12 +43,14 @@ const App: React.FC = () => {
     completionRate: 0,
   });
 
+  // Helper functions to avoid NaN when totals are zero
+  const percent = (value: number, total: number) => (total > 0 ? Math.round((value / total) * 100) : 0);
+  const percentWidth = (value: number, total: number) => `${total > 0 ? (value / total) * 100 : 0}%`;
+
   // Fetch researchers data from Django API
   const fetchResearchers = async () => {
     try {
-      const apiUrl = import.meta.env.DEV 
-        ? 'http://127.0.0.1:8000/api/researchers/' 
-        : '/api/researchers/';
+      const apiUrl = '/api/researchers/';
       
       const response = await fetch(apiUrl);
       const data = await response.json();
@@ -67,9 +69,7 @@ const App: React.FC = () => {
   // Fetch dashboard stats from Django API
   const fetchDashboardStats = async () => {
     try {
-      const apiUrl = import.meta.env.DEV 
-        ? 'http://127.0.0.1:8000/api/dashboard-stats/' 
-        : '/api/dashboard-stats/';
+      const apiUrl = '/api/dashboard-stats/';
       
       const response = await fetch(apiUrl);
       const data = await response.json();
@@ -507,12 +507,12 @@ const App: React.FC = () => {
               </div>
               <div className="text-right">
                 <span className="text-2xl font-bold text-gray-900">{cpResearchers}</span>
-                <span className="text-gray-500 text-sm ml-1">({Math.round((cpResearchers/totalResearchers)*100)}%)</span>
+                <span className="text-gray-500 text-sm ml-1">({percent(cpResearchers, totalResearchers)}%)</span>
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div className="bg-gradient-to-r from-pink-500 to-pink-600 h-3 rounded-full transition-all duration-500" 
-                   style={{width: `${(cpResearchers/totalResearchers)*100}%`}}></div>
+                   style={{width: percentWidth(cpResearchers, totalResearchers)}}></div>
             </div>
             
             <div className="flex items-center justify-between">
@@ -522,12 +522,12 @@ const App: React.FC = () => {
               </div>
               <div className="text-right">
                 <span className="text-2xl font-bold text-gray-900">{gcResearchers}</span>
-                <span className="text-gray-500 text-sm ml-1">({Math.round((gcResearchers/totalResearchers)*100)}%)</span>
+                <span className="text-gray-500 text-sm ml-1">({percent(gcResearchers, totalResearchers)}%)</span>
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div className="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all duration-500" 
-                   style={{width: `${(gcResearchers/totalResearchers)*100}%`}}></div>
+                   style={{width: percentWidth(gcResearchers, totalResearchers)}}></div>
             </div>
           </div>
         </div>
@@ -1495,10 +1495,6 @@ const App: React.FC = () => {
               {
                 question: "How do I export survey data?",
                 answer: "You can export data by clicking the 'Export CSV' button in the main dashboard or going to Settings {'>'}  Data Export."
-              },
-              {
-                question: "What do the different status indicators mean?",
-                answer: "Completed (green) means the survey is finished, In Progress (blue) means actively working, Pending (yellow) means assigned but not started, and Not Started (gray) means not yet assigned."
               }
             ].map((faq, index) => (
               <div key={index} className="border border-gray-200 rounded-lg">
@@ -1525,8 +1521,8 @@ const App: React.FC = () => {
                 <span className="font-medium text-gray-900">Email Support</span>
               </div>
               <p className="text-sm text-gray-600 mb-2">Get help via email within 24 hours</p>
-              <a href="mailto:support@miniadmit.com" className="text-pink-600 hover:text-pink-700 font-medium">
-                support@miniadmit.com
+              <a href="mailto:connect@wmefi.co.in" className="text-pink-600 hover:text-pink-700 font-medium">
+                connect@wmefi.co.in
               </a>
             </div>
 
@@ -1536,8 +1532,8 @@ const App: React.FC = () => {
                 <span className="font-medium text-gray-900">Phone Support</span>
               </div>
               <p className="text-sm text-gray-600 mb-2">Call us during business hours</p>
-              <a href="tel:+1-800-SUPPORT" className="text-pink-600 hover:text-pink-700 font-medium">
-                +1 (800) SUPPORT
+              <a href="tel:+91919920154297" className="text-pink-600 hover:text-pink-700 font-medium">
+                +91 919920154297
               </a>
             </div>
 
