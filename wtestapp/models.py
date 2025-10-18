@@ -11,7 +11,7 @@ class CustomUser(models.Model):
     username = models.CharField(max_length=15, unique=True, default='')
     name = models.CharField(max_length=100)
     mobile = models.CharField(max_length=15, unique=True)
-    role = models.CharField(max_length=10, choices=[('gc','GC'),('cp','CP')], null=True)
+    role = models.CharField(max_length=10, choices=[('gc','GC')], null=True)
     otp = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
@@ -79,7 +79,6 @@ class Doctor(models.Model):
     last_name = models.CharField(max_length=120, blank=True)
     email = models.EmailField(blank=True)
     PORTAL_CHOICES = (
-        ("CP", "CP"),
         ("GC", "GC"),
     )
     portal_type = models.CharField(max_length=10, choices=PORTAL_CHOICES, blank=True, null=True)
@@ -149,7 +148,7 @@ class Doctor(models.Model):
         return f"Doctor #{self.id}"
 
 class Agreement(models.Model):
-    doctor = models.OneToOneField(Doctor, on_delete=models.CASCADE, related_name='signed_agreement')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='agreements')
     agreement_text = models.TextField(blank=True, null=True, help_text='Optional - Leave blank to use default agreement template')
     digital_signature = models.TextField(blank=True, null=True)
     signature_type = models.CharField(max_length=20, choices=[('drawn', 'Drawn'), ('typed', 'Typed')], default='drawn')
@@ -170,7 +169,6 @@ class Survey(models.Model):
     survey_json = models.FileField(upload_to='surveys/', blank=True, null=True, help_text='Upload JSON file for survey questions')
     assigned_to = models.ManyToManyField(Doctor, related_name='surveys', blank=True)
     PORTAL_CHOICES = (
-        ("CP", "CP"),
         ("GC", "GC"),
     )
     portal_type = models.CharField(max_length=10, choices=PORTAL_CHOICES, blank=True, null=True)

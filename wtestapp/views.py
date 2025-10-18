@@ -8,6 +8,7 @@ from .utils import send_sms
 from .forms import DoctorForm
 import logging
 import json
+import re
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.http import JsonResponse
@@ -42,16 +43,28 @@ def doctor_surveys_list(request):
         if not doctor:
             raise Doctor.DoesNotExist("Doctor not found in session context")
         
-        # Get all surveys assigned to this doctor
-        assigned_surveys = Survey.objects.filter(assigned_to=doctor)
+        # Get all surveys assigned to this doctor (newest first)
+        assigned_surveys = Survey.objects.filter(assigned_to=doctor).order_by('-created_at')
         
         # Get survey responses to track completion status
-        completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).values_list('survey_id', flat=True)
+        completed_survey_responses = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).select_related('survey')
+        completed_surveys = completed_survey_responses.values_list('survey_id', flat=True)
+        
+        # Create a dictionary of survey_id to response for easy lookup
+        response_dict = {resp.survey_id: resp for resp in completed_survey_responses}
+        
+        # Separate pending and completed surveys
+        pending_surveys = assigned_surveys.exclude(id__in=completed_surveys)
+        completed_surveys_objs = assigned_surveys.filter(id__in=completed_surveys)
         
         context = {
             'doctor': doctor,
             'surveys': assigned_surveys,
-            'completed_surveys': list(completed_surveys)
+            'pending_surveys': pending_surveys,
+            'completed_surveys_objs': completed_surveys_objs,
+            'completed_surveys': list(completed_surveys),
+            'pending_count': pending_surveys.count(),
+            'response_dict': response_dict
         }
         
         return render(request, 'wtestapp/doctor_surveys.html', context)
@@ -440,28 +453,25 @@ def get_user_completion_status(doctor):
             'all_complete': False
         }
     
-    # Step 2: Check agreement signature
-    agreement_signed = Agreement.objects.filter(
-        doctor=doctor, 
-        digital_signature__isnull=False,
-        signed_at__isnull=False
-    ).exists()
+    # Step 2: Check if there's a pending survey without signed agreement
+    assigned_surveys = Survey.objects.filter(assigned_to=doctor).order_by('-created_at')
     
-    if not agreement_signed:
-        pending_tasks.append('Please review and sign the agreement')
-        assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
-        if assigned_survey:
+    for survey in assigned_surveys:
+        # Check if agreement signed for this survey
+        agreement_signed = Agreement.objects.filter(
+            doctor=doctor,
+            survey=survey,
+            digital_signature__isnull=False,
+            signed_at__isnull=False
+        ).exists()
+        
+        if not agreement_signed:
+            clean_title = re.sub(r'\s*\(\d+\)\s*$', '', survey.title).strip()
+            pending_tasks.append(f'Please sign agreement for: {clean_title}')
             return {
                 'has_pending': True,
                 'pending_tasks': pending_tasks,
-                'redirect_url': ('agreement_page', {'survey_id': assigned_survey.id}),
-                'all_complete': False
-            }
-        else:
-            return {
-                'has_pending': True,
-                'pending_tasks': pending_tasks,
-                'redirect_url': 'doctor_profile',
+                'redirect_url': ('agreement_page', {'survey_id': survey.id}),
                 'all_complete': False
             }
     
@@ -640,8 +650,8 @@ def doctor_profile(request):
             if 'pan_copy' in request.FILES:
                 doctor.pan_copy = request.FILES['pan_copy']
             
-            # Cancelled Cheque - Only for CP (Critical Patient)
-            if doctor.portal_type == 'CP' and 'cancelled_cheque' in request.FILES:
+            # Cancelled Cheque - Only for GC (General Care)
+            if doctor.portal_type == 'GC' and 'cancelled_cheque' in request.FILES:
                 doctor.cancelled_cheque = request.FILES['cancelled_cheque']
             
             # Prescription - Common for both GC and CP
@@ -690,12 +700,39 @@ def doctor_profile_view(request):
             messages.info(request, task)
     
     completed_surveys = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).order_by('-completed_at')
-    agreement = Agreement.objects.filter(doctor=doctor).first()
+    
+    # Get all signed agreements for this doctor
+    agreements = Agreement.objects.filter(
+        doctor=doctor,
+        digital_signature__isnull=False,
+        signed_at__isnull=False
+    ).select_related('survey')
+    
+    # Get pending surveys count for notification badge
+    assigned_surveys = Survey.objects.filter(assigned_to=doctor)
+    completed_survey_ids = SurveyResponse.objects.filter(doctor=doctor, is_completed=True).values_list('survey_id', flat=True)
+    pending_surveys = assigned_surveys.exclude(id__in=completed_survey_ids)
+    pending_surveys_count = pending_surveys.count()
+    
+    # Check which pending surveys need agreement signing
+    signed_survey_ids = Agreement.objects.filter(
+        doctor=doctor,
+        digital_signature__isnull=False,
+        signed_at__isnull=False
+    ).values_list('survey_id', flat=True)
+    
+    surveys_without_agreement = pending_surveys.exclude(id__in=signed_survey_ids)
+    has_unsigned_surveys = surveys_without_agreement.exists()
     
     return render(request, 'wtestapp/doctor_profile_view.html', {
         'doctor': doctor,
         'completed_surveys': completed_surveys,
-        'agreement': agreement
+        'agreements': agreements,
+        'agreement': agreements.first() if agreements.exists() else None,
+        'pending_surveys_count': pending_surveys_count,
+        'pending_surveys': pending_surveys,
+        'surveys_without_agreement': surveys_without_agreement,
+        'has_unsigned_surveys': has_unsigned_surveys
     })
 
 def doctor_profile_edit(request):
@@ -749,33 +786,35 @@ def agreement_page(request, survey_id):
                 doctor = Doctor.objects.get(custom_user=custom_user)
         survey = Survey.objects.get(id=survey_id)
         
-        # Check if agreement already exists (by doctor only, OneToOne)
-        existing_agreement = Agreement.objects.filter(doctor=doctor).first()
+        # Check if agreement already exists for THIS survey
+        existing_agreement = Agreement.objects.filter(
+            doctor=doctor,
+            survey=survey
+        ).first()
         is_already_signed = existing_agreement and existing_agreement.digital_signature and existing_agreement.signed_at
-        
-        # If admin has linked a specific survey in Agreement, use it for display
-        if existing_agreement and existing_agreement.survey:
-            survey = existing_agreement.survey
         
         if request.method == 'POST':
             if 'signature_data' in request.POST and request.POST['signature_data']:
-                # One agreement per doctor due to OneToOne; attach current survey and amount
-                agreement, _ = Agreement.objects.get_or_create(doctor=doctor)
-                agreement.survey = survey
+                # Create/update agreement for THIS survey
+                agreement, _ = Agreement.objects.get_or_create(
+                    doctor=doctor,
+                    survey=survey
+                )
                 agreement.agreement_text = 'Agreement signed'
                 agreement.digital_signature = request.POST.get('signature_data', '')
                 agreement.signature_type = request.POST.get('signature_type', 'drawn')
                 agreement.signed_at = timezone.now()
-                # If admin pre-set an amount in Agreement, keep it; else use survey amount
+                # Use survey amount or pre-set amount
                 agreement.amount = existing_agreement.amount if (existing_agreement and existing_agreement.amount) else survey.amount
                 agreement.save()
                 
-                # Update doctor's agreement status
+                # Update doctor's agreement status (for backward compatibility)
                 doctor.agreement_accepted = True
                 doctor.save()
                 
-                messages.success(request, 'Agreement accepted successfully!')
-                # Go directly to the survey so the uploaded JSON/questions show immediately
+                clean_title = re.sub(r'\s*\(\d+\)\s*$', '', survey.title).strip()
+                messages.success(request, f'Agreement signed for {clean_title}!')
+                # Go directly to the survey
                 return redirect('survey_detail', survey_id=survey.id)
             else:
                 messages.error(request, 'Please provide a valid signature')
@@ -970,6 +1009,91 @@ def verify_agreement_otp(request):
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
+def download_agreement_by_id(request, agreement_id):
+    """Download specific agreement PDF by agreement ID"""
+    if 'doctor_id' not in request.session:
+        messages.error(request, "Please login first")
+        return redirect('login')
+    
+    try:
+        doctor = Doctor.objects.get(id=request.session['doctor_id'])
+        agreement = Agreement.objects.get(id=agreement_id, doctor=doctor)
+        
+        if not (agreement.digital_signature and agreement.signed_at):
+            messages.error(request, "Agreement not signed yet")
+            return redirect('doctor_profile_view')
+        
+        # Generate PDF for this agreement
+        from django.template.loader import render_to_string
+        from xhtml2pdf import pisa
+        from io import BytesIO
+        import os
+        from django.conf import settings
+        
+        # Get survey details
+        survey = agreement.survey
+        amount = agreement.amount or (survey.amount if survey else 20000)
+        survey_title = survey.title if survey else "Survey"
+        
+        # Get logo and signature paths
+        logo_file_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'images', 'logo', 'logo.png')
+        sig_file_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'images', 'logo', 'sig.png')
+        
+        logo_path = logo_file_path if os.path.exists(logo_file_path) else None
+        sig_path = sig_file_path if os.path.exists(sig_file_path) else None
+        
+        # Get doctor's signature
+        doctor_sig_path = None
+        doctor_sig_text = None
+        signature_type = agreement.signature_type
+        
+        if signature_type == 'typed':
+            doctor_sig_text = agreement.digital_signature[6:] if agreement.digital_signature.startswith('typed:') else agreement.digital_signature
+        else:
+            sig_data = agreement.digital_signature
+            if not sig_data.startswith('data:image'):
+                if ',' in sig_data:
+                    sig_data = sig_data.split(',', 1)[1]
+                doctor_sig_path = f"data:image/png;base64,{sig_data}"
+            else:
+                doctor_sig_path = sig_data
+        
+        # Render PDF
+        html = render_to_string('wtestapp/agreement_pdf_template.html', {
+            'doctor': doctor,
+            'amount': amount,
+            'survey_title': survey_title,
+            'signed_date': agreement.signed_at,
+            'default_signed_date': agreement.signed_at.strftime('%d/%m/%Y'),
+            'logo_path': logo_path,
+            'sig_path': sig_path,
+            'doctor_sig_path': doctor_sig_path,
+            'doctor_sig_text': doctor_sig_text,
+            'signature_type': signature_type
+        })
+        
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+        
+        if not pdf.err:
+            response = HttpResponse(result.getvalue(), content_type='application/pdf')
+            filename = f"agreement_{survey_title[:30].replace(' ', '_')}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+        else:
+            messages.error(request, "Error generating agreement PDF")
+            return redirect('doctor_profile_view')
+            
+    except Agreement.DoesNotExist:
+        messages.error(request, "Agreement not found")
+        return redirect('doctor_profile_view')
+    except Doctor.DoesNotExist:
+        messages.error(request, "Doctor profile not found")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"Error downloading agreement: {str(e)}")
+        return redirect('doctor_profile_view')
+
 def download_agreement(request):
     """View to download the agreement PDF"""
     if 'doctor_id' not in request.session:
@@ -1076,26 +1200,34 @@ def download_agreement(request):
         return redirect('doctor_profile_view')
 
 def get_doctor_survey_api(request):
-    """API to get doctor's survey ID for agreement"""
+    """API to get doctor's survey ID for agreement - finds first unsigned survey"""
     if 'doctor_id' not in request.session:
         return JsonResponse({'success': False, 'message': 'Not logged in'})
     
     try:
         doctor = Doctor.objects.get(id=request.session['doctor_id'])
         
-        existing_agreement = Agreement.objects.filter(doctor=doctor).first()
-        if existing_agreement and existing_agreement.survey:
-            return JsonResponse({'success': True, 'survey_id': existing_agreement.survey.id})
+        # Find first survey that needs agreement signature
+        assigned_surveys = Survey.objects.filter(assigned_to=doctor).order_by('-created_at')
         
-        assigned_survey = Survey.objects.filter(assigned_to=doctor).order_by('-created_at').first()
+        for survey in assigned_surveys:
+            # Check if agreement signed for this survey
+            agreement_signed = Agreement.objects.filter(
+                doctor=doctor,
+                survey=survey,
+                digital_signature__isnull=False,
+                signed_at__isnull=False
+            ).exists()
+            
+            if not agreement_signed:
+                # This survey needs agreement
+                return JsonResponse({'success': True, 'survey_id': survey.id})
         
-        if not assigned_survey and doctor.portal_type:
-            assigned_survey = Survey.objects.filter(portal_type=doctor.portal_type).order_by('-created_at').first()
-        
-        if assigned_survey:
-            return JsonResponse({'success': True, 'survey_id': assigned_survey.id})
+        # All surveys have signed agreements, return latest survey
+        if assigned_surveys.exists():
+            return JsonResponse({'success': True, 'survey_id': assigned_surveys.first().id})
         else:
-            return JsonResponse({'success': False, 'message': 'No survey found'})
+            return JsonResponse({'success': False, 'message': 'No survey assigned'})
     except Doctor.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Doctor not found'})
 

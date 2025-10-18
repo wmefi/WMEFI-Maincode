@@ -1,67 +1,272 @@
 {% extends 'wtestapp/base.html' %}
+{% load survey_extras %}
 
 {% block title %}Assigned Surveys{% endblock %}
 
 {% block style %}
 <style>
-  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:#fdeef4; --card:#ffffff; }
-  body{ background: var(--bg); }
-  .page-title{ color:var(--purple); font-weight:800; font-size:1.75rem; }
-  .survey-list{ display:flex; flex-direction:column; gap:14px; }
-  .survey-item{ background:var(--card); border:1px solid var(--pink); border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.08); padding:16px 18px; display:flex; align-items:center; justify-content:space-between; }
-  .survey-meta{ display:flex; flex-direction:column; gap:4px; }
-  .survey-title{ font-weight:700; font-size:1.1rem; color:#7b3f63; margin:0; }
-  .survey-desc{ margin:0; color:#8b7b88; font-size:.95rem; }
-  .btn-main{ background:var(--pink); border-color:var(--pink); color:#fff; font-weight:600; border-radius:10px; padding:8px 14px; }
-  .btn-main:hover{ background:var(--purple); border-color:var(--purple); }
-  .empty{ color:#7b3f63; background:#fff; border:1px dashed var(--pink); border-radius:14px; padding:18px; text-align:center; }
-  .btn-back{ background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); border: 2px solid var(--pink); color: var(--purple); padding: 10px 24px; font-size: 1.1rem; font-weight: 600; border-radius: 8px; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
-  .btn-back:hover{ background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%); color: #fff; border-color: var(--purple); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3); }
-  .btn-back i { margin-right: 8px; }
+  :root{ --teal:#64c5cb; --purple:#c0769e; --pink:#e664a2; --bg:linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%); --card:#ffffff; }
+  body{ background: linear-gradient(135deg, #fdeef4 0%, #f7d7e7 100%); min-height: 100vh; }
+  .page-title{ 
+    color:#9a547a; 
+    font-weight:800; 
+    font-size:1.6rem; 
+    text-shadow: 2px 2px 4px rgba(230, 100, 162, 0.1);
+    margin-bottom: 0;
+  }
+  .survey-list{ display:flex; flex-direction:column; gap:20px; }
+  .survey-item{ 
+    background: linear-gradient(135deg, #ffffff 0%, #fdeef4 100%);
+    border:2px solid #f7c8dc; 
+    border-radius:20px; 
+    box-shadow:0 8px 30px rgba(230, 100, 162, 0.15); 
+    padding:25px 30px; 
+    display:flex; 
+    align-items:center; 
+    justify-content:space-between;
+    transition: all 0.3s ease;
+    gap: 20px;
+  }
+  .survey-item:hover{
+    transform: translateY(-5px);
+    box-shadow:0 12px 40px rgba(230, 100, 162, 0.25);
+    border-color: var(--pink);
+  }
+  .survey-meta{ display:flex; flex-direction:column; gap:8px; flex: 1; }
+  .survey-title{ font-weight:700; font-size:1.05rem; color:#7b3f63; margin:0; line-height: 1.4; }
+  .survey-desc{ margin:0; color:#8b7b88; font-size:0.9rem; line-height: 1.5; }
+  .btn-main{ 
+    background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+    border: none;
+    color:#fff; 
+    font-weight:600; 
+    border-radius:15px; 
+    padding:10px 20px;
+    font-size: 0.95rem;
+    box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-main:hover{ 
+    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.4);
+    color: #fff;
+  }
+  .empty{ 
+    color:#7b3f63; 
+    background: linear-gradient(135deg, #ffffff 0%, #fdeef4 100%);
+    border:2px dashed var(--pink); 
+    border-radius:20px; 
+    padding:40px; 
+    text-align:center;
+    box-shadow: 0 8px 30px rgba(230, 100, 162, 0.1);
+  }
+  .btn-back{ 
+    background: linear-gradient(135deg, #fff 0%, #fdeef4 100%); 
+    border: 2px solid var(--pink); 
+    color: var(--purple); 
+    padding: 10px 22px; 
+    font-size: 0.95rem; 
+    font-weight: 600; 
+    border-radius: 15px; 
+    transition: all 0.3s ease; 
+    text-decoration: none; 
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(230, 100, 162, 0.2);
+  }
+  .btn-back:hover{ 
+    background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%); 
+    color: #fff; 
+    border-color: var(--purple); 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 20px rgba(230, 100, 162, 0.4);
+    text-decoration: none;
+  }
+  .btn-back i { margin-right: 0; }
+  @keyframes pulse { 
+    0%, 100% { transform: scale(1); box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3); } 
+    50% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(230, 100, 162, 0.5); } 
+  }
+  .section-header{
+    background: linear-gradient(135deg, #ffffff 0%, #fdeef4 100%);
+    border: 2px solid #f7c8dc;
+    border-radius: 18px;
+    padding: 18px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(230, 100, 162, 0.1);
+  }
+  .section-title{
+    color: var(--purple);
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .badge-count{
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(255, 75, 87, 0.3);
+  }
+  .status-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .status-required{
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+  }
+  .status-completed{
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  @media (max-width: 768px){
+    .survey-item{
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 20px;
+    }
+    .page-title{
+      font-size: 1.6rem;
+    }
+    .section-title{
+      font-size: 1.2rem;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="page-title mb-0">Your Assigned Surveys</h2>
-    <a href="{% url 'doctor_profile_view' %}" class="btn-back"><i class="fas fa-user"></i> Back to Profile</a>
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4" style="flex-wrap: wrap; gap: 15px;">
+    <h2 class="page-title mb-0">
+      <i class="fas fa-clipboard-list" style="color: var(--pink); margin-right: 12px;"></i>Your Assigned Surveys
+    </h2>
+    <a href="{% url 'doctor_profile_view' %}" class="btn-back">
+      <i class="fas fa-user"></i> Back to Profile
+    </a>
   </div>
 
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      <div class="alert alert-{{ message.tags }}" style="border-radius: 15px; padding: 15px 20px; margin-bottom: 20px;">{{ message }}</div>
     {% endfor %}
   {% endif %}
 
   {% if surveys %}
     <div class="survey-list">
-      {% for survey in surveys %}
-        <div class="survey-item">
-          <div class="survey-meta">
-            <h5 class="survey-title">{{ survey.title }}</h5>
-            {% if survey.description %}
-              <p class="survey-desc">{{ survey.description|truncatechars:140 }}</p>
-            {% endif %}
-            {% if survey.id in completed_surveys %}
-              <span style="color:#2e7d32; font-size:.9rem;"><i class="fas fa-check-circle"></i> Completed</span>
-            {% endif %}
+      <!-- PENDING SURVEYS FIRST (NEW ONES) -->
+      {% if pending_surveys %}
+        <div style="margin-bottom: 30px;">
+          <div class="section-header">
+            <h4 class="section-title">
+              <i class="fas fa-clipboard-list"></i> New Surveys
+              <span class="badge-count">{{ pending_count }}</span>
+            </h4>
           </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            {% if survey.id in completed_surveys %}
-              <a href="{% url 'survey_detail' survey.id %}?view=1" class="btn btn-outline-secondary" style="border-color:#64c5cb; color:#64c5cb;"><i class="fas fa-eye"></i> View</a>
-            {% else %}
-              <a href="{% url 'survey_detail' survey.id %}" class="btn btn-main">Take Survey</a>
-            {% endif %}
-          </div>
+          {% for survey in pending_surveys %}
+            <div class="survey-item" style="border: 3px solid var(--pink); box-shadow: 0 8px 30px rgba(230, 100, 162, 0.25); margin-bottom: 18px;">
+              <div class="survey-meta">
+                <h5 class="survey-title">
+                  <i class="fas fa-square" style="color: var(--pink); font-size: 0.8rem; margin-right: 8px;"></i>
+                  {{ survey.title|remove_trailing_numbers }}
+                </h5>
+                {% if survey.description %}
+                  <p class="survey-desc">{{ survey.description|truncatechars:140 }}</p>
+                {% endif %}
+                <div style="display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap;">
+                  <span style="color: #8b7b88; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-calendar-plus" style="color: var(--pink);"></i>
+                    <strong>Assigned:</strong> {{ survey.created_at|date:"d M Y, h:i A" }}
+                  </span>
+                </div>
+                <span class="status-badge status-required" style="margin-top: 8px;">
+                  <i class="fas fa-exclamation-circle"></i> Action Required
+                </span>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="{% url 'survey_detail' survey.id %}" class="btn btn-main" style="animation: pulse 2s infinite;">
+                  <i class="fas fa-play-circle"></i> Start Survey
+                </a>
+              </div>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      {% endif %}
+
+      <!-- COMPLETED SURVEYS (OLD ONES) -->
+      {% if completed_surveys_objs %}
+        <div style="margin-top: 40px;">
+          <div class="section-header">
+            <h4 class="section-title">
+              <i class="fas fa-check-double"></i> Completed Surveys
+            </h4>
+          </div>
+          {% for survey in completed_surveys_objs %}
+            <div class="survey-item" style="margin-bottom: 18px;">
+              <div class="survey-meta">
+                <h5 class="survey-title">
+                  <i class="fas fa-check-square" style="color: #28a745; font-size: 0.9rem; margin-right: 8px;"></i>
+                  {{ survey.title|remove_trailing_numbers }}
+                </h5>
+                {% if survey.description %}
+                  <p class="survey-desc">{{ survey.description|truncatechars:140 }}</p>
+                {% endif %}
+                <div style="display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap;">
+                  <span style="color: #8b7b88; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-calendar-plus" style="color: #64c5cb;"></i>
+                    <strong>Assigned:</strong> {{ survey.created_at|date:"d M Y, h:i A" }}
+                  </span>
+                  {% with response_dict|dictsort:0|first as resp %}
+                    {% for key, value in response_dict.items %}
+                      {% if key == survey.id %}
+                        <span style="color: #8b7b88; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                          <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                          <strong>Completed:</strong> {{ value.completed_at|date:"d M Y, h:i A" }}
+                        </span>
+                      {% endif %}
+                    {% endfor %}
+                  {% endwith %}
+                </div>
+                <span class="status-badge status-completed" style="margin-top: 8px;">
+                  <i class="fas fa-check-circle"></i> Completed
+                </span>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="{% url 'survey_detail' survey.id %}?view=1" class="btn" style="background: linear-gradient(135deg, #64c5cb 0%, #5ab3b9 100%); color: white; font-weight: 700; border-radius: 15px; padding: 12px 24px; box-shadow: 0 5px 15px rgba(100, 197, 203, 0.3); transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-eye"></i> View
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
   {% else %}
     <div class="empty">
-      <p style="margin-bottom: 15px;">No surveys assigned yet.</p>
+      <i class="fas fa-clipboard" style="font-size: 4rem; color: var(--pink); opacity: 0.3; margin-bottom: 20px;"></i>
+      <p style="margin-bottom: 20px; font-size: 1.2rem; font-weight: 600;">No surveys assigned yet.</p>
       {% if last_survey_url %}
-        <a href="{{ last_survey_url }}" class="btn btn-main">View last submitted survey</a>
+        <a href="{{ last_survey_url }}" class="btn btn-main">
+          <i class="fas fa-eye"></i> View last submitted survey
+        </a>
       {% endif %}
     </div>
   {% endif %}

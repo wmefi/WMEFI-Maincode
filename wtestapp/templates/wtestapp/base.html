@@ -1,4 +1,5 @@
 {% load static %}
+{% load survey_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -305,19 +306,30 @@
             // Check if profile is complete and agreement is signed
             {% if request.session.doctor_id %}
                 var profileComplete = {{ profile_complete|yesno:"true,false" }};
-                var agreementSigned = {{ agreement_signed|yesno:"true,false" }};
+                var hasUnsignedSurveys = {{ nav_has_unsigned_surveys|yesno:"true,false" }};
                 
-                if (profileComplete && agreementSigned) {
+                if (!profileComplete) {
+                    // Show profile incomplete modal
+                    $('#profileIncompleteModal').modal('show');
+                } else if (hasUnsignedSurveys) {
+                    // Show survey warning modal
+                    showNavSurveyWarningModal();
+                } else {
                     // Allow access to surveys
                     window.location.href = "{% url 'surveys' %}";
-                } else {
-                    // Show modal
-                    $('#profileIncompleteModal').modal('show');
                 }
             {% else %}
                 // Not logged in, redirect to login
                 window.location.href = "{% url 'login' %}";
             {% endif %}
+        }
+        
+        function showNavSurveyWarningModal() {
+            document.getElementById('navSurveyWarningModal').style.display = 'flex';
+        }
+        
+        function closeNavSurveyWarningModal() {
+            document.getElementById('navSurveyWarningModal').style.display = 'none';
         }
         
         function goToAgreement(event) {
@@ -353,5 +365,51 @@
             {% endif %}
         }
     </script>
+
+<!-- Navbar Survey Warning Modal -->
+<div id="navSurveyWarningModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; max-height: 80vh; overflow-y: auto;">
+    <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+      <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 2.5rem;"></i>
+    </div>
+    
+    <h2 style="color: #856404; font-weight: 800; font-size: 1.8rem; margin-bottom: 15px;">Agreement Required!</h2>
+    <p style="color: #666; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px;">
+      Please sign the agreement first before accessing surveys.
+    </p>
+    
+    {% if nav_surveys_without_agreement %}
+      <div style="background: linear-gradient(135deg, #fdeef4 0%, #fff 100%); border: 2px solid #f7c8dc; border-radius: 15px; padding: 20px; margin-bottom: 25px;">
+        <h3 style="color: #9a547a; font-weight: 700; font-size: 1.2rem; margin-bottom: 15px;">
+          <i class="fas fa-clipboard-list"></i> Surveys Requiring Agreement
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+          {% for survey in nav_surveys_without_agreement %}
+            <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #e664a2; box-shadow: 0 2px 8px rgba(230, 100, 162, 0.1);">
+              <div style="font-weight: 700; color: #7b3f63; font-size: 1rem; margin-bottom: 5px;">
+                <i class="fas fa-file-alt" style="color: #e664a2;"></i> {{ survey.title|remove_trailing_numbers }}
+              </div>
+              {% if survey.description %}
+                <div style="color: #8b7b88; font-size: 0.9rem;">{{ survey.description|truncatechars:80 }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      {% if nav_surveys_without_agreement %}
+        <a href="{% url 'agreement_page' nav_surveys_without_agreement.first.id %}" style="background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); color: white; padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3); transition: all 0.3s ease;">
+          <i class="fas fa-file-signature"></i> Sign Agreement Now
+        </a>
+      {% endif %}
+      <button onclick="closeNavSurveyWarningModal()" style="background: #6c757d; color: white; padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3); transition: all 0.3s ease;">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

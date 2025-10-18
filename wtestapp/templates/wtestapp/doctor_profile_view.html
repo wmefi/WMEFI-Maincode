@@ -1,5 +1,6 @@
 {% extends 'wtestapp/base.html' %}
 {% load static %}
+{% load survey_extras %}
 {% block title %}Doctor Profile{% endblock %}
 
 {% block style %}
@@ -32,6 +33,11 @@
   @keyframes fadeInUp { 
     from { opacity: 0; transform: translateY(30px); } 
     to { opacity: 1; transform: translateY(0); } 
+  }
+  @keyframes bounce { 
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 
+    40% { transform: translateY(-8px); } 
+    60% { transform: translateY(-4px); } 
   }
   .card { 
     background: var(--card); 
@@ -160,13 +166,101 @@
     transform: translateY(1px);
   }
   .btn-outline:hover { 
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
-    color: #fff; 
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important; 
+    color: #fff !important; 
     transform: translateY(-3px); 
     box-shadow: 0 8px 20px rgba(230, 100, 162, 0.3); 
   }
+  .btn-outline:hover i { 
+    color: #fff !important; 
+  }
   .btn-outline i { 
     font-size: 16px; 
+    transition: all 0.3s ease;
+  }
+  .btn-download-agreement {
+    background: linear-gradient(135deg, #fff 0%, #fdeef4 100%) !important;
+    border: 2px solid var(--primary) !important;
+    position: relative;
+  }
+  .btn-download-agreement::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+  }
+  .btn-download-agreement:hover::before {
+    left: 100%;
+  }
+  .btn-download-agreement:hover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    color: #fff !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(230, 100, 162, 0.4);
+  }
+  .btn-download-agreement:hover i {
+    color: #fff !important;
+    transform: scale(1.1) rotate(5deg);
+  }
+  .btn-download-agreement:active {
+    transform: translateY(-1px) scale(1);
+    box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3);
+  }
+  .btn-my-surveys {
+    position: relative;
+    background: linear-gradient(135deg, #fff 0%, #fdeef4 100%) !important;
+    border: 2px solid var(--primary) !important;
+    color: var(--primary) !important;
+    padding: 12px 24px;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(230, 100, 162, 0.2);
+    text-decoration: none !important;
+  }
+  .btn-my-surveys::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.6s;
+    z-index: 1;
+    border-radius: 14px;
+  }
+  .btn-my-surveys:hover::before {
+    left: 100%;
+  }
+  .btn-my-surveys:hover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    color: #fff !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(230, 100, 162, 0.45);
+    text-decoration: none !important;
+  }
+  .btn-my-surveys:hover span {
+    color: #fff !important;
+  }
+  .btn-my-surveys:hover i {
+    color: #fff !important;
+    transform: scale(1.15) rotate(-5deg);
+  }
+  .btn-my-surveys:hover .survey-badge {
+    transform: scale(1.15) rotate(360deg);
+    box-shadow: 0 6px 18px rgba(255, 75, 87, 0.7);
+  }
+  .btn-my-surveys:active {
+    transform: translateY(-1px) scale(1);
+    box-shadow: 0 6px 18px rgba(230, 100, 162, 0.35);
+  }
+  .survey-badge {
+    z-index: 10 !important;
   }
   .dropdown { 
     position: relative; 
@@ -620,6 +714,23 @@
       element.innerHTML = originalText;
     }, 2000);
   }
+
+  function handleAgreementDownload(element, agreementId) {
+    // Add loading state
+    element.style.opacity = '0.7';
+    element.style.pointerEvents = 'none';
+    
+    // Add loading text
+    const originalText = element.innerHTML;
+    element.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+    
+    // Reset after a short delay
+    setTimeout(function() {
+      element.style.opacity = '1';
+      element.style.pointerEvents = 'auto';
+      element.innerHTML = originalText;
+    }, 2000);
+  }
 </script>
 {% endblock %}
 
@@ -640,7 +751,31 @@
           </div>
         </div>
         <div class="header-right">
-          <a href="{% url 'surveys' %}" class="btn-outline"><i class="fas fa-list-ul"></i> My Surveys</a>
+          {% if has_unsigned_surveys %}
+            <button onclick="showSurveyWarningModal()" class="btn-outline btn-my-surveys" style="cursor: pointer;">
+              <span style="position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-clipboard-list" style="font-size: 16px; transition: all 0.3s ease;"></i>
+                <span>My Surveys</span>
+              </span>
+              {% if pending_surveys_count > 0 %}
+                <span class="survey-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ff6b6b, #ff4757); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px rgba(255, 75, 87, 0.5); animation: bounce 2s infinite; border: 3px solid white; transition: all 0.3s ease; z-index: 10;">
+                  {{ pending_surveys_count }}
+                </span>
+              {% endif %}
+            </button>
+          {% else %}
+            <a href="{% url 'surveys' %}" class="btn-outline btn-my-surveys">
+              <span style="position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-clipboard-list" style="font-size: 16px; transition: all 0.3s ease;"></i>
+                <span>My Surveys</span>
+              </span>
+              {% if pending_surveys_count > 0 %}
+                <span class="survey-badge" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ff6b6b, #ff4757); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px rgba(255, 75, 87, 0.5); animation: bounce 2s infinite; border: 3px solid white; transition: all 0.3s ease; z-index: 10;">
+                  {{ pending_surveys_count }}
+                </span>
+              {% endif %}
+            </a>
+          {% endif %}
           <div class="dropdown">
             <button class="btn-outline dropdown-btn">
               <i class="fas fa-file-download"></i> Survey PDFs <i class="fas fa-chevron-down" style="font-size: 12px; margin-left: 4px;"></i>
@@ -649,7 +784,7 @@
               {% if completed_surveys %}
                 {% for response in completed_surveys %}
                   <a href="{% url 'download_survey_pdf' response.id %}" class="download-link" onclick="handleDownload(this)">
-                    <i class="fas fa-file-pdf"></i> {{ response.survey.title }}
+                    <i class="fas fa-file-pdf"></i> {{ response.survey.title|remove_trailing_numbers }}
                     <br><small style="color: var(--text-light); font-size: 11px; margin-left: 22px;">Completed: {{ response.completed_at|date:"d M Y" }}</small>
                   </a>
                 {% endfor %}
@@ -661,21 +796,243 @@
               {% endif %}
             </div>
           </div>
-          {% if agreement and agreement.signed_at and agreement.digital_signature %}
-          <a href="javascript:void(0);" class="btn-outline download-link" onclick="showAgreementOTPModal()"><i class="fas fa-file-pdf"></i> Agreement PDF</a>
-          {% else %}
-          <div class="tooltip-wrapper">
-            <span class="btn-outline" style="opacity: 0.6; cursor: not-allowed; pointer-events: none;">
-              <i class="fas fa-file-pdf"></i> Agreement PDF
-            </span>
-            <span class="custom-tooltip">
-              <i class="fas fa-pen-fancy"></i> Please sign the agreement first
-            </span>
-          </div>
+          {% if agreements %}
+          <button onclick="showAgreementOTPModal()" class="btn-outline btn-download-agreement" style="cursor: pointer; position: relative; overflow: hidden;">
+            <i class="fas fa-file-contract"></i> Download Agreement
+          </button>
           {% endif %}
         </div>
       </div>
     </div>
+
+    <!-- Compact Survey Stats -->
+    <div class="stats-container" style="padding: 0 20px; margin: 10px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; width: 100%;">
+      <!-- Completed Surveys -->
+      <div class="stats-card" data-color="#e664a2">
+        <div class="stats-content">
+          <div class="stats-number">{{ completed_surveys|length }}</div>
+          <div class="stats-label">
+            <i class="fas fa-check-circle"></i>Completed
+          </div>
+        </div>
+        <div class="stats-hover-bg"></div>
+      </div>
+      
+      <!-- Signed Agreements -->
+      <div class="stats-card" data-color="#28a745">
+        <div class="stats-content">
+          <div class="stats-number">{{ agreements|length }}</div>
+          <div class="stats-label">
+            <i class="fas fa-file-signature"></i>Signed
+          </div>
+        </div>
+        <div class="stats-hover-bg"></div>
+      </div>
+      
+      <!-- Pending Surveys -->
+      <div class="stats-card" data-color="#ffc107">
+        <div class="stats-content">
+          <div class="stats-number">{{ pending_surveys|length }}</div>
+          <div class="stats-label">
+            <i class="fas fa-clock"></i>Pending
+          </div>
+        </div>
+        <div class="stats-hover-bg"></div>
+      </div>
+      
+      <!-- Pending Agreements -->
+      <div class="stats-card" data-color="#ff6b6b">
+        <div class="stats-content">
+          <div class="stats-number">{{ pending_agreements|default:'0' }}</div>
+          <div class="stats-label">
+            <i class="fas fa-exclamation-triangle"></i>Pending
+          </div>
+        </div>
+        <div class="stats-hover-bg"></div>
+      </div>
+    </div>
+    
+    <style>
+      .stats-card {
+        position: relative;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        padding: 12px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        z-index: 1;
+        border-left: 3px solid;
+      }
+      
+      .stats-content {
+        position: relative;
+        z-index: 2;
+      }
+      
+      .stats-number {
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 4px;
+        line-height: 1.3;
+        transition: all 0.3s ease;
+      }
+      
+      .stats-label {
+        font-size: 14px;
+        color: #4a5258;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        margin-top: 2px;
+      }
+      
+      .stats-label i {
+        margin-right: 3px;
+        transition: all 0.3s ease;
+      }
+      
+      .stats-hover-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+      
+      .stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+      }
+      
+      .stats-card:hover .stats-number {
+        transform: scale(1.05);
+      }
+      
+      .stats-card:hover .stats-label {
+        letter-spacing: 0.5px;
+      }
+      
+      .stats-card:hover .stats-hover-bg {
+        opacity: 1;
+      }
+      
+      /* Dynamic colors based on data-color attribute */
+      .stats-card[data-color="#e664a2"] {
+        border-color: #e664a2;
+      }
+      .stats-card[data-color="#e664a2"] .stats-number,
+      .stats-card[data-color="#e664a2"] i {
+        color: #e664a2;
+      }
+      
+      .stats-card[data-color="#28a745"] {
+        border-color: #28a745;
+      }
+      .stats-card[data-color="#28a745"] .stats-number,
+      .stats-card[data-color="#28a745"] i {
+        color: #28a745;
+      }
+      
+      .stats-card[data-color="#ffc107"] {
+        border-color: #ffc107;
+      }
+      .stats-card[data-color="#ffc107"] .stats-number,
+      .stats-card[data-color="#ffc107"] i {
+        color: #ffc107;
+      }
+      
+      .stats-card[data-color="#ff6b6b"] {
+        border-color: #ff6b6b;
+      }
+      .stats-card[data-color="#ff6b6b"] .stats-number,
+      .stats-card[data-color="#ff6b6b"] i {
+        color: #ff6b6b;
+      }
+      
+      @media (max-width: 480px) {
+        .stats-card {
+          min-width: calc(50% - 6px) !important;
+          max-width: 100% !important;
+        }
+      }
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+      }
+      .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+      }
+      .stats-card:hover::before {
+        opacity: 1;
+      }
+      .stats-card:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+      }
+      
+      /* Color transitions on hover */
+      .stats-card:nth-child(1):hover { 
+        border-left-color: #e664a2;
+        background: linear-gradient(to right, rgba(230, 100, 162, 0.02), transparent);
+      }
+      .stats-card:nth-child(2):hover { 
+        border-left-color: #28a745;
+        background: linear-gradient(to right, rgba(40, 167, 69, 0.02), transparent);
+      }
+      .stats-card:nth-child(3):hover { 
+        border-left-color: #ffc107;
+        background: linear-gradient(to right, rgba(255, 193, 7, 0.02), transparent);
+      }
+      .stats-card:nth-child(4):hover { 
+        border-left-color: #ff6b6b;
+        background: linear-gradient(to right, rgba(255, 107, 107, 0.02), transparent);
+      }
+      
+      /* Ripple effect */
+      .stats-card:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%, -50%);
+        transform-origin: 50% 50%;
+      }
+      
+      @keyframes ripple {
+        0% {
+          transform: scale(0, 0);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(20, 20);
+          opacity: 0;
+        }
+      }
+      
+      .stats-card:focus:not(:active)::after {
+        animation: ripple 1s ease-out;
+      }
+    </style>
 
     <div class="card-body">
       {% if messages %}
@@ -783,12 +1140,6 @@
           <div class="value">{% if doctor.gst_certificate %}<a href="{{ doctor.gst_certificate.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
         </div>
         {% endif %}
-        {% if doctor.portal_type == 'CP' %}
-        <div>
-          <div class="label">Cancelled Cheque</div>
-          <div class="value">{% if doctor.cancelled_cheque %}<a href="{{ doctor.cancelled_cheque.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
-        </div>
-        {% endif %}
         <div>
           <div class="label">Prescription</div>
           <div class="value">{% if doctor.prescription_file %}<a href="{{ doctor.prescription_file.url }}" target="_blank"><i class="fas fa-file-alt"></i> View Document</a>{% else %}Not uploaded{% endif %}</div>
@@ -799,7 +1150,7 @@
 </div>
 
 <div id="agreementOTPModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-  <div style="background: white; padding: 35px; border-radius: 15px; max-width: 450px; width: 90%; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+  <div style="background: white; padding: 35px; border-radius: 15px; max-width: 550px; width: 90%; box-shadow: 0 8px 25px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
     <h2 style="margin: 0 0 8px 0; color: #9a547a; font-weight: 800; text-align: center; font-size: 1.6rem;">Verify OTP</h2>
     <p id="otpSentMessage" style="margin: 0 0 20px 0; color: #6c757d; text-align: center; font-size: 0.95rem;"></p>
     
@@ -828,6 +1179,33 @@
     <div id="otpLoadingSection" style="display: none; text-align: center; padding: 15px;">
       <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #e664a2; border-radius: 50%; animation: spin 1s linear infinite;"></div>
       <p style="margin-top: 12px; color: #6c757d; font-size: 0.9rem;">Please wait...</p>
+    </div>
+
+    <div id="agreementListSection" style="display: none;">
+      <h3 style="color: #9a547a; font-weight: 700; font-size: 1.2rem; margin-bottom: 15px; text-align: center;">
+        <i class="fas fa-check-circle" style="color: #28a745;"></i> Select Agreement to Download
+      </h3>
+      <div id="agreementList" style="display: flex; flex-direction: column; gap: 10px;">
+        {% if agreements %}
+          {% for agreement in agreements %}
+            <a href="{% url 'download_agreement_by_id' agreement.id %}" class="download-link" onclick="handleAgreementDownload(this, {{ agreement.id }})" style="display: block; padding: 15px; background: linear-gradient(135deg, #fdeef4 0%, #fff 100%); border: 2px solid #f7c8dc; border-radius: 12px; text-decoration: none; color: #7b3f63; transition: all 0.3s ease;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-file-contract" style="color: #e664a2; font-size: 1.5rem;"></i>
+                <div style="flex: 1;">
+                  <div style="font-weight: 700; font-size: 1rem; margin-bottom: 4px;">{{ agreement.survey.title|remove_trailing_numbers }}</div>
+                  <small style="color: #a66386; font-size: 0.85rem;">
+                    <i class="fas fa-calendar-alt"></i> Signed: {{ agreement.signed_at|date:"d M Y" }}
+                  </small>
+                </div>
+                <i class="fas fa-download" style="color: #e664a2; font-size: 1.2rem;"></i>
+              </div>
+            </a>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="closeAgreementOTPModal()" style="padding: 10px 30px; background: #6c757d; color: white; border: 2px solid #6c757d; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -951,12 +1329,11 @@ function verifyAgreementOTP() {
     .then(data => {
       loadingSection.style.display = 'none';
       if (data.success) {
-        sentMessage.textContent = 'OTP verified! Downloading agreement...';
+        sentMessage.textContent = '';
         errorMessage.style.display = 'none';
-        setTimeout(() => {
-          window.location.href = "{% url 'download_agreement' %}";
-          closeAgreementOTPModal();
-        }, 1000);
+        inputSection.style.display = 'none';
+        testingMessage.style.display = 'none';
+        document.getElementById('agreementListSection').style.display = 'block';
       } else {
         errorMessage.textContent = data.message;
         errorMessage.style.display = 'block';
@@ -980,6 +1357,64 @@ function closeAgreementOTPModal() {
   const modal = document.getElementById('agreementOTPModal');
   modal.style.display = 'none';
   document.getElementById('agreementOTPInput').value = '';
+  document.getElementById('agreementListSection').style.display = 'none';
+  document.getElementById('otpInputSection').style.display = 'none';
+  document.getElementById('otpTestingMessage').style.display = 'none';
+  document.getElementById('otpErrorMessage').style.display = 'none';
+}
+
+function showSurveyWarningModal() {
+  document.getElementById('surveyWarningModal').style.display = 'flex';
+}
+
+function closeSurveyWarningModal() {
+  document.getElementById('surveyWarningModal').style.display = 'none';
 }
 </script>
+
+<!-- Survey Warning Modal -->
+<div id="surveyWarningModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 40px; border-radius: 20px; max-width: 600px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center;">
+    <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+      <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 2.5rem;"></i>
+    </div>
+    
+    <h2 style="color: #856404; font-weight: 800; font-size: 1.8rem; margin-bottom: 15px;">Agreement Required!</h2>
+    <p style="color: #666; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px;">
+      Please sign the agreement first before accessing surveys.
+    </p>
+    
+    {% if surveys_without_agreement %}
+      <div style="background: linear-gradient(135deg, #fdeef4 0%, #fff 100%); border: 2px solid #f7c8dc; border-radius: 15px; padding: 20px; margin-bottom: 25px;">
+        <h3 style="color: #9a547a; font-weight: 700; font-size: 1.2rem; margin-bottom: 15px;">
+          <i class="fas fa-clipboard-list"></i> Surveys Requiring Agreement
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+          {% for survey in surveys_without_agreement %}
+            <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #e664a2; box-shadow: 0 2px 8px rgba(230, 100, 162, 0.1);">
+              <div style="font-weight: 700; color: #7b3f63; font-size: 1rem; margin-bottom: 5px;">
+                <i class="fas fa-file-alt" style="color: #e664a2;"></i> {{ survey.title|remove_trailing_numbers }}
+              </div>
+              {% if survey.description %}
+                <div style="color: #8b7b88; font-size: 0.9rem;">{{ survey.description|truncatechars:80 }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      {% if surveys_without_agreement %}
+        <a href="{% url 'agreement_page' surveys_without_agreement.first.id %}" style="background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); color: white; padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(230, 100, 162, 0.3); transition: all 0.3s ease;">
+          <i class="fas fa-file-signature"></i> Sign Agreement Now
+        </a>
+      {% endif %}
+      <button onclick="closeSurveyWarningModal()" style="background: #6c757d; color: white; padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3); transition: all 0.3s ease;">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

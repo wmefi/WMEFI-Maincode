@@ -9,6 +9,20 @@ from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
+class SurveyAssignmentFilter(admin.SimpleListFilter):
+    title = 'Survey'
+    parameter_name = 'survey'
+
+    def lookups(self, request, model_admin):
+        from .models import Survey
+        return [(str(s.id), s.title) for s in Survey.objects.all().order_by('title')]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(surveys__id=value).distinct()
+        return queryset
+
 @admin.register(DoctorExcelUpload)
 class DoctorExcelUploadAdmin(admin.ModelAdmin):
     list_display = ("id", "excel_file", "survey_json", "uploaded_at", "reupload_link")
@@ -126,21 +140,30 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                 
                 imported_doctors.append(doctor)
 
-                final_survey_name = survey_name if survey_name else "Auto Imported Survey"
+                # Create unique survey name with timestamp to avoid overwriting old surveys
+                from django.utils import timezone
+                import datetime
                 
-                survey, survey_created = Survey.objects.get_or_create(
+                if survey_name:
+                    # Check if survey with this name already exists
+                    existing_survey_count = Survey.objects.filter(title__startswith=survey_name).count()
+                    if existing_survey_count > 0:
+                        # Add number suffix to make it unique
+                        final_survey_name = f"{survey_name} ({existing_survey_count + 1})"
+                    else:
+                        final_survey_name = survey_name
+                else:
+                    # If no survey name in Excel, use Auto Imported with timestamp
+                    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+                    final_survey_name = f"Auto Imported Survey {timestamp}"
+                
+                # Always create NEW survey (no get_or_create to avoid updating old ones)
+                survey = Survey.objects.create(
                     title=final_survey_name,
-                    defaults={
-                        "survey_json": upload.survey_json if upload.survey_json else None,
-                        "amount": survey_amount,
-                    },
+                    survey_json=upload.survey_json if upload.survey_json else None,
+                    amount=survey_amount,
                 )
-                
-                if not survey_created:
-                    survey.amount = survey_amount
-                    if upload.survey_json:
-                        survey.survey_json = upload.survey_json
-                    survey.save()
+                survey_created = True
 
                 if survey_created and survey_json_data:
                     try:
@@ -166,14 +189,20 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                                 )
 
                                 question_type = q.get("type", "radio")
-                                options_list = q.get("options", [])
-                                options_str = json.dumps(options_list) if options_list else ""
+                                options_data = q.get("options", None)
+                                # Ensure JSONField gets proper JSON (list/dict). If a JSON string is provided, parse it.
+                                if isinstance(options_data, str):
+                                    try:
+                                        options_data = json.loads(options_data)
+                                    except Exception:
+                                        # leave as-is if parsing fails
+                                        pass
 
                                 Question.objects.create(
                                     survey=survey,
                                     question_text=question_text,
                                     question_type=question_type,
-                                    options=options_str,
+                                    options=options_data if options_data else None,
                                     order=idx,
                                 )
                     except Exception as e:
@@ -182,10 +211,11 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                 SurveyAssignment.objects.get_or_create(doctor=doctor, survey=survey)
                 survey.assigned_to.add(doctor)
 
-                Agreement.objects.update_or_create(
+                # Create agreement for this survey if not exists
+                Agreement.objects.get_or_create(
                     doctor=doctor,
+                    survey=survey,
                     defaults={
-                        "survey": survey,
                         "amount": survey_amount,
                     }
                 )
@@ -260,54 +290,93 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                     
                     logger.info(f"Processing: Name='{doctor_name}', Mobile='{doctor_mobile}', Email='{doctor_email}', Survey='{survey_name}', Amount={survey_amount}")
 
-                    doctor, created = Doctor.objects.get_or_create(
-                        mobile=doctor_mobile,
-                        defaults={
-                            "first_name": doctor_name,
-                            "email": doctor_email,
-                            "contact_info": doctor_mobile,
-                            "specialty": specialty,
-                            "territory": territory,
-                            "emp1_name": emp1_name,
-                            "emp1_mobile": emp1_mobile,
-                            "emp2_name": emp2_name,
-                            "emp2_mobile": emp2_mobile,
-                            "designation": designation,
-                        },
-                    )
+                    # Debug: Print all column names and values
+                    logger.info("\n=== Excel Column Names and Values ===")
+                    for col_name, value in row_dict.items():
+                        logger.info(f"Column: '{col_name}' = '{value}'")
                     
-                    # Update existing doctor with all fields
-                    doctor.first_name = doctor_name
-                    doctor.email = doctor_email
-                    doctor.contact_info = doctor_mobile
-                    doctor.specialty = specialty
-                    doctor.territory = territory
-                    doctor.emp1_name = emp1_name
-                    doctor.emp1_mobile = emp1_mobile
-                    doctor.emp2_name = emp2_name
-                    doctor.emp2_mobile = emp2_mobile
-                    doctor.designation = designation
-                    doctor.last_name = ""
-                    doctor.save()
+                    # Method 1: Check for common column names
+                    portal_type = None
+                    possible_columns = [
+                        'Portal Type', 'portal_type', 'Mode', 'mode', 
+                        'Type', 'type', 'Portal', 'portal'
+                    ]
+                    
+                    # Look for exact matches first
+                    for col in possible_columns:
+                        if col in row_dict:
+                            portal_type = str(row_dict[col] or '').strip().upper()
+                            if portal_type in ['GC', 'CP']:
+                                logger.info(f"Found portal type in column '{col}': {portal_type}")
+                                break
+                            portal_type = None
+                    
+                    # Method 2: Check all columns for GC/CP values
+                    if not portal_type:
+                        for col_name, value in row_dict.items():
+                            if str(value).strip().upper() in ['GC', 'CP']:
+                                portal_type = str(value).strip().upper()
+                                logger.info(f"Found portal type value '{portal_type}' in column: {col_name}")
+                                break
+                    
+                    # If still not found, use default
+                    if not portal_type or portal_type not in ['GC', 'CP']:
+                        portal_type = 'GC'
+                        logger.warning(f"Using default portal type: {portal_type}")
+                    else:
+                        logger.info(f"Using portal type: {portal_type}")
+                    
+                    # Prepare doctor data with explicit fields
+                    doctor_data = {
+                        "first_name": doctor_name or "",
+                        "email": doctor_email or "",
+                        "contact_info": doctor_mobile or "",
+                        "specialty": specialty or "",
+                        "territory": territory or "",
+                        "emp1_name": emp1_name or "",
+                        "emp1_mobile": emp1_mobile or "",
+                        "emp2_name": emp2_name or "",
+                        "emp2_mobile": emp2_mobile or "",
+                        "designation": designation or "",
+                        "portal_type": portal_type,
+                        "last_name": ""
+                    }
+                    
+                    logger.info(f"Creating/updating doctor with data: {doctor_data}")
+                    
+                    # Create or update doctor
+                    doctor, created = Doctor.objects.update_or_create(
+                        mobile=doctor_mobile,
+                        defaults=doctor_data
+                    )
                     
                     logger.info(f"Saved Doctor: ID={doctor.id}, Name='{doctor.first_name}', Mobile='{doctor.mobile}', Territory='{territory}', Manager='{emp1_name}'")
                     imported_doctors.append(doctor)
 
-                    final_survey_name = survey_name if survey_name else "Auto Imported Survey"
+                    # Create unique survey name with timestamp to avoid overwriting old surveys
+                    from django.utils import timezone
+                    import datetime
                     
-                    survey, survey_created = Survey.objects.get_or_create(
+                    if survey_name:
+                        # Check if survey with this name already exists
+                        existing_survey_count = Survey.objects.filter(title__startswith=survey_name).count()
+                        if existing_survey_count > 0:
+                            # Add number suffix to make it unique
+                            final_survey_name = f"{survey_name} ({existing_survey_count + 1})"
+                        else:
+                            final_survey_name = survey_name
+                    else:
+                        # If no survey name in Excel, use Auto Imported with timestamp
+                        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+                        final_survey_name = f"Auto Imported Survey {timestamp}"
+                    
+                    # Always create NEW survey (no get_or_create to avoid updating old ones)
+                    survey = Survey.objects.create(
                         title=final_survey_name,
-                        defaults={
-                            "survey_json": upload.survey_json if upload.survey_json else None,
-                            "amount": survey_amount,
-                        },
+                        survey_json=upload.survey_json if upload.survey_json else None,
+                        amount=survey_amount,
                     )
-                    
-                    if not survey_created:
-                        survey.amount = survey_amount
-                        if upload.survey_json:
-                            survey.survey_json = upload.survey_json
-                        survey.save()
+                    survey_created = True
                     
                     logger.info(f"Survey: ID={survey.id}, Title='{survey.title}', Amount={survey.amount}")
 
@@ -335,14 +404,20 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                                     )
 
                                     question_type = q.get("type", "radio")
-                                    options_list = q.get("options", [])
-                                    options_str = json.dumps(options_list) if options_list else ""
+                                    options_data = q.get("options", None)
+                                    # Ensure JSONField gets proper JSON (list/dict). If a JSON string is provided, parse it.
+                                    if isinstance(options_data, str):
+                                        try:
+                                            options_data = json.loads(options_data)
+                                        except Exception:
+                                            # leave as-is if parsing fails
+                                            pass
 
                                     Question.objects.create(
                                         survey=survey,
                                         question_text=question_text,
                                         question_type=question_type,
-                                        options=options_str,
+                                        options=options_data if options_data else None,
                                         order=idx,
                                     )
                         except Exception as e:
@@ -352,10 +427,11 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
                     survey.assigned_to.add(doctor)
                     logger.info(f"Assignment: Doctor {doctor.mobile} -> Survey '{survey.title}' (Created: {assign_created})")
 
-                    agreement, agr_created = Agreement.objects.update_or_create(
+                    # Create agreement for this survey if not exists
+                    agreement, agr_created = Agreement.objects.get_or_create(
                         doctor=doctor,
+                        survey=survey,
                         defaults={
-                            "survey": survey,
                             "amount": survey_amount,
                         }
                     )
@@ -375,20 +451,138 @@ class DoctorExcelUploadAdmin(admin.ModelAdmin):
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ("id", "get_doctor_name", "mobile", "email", "get_assigned_surveys", "created_at")
-    search_fields = ("first_name", "last_name", "mobile", "email")
-    list_filter = ("portal_type", "created_at")
+    list_display = ("id", "get_doctor_name", "mobile", "email", "specialty", "territory", 
+                   "emp1_name", "emp1_mobile", "created_at")
+    search_fields = ("first_name", "last_name", "mobile", "email", "specialty", "territory",
+                    "emp1_name", "emp1_mobile", "emp2_name", "emp2_mobile")
+    list_filter = ("portal_type", "specialty", "territory", "created_at")
     readonly_fields = ("created_at", "updated_at")
+    list_select_related = True
+    actions = ['export_doctors_with_answers_excel']
 
     def get_doctor_name(self, obj):
-        name = f"{obj.first_name} {obj.last_name}".strip()
-        return name if name else obj.mobile
+        return f"{obj.first_name} {obj.last_name}" if obj.last_name else obj.first_name
     get_doctor_name.short_description = "Doctor Name"
+    get_doctor_name.admin_order_field = 'first_name'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('surveys')
 
     def get_assigned_surveys(self, obj):
-        surveys = obj.surveys.all()[:3]
-        return ", ".join([s.title for s in surveys]) if surveys else "No surveys"
+        return ", ".join([s.title for s in obj.surveys.all()])
     get_assigned_surveys.short_description = "Assigned Surveys"
+
+    def export_doctors_with_answers_excel(self, request, queryset):
+        try:
+            output = BytesIO()
+            writer = pd.ExcelWriter(output, engine='openpyxl')
+
+            # Selected survey from sidebar filter (if any)
+            selected_survey_id = request.GET.get('survey')
+            from .models import Survey, SurveyResponse, Agreement, Question
+
+            if selected_survey_id:
+                surveys = list(Survey.objects.filter(id=selected_survey_id))
+            else:
+                surveys = list(Survey.objects.filter(assigned_to__in=queryset).distinct().order_by('title'))
+
+            if not surveys:
+                self.message_user(request, 'No surveys found for the selected doctors.', messages.WARNING)
+                return
+
+            doctors = queryset.select_related('custom_user').prefetch_related('surveys')
+
+            for survey in surveys:
+                rows = []
+                questions = list(Question.objects.filter(survey=survey).order_by('order', 'id'))
+                question_headers = []
+                for q in questions:
+                    header = q.question_text
+                    if len(header) > 70:
+                        header = header[:67] + '...'
+                    question_headers.append((q.id, header))
+
+                # Only doctors assigned to this survey
+                for doctor in doctors.filter(surveys=survey):
+                    full_name = f"{doctor.first_name} {doctor.last_name}".strip()
+                    name = full_name if full_name else (doctor.custom_user.name if doctor.custom_user else doctor.mobile or '')
+
+                    row = {
+                        'Doctor ID': doctor.id,
+                        'Doctor Name': name,
+                        'Mobile': doctor.mobile or (doctor.custom_user.mobile if doctor.custom_user else ''),
+                        'Email': doctor.email or '',
+                        'Portal': doctor.portal_type or '',
+                        'Territory': doctor.territory or '',
+                        'Designation': doctor.designation or '',
+                        'Manager 1 Name': doctor.emp1_name or '',
+                        'Manager 1 Mobile': doctor.emp1_mobile or '',
+                        'Manager 2 Name': doctor.emp2_name or '',
+                        'Manager 2 Mobile': doctor.emp2_mobile or '',
+                        'State': doctor.state or '',
+                        'City': doctor.city or '',
+                        'Specialty': doctor.specialty or '',
+                        'Created At': doctor.created_at.strftime('%Y-%m-%d %H:%M:%S') if doctor.created_at else '',
+                        'Survey Title': survey.title,
+                        'Survey Amount': float(survey.amount or 0),
+                    }
+
+                    agreement = Agreement.objects.filter(doctor=doctor).first()
+                    row.update({
+                        'Agreement Signed': 'Yes' if (agreement and agreement.digital_signature and agreement.signed_at) else 'No',
+                        'Agreement Signed At': agreement.signed_at.strftime('%Y-%m-%d %H:%M:%S') if (agreement and agreement.signed_at) else '',
+                        'Agreement IP': agreement.ip_address if agreement else '',
+                    })
+
+                    response = SurveyResponse.objects.filter(doctor=doctor, survey=survey).first()
+                    row.update({
+                        'Survey Completed': 'Yes' if (response and response.is_completed) else 'No',
+                        'Survey Completed At': response.completed_at.strftime('%Y-%m-%d %H:%M:%S') if (response and response.completed_at) else '',
+                    })
+
+                    answers_by_qid = {}
+                    if response:
+                        for ans in response.answers.all().select_related('question'):
+                            answers_by_qid[ans.question_id] = ans.answer_text or ''
+
+                    for qid, header in question_headers:
+                        row[header] = answers_by_qid.get(qid, '')
+
+                    rows.append(row)
+
+                # Create DataFrame for this survey sheet
+                if rows:
+                    df = pd.DataFrame(rows)
+                else:
+                    df = pd.DataFrame(columns=['Doctor ID', 'Doctor Name'])
+
+                sheet_name = survey.title[:31] if survey.title else f"Survey_{survey.id}"
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+                ws = writer.sheets[sheet_name]
+                for idx, col in enumerate(df.columns):
+                    try:
+                        max_len = max((df[col].astype(str).map(len).max() if not df.empty else 10), len(str(col)))
+                    except Exception:
+                        max_len = len(str(col))
+                    col_letter = chr(65 + idx) if idx < 26 else chr(65 + (idx // 26) - 1) + chr(65 + (idx % 26))
+                    ws.column_dimensions[col_letter].width = min(max_len + 2, 50)
+
+            writer.close()
+            output.seek(0)
+            response = HttpResponse(
+                output.read(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            filename = 'doctors_survey_export.xlsx' if len(surveys) != 1 else f"doctors_{surveys[0].title[:20]}_export.xlsx"
+            response['Content-Disposition'] = f'attachment; filename={filename}'
+            self.message_user(request, f'✅ Exported {queryset.count()} doctors across {len(surveys)} survey sheet(s).', messages.SUCCESS)
+            return response
+        except Exception as e:
+            self.message_user(request, f'❌ Error exporting: {str(e)}', messages.ERROR)
+            return
+
+    export_doctors_with_answers_excel.short_description = '📥 Export filtered doctors + answers to Excel'
 
 
 @admin.register(Survey)

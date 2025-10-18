@@ -1,0 +1,173 @@
+{
+    "title": "Understanding Clinicians’ Perceptions – Assessing Physicians’ Awareness and Perception of S-Amlodipine",
+    "sections": [
+        {
+            "section": "Awareness & Understanding",
+            "questions": [
+                {
+                    "id": 1,
+                    "question": "How familiar are you with the concept of chirality in drug molecules?",
+                    "options": [
+                        "Very familiar",
+                        "Somewhat familiar",
+                        "Heard of it, but not in detail",
+                        "Not familiar at all"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "question": "How well do you understand the difference between S-Amlodipine and racemic Amlodipine?",
+                    "options": [
+                        "Clearly understand both clinical and pharmacological differences",
+                        "Aware of the difference, but unsure of clinical significance",
+                        "Not well aware",
+                        "Never considered the difference"
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Clinical Beliefs & Perceptions",
+            "questions": [
+                {
+                    "id": 3,
+                    "question": "Please rate your agreement with the following statements regarding S-Amlodipine on a 1 to 5 scale (1 = Strongly Disagree, 5 = Strongly Agree).",
+                    "scale": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "statements": [
+                        "S-Amlodipine offers better tolerability than racemic Amlodipine",
+                        "S-Amlodipine reduces the risk/incidence of pedal edema",
+                        "S-Amlodipine provides comparable or better BP control than the racemic version",
+                        "I feel more confident prescribing S-Amlodipine to elderly patients",
+                        "S-Amlodipine enhances patient compliance due to a better safety profile"
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Prescribing Behaviour",
+            "questions": [
+                {
+                    "id": 4,
+                    "question": "Do you currently prescribe S-Amlodipine in your clinical practice?",
+                    "options": [
+                        "Yes, regularly",
+                        "Occasionally",
+                        "Rarely",
+                        "Never"
+                    ]
+                },
+                {
+                    "id": 5,
+                    "question": "In which patient groups do you consider S-Amlodipine over racemic Amlodipine?",
+                    "options": [
+                        "Patients prone to pedal edema",
+                        "Elderly patients",
+                        "Patients with poor tolerance to racemic Amlodipine",
+                        "Long-term therapy cases",
+                        "Newly diagnosed hypertensives",
+                        "I do not differentiate currently"
+                    ]
+                },
+                {
+                    "id": 6,
+                    "question": "Have you ever switched a patient from racemic Amlodipine to S-Amlodipine due to tolerability issues (e.g., pedal edema)?",
+                    "options": [
+                        "Yes, frequently",
+                        "Occasionally",
+                        "Rarely",
+                        "Never"
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Barriers & Drivers",
+            "questions": [
+                {
+                    "id": 7,
+                    "question": "What do you consider the main barriers to wider adoption of S-Amlodipine?",
+                    "options": [
+                        "Higher cost",
+                        "Lack of awareness about chirality benefits",
+                        "Limited clinical evidence",
+                        "Familiarity/comfort with racemic brands",
+                        "Lack of availability"
+                    ]
+                },
+                {
+                    "id": 8,
+                    "question": "What would make you more likely to prescribe S-Amlodipine in your routine practice?",
+                    "options": [
+                        "Stronger comparative clinical evidence",
+                        "Patient demand or feedback",
+                        "Better affordability",
+                        "More peer recommendations",
+                        "More CME/scientific content"
+                    ]
+                }
+            ]
+        },
+        {
+            "section": "Fixed-Dose Combination: Telmisartan + S-Amlodipine",
+            "questions": [
+                {
+                    "id": 9,
+                    "question": "How effective is Telmisartan + S-Amlodipine combination in achieving BP control within 4 weeks?",
+                    "options": [
+                        "Very effective",
+                        "Moderately effective",
+                        "Slightly effective",
+                        "Not effective"
+                    ]
+                },
+                {
+                    "id": 10,
+                    "question": "For which patient profiles would you specifically consider Telmisartan + S-Amlodipine?",
+                    "options": [
+                        "Patients prone to pedal edema",
+                        "Patients requiring long-term therapy",
+                        "Elderly patients"
+                    ]
+                },
+                {
+                    "id": 11,
+                    "question": "Do you switch patients from Telmisartan + racemic Amlodipine to Telmisartan + S-Amlodipine due to side effects (e.g., pedal edema)?",
+                    "options": [
+                        "Yes, frequently",
+                        "Occasionally",
+                        "Rarely",
+                        "Never"
+                    ]
+                },
+                {
+                    "id": 12,
+                    "question": "What would be the biggest driver for you to shift from Telmisartan + racemic Amlodipine to Telmisartan + S-Amlodipine?",
+                    "options": [
+                        "Better tolerability (e.g., less edema)",
+                        "Stronger clinical evidence",
+                        "Better efficacy data",
+                        "Improved patient compliance",
+                        "Greater affordability for patients"
+                    ]
+                },
+                {
+                    "id": 13,
+                    "question": "What barriers do you see in prescribing Telmisartan + S-Amlodipine more widely?",
+                    "options": [
+                        "Cost compared to racemic combinations",
+                        "Limited awareness of chirality advantage",
+                        "Lack of strong comparative evidence",
+                        "Comfort with existing racemic brands",
+                        "No significant barriers"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -266,7 +266,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="last_name">Last Name *</label>
+                        <label for="last_name">Last Name</label>
                         <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" value="{{ doctor.last_name|default_if_none:'' }}" required>
                     </div>
                 </div>
@@ -728,45 +728,52 @@
             </script>
             
             <div class="divider"></div>
-            <div class="mb-2">
-                <span class="section-tag">Document Uploads {% if doctor.portal_type %}({{ doctor.portal_type }}){% endif %}</span>
+            <div class="mb-4">
+                <span class="section-tag" style="background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); color: white; padding: 10px 25px; border-radius: 25px; font-size: 1.1rem; font-weight: 700; display: inline-block; box-shadow: 0 4px 15px rgba(230, 100, 162, 0.3);">
+                    <i class="fas fa-file-upload mr-2"></i> Document Uploads
+                </span>
             </div>
-            <hr>
             
-            <!-- PAN Card - Common for both GC and CP -->
-            <div class="form-group">
-                <label for="panCopy">Upload PAN Card <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="panCopy" name="pan_copy" accept=".jpg,.jpeg,.png,.pdf">
+            <div class="form-group" style="background: linear-gradient(135deg, #fdeef4 0%, #fff 100%); padding: 25px; border-radius: 20px; border: 2px solid #f7c8dc; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(230, 100, 162, 0.1);">
+                <label for="panCopy" style="color: #9a547a; font-weight: 700; font-size: 1rem; margin-bottom: 12px; display: block;">
+                    <i class="fas fa-id-card mr-2" style="color: #e664a2;"></i>Upload PAN Card <span class="text-danger" style="font-size: 1.1rem;">*</span>
+                </label>
+                <div style="position: relative;">
+                    <input type="file" class="form-control-file" id="panCopy" name="pan_copy" accept=".jpg,.jpeg,.png,.pdf" style="padding: 12px; border: 2px dashed #e664a2; border-radius: 12px; background: white; cursor: pointer; width: 100%;">
+                </div>
                 {% if doctor.pan_copy %}
-                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.pan_copy.url }}" target="_blank">{{ doctor.pan_copy.name }}</a></p>
+                    <div style="margin-top: 15px; padding: 12px; background: #d4edda; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i> 
+                        <strong>Current file:</strong> 
+                        <a href="{{ doctor.pan_copy.url }}" target="_blank" style="color: #28a745; text-decoration: underline; font-weight: 600;">{{ doctor.pan_copy.name }}</a>
+                    </div>
                 {% endif %}
-                <small class="form-text text-muted">Allowed file types: jpeg, png, jpg, pdf. Max File size: 5 MB</small>
+                <small class="form-text" style="color: #a66386; margin-top: 10px; display: block; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle mr-1"></i>Allowed: jpeg, png, jpg, pdf | Max size: 5 MB
+                </small>
             </div>
-            
-            <!-- Cancelled Cheque - Only for CP (Critical Patient) -->
-            {% if doctor.portal_type == 'CP' %}
-            <div class="form-group">
-                <label for="cancelledCheque">Upload Cancelled Cheque <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="cancelledCheque" name="cancelled_cheque" accept=".jpg,.jpeg,.png,.pdf">
-                {% if doctor.cancelled_cheque %}
-                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.cancelled_cheque.url }}" target="_blank">{{ doctor.cancelled_cheque.name }}</a></p>
-                {% endif %}
-                <small class="form-text text-muted">Allowed file types: jpeg, png, jpg, pdf. Max File size: 5 MB</small>
-            </div>
-            {% endif %}
 
-            <!-- Prescription - Common for both GC and CP -->
-            <div class="form-group">
-                <label for="prescriptionFile">Upload Prescription <span class="text-danger">*</span></label>
-                <input type="file" class="form-control-file" id="prescriptionFile" name="prescription_file" accept=".jpg,.jpeg,.png,.pdf">
+            <div class="form-group" style="background: linear-gradient(135deg, #fdeef4 0%, #fff 100%); padding: 25px; border-radius: 20px; border: 2px solid #f7c8dc; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(230, 100, 162, 0.1);">
+                <label for="prescriptionFile" style="color: #9a547a; font-weight: 700; font-size: 1rem; margin-bottom: 12px; display: block;">
+                    <i class="fas fa-file-medical mr-2" style="color: #e664a2;"></i>Upload Prescription <span class="text-danger" style="font-size: 1.1rem;">*</span>
+                </label>
+                <div style="position: relative;">
+                    <input type="file" class="form-control-file" id="prescriptionFile" name="prescription_file" accept=".jpg,.jpeg,.png,.pdf" style="padding: 12px; border: 2px dashed #e664a2; border-radius: 12px; background: white; cursor: pointer; width: 100%;">
+                </div>
                 {% if doctor.prescription_file %}
-                    <p class="text-success"><i class="fas fa-check-circle"></i> Current file: <a href="{{ doctor.prescription_file.url }}" target="_blank">{{ doctor.prescription_file.name }}</a></p>
+                    <div style="margin-top: 15px; padding: 12px; background: #d4edda; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i> 
+                        <strong>Current file:</strong> 
+                        <a href="{{ doctor.prescription_file.url }}" target="_blank" style="color: #28a745; text-decoration: underline; font-weight: 600;">{{ doctor.prescription_file.name }}</a>
+                    </div>
                 {% endif %}
-                <small class="form-text text-muted">Allowed: jpeg, png, jpg, pdf. Max size: 5 MB</small>
+                <small class="form-text" style="color: #a66386; margin-top: 10px; display: block; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle mr-1"></i>Allowed: jpeg, png, jpg, pdf | Max size: 5 MB
+                </small>
             </div>
 
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary px-4" style="font-size: 0.95rem; padding: 8px 25px; border-radius: 30px; box-shadow: 0 3px 10px rgba(230, 100, 162, 0.3);">
+            <div class="text-center mt-5">
+                <button type="submit" class="btn px-5 py-3" style="background: linear-gradient(135deg, #e664a2 0%, #c0769e 100%); color: white; font-size: 1.1rem; font-weight: 700; padding: 14px 40px; border-radius: 30px; box-shadow: 0 6px 20px rgba(230, 100, 162, 0.4); border: none; transition: all 0.3s ease; transform: translateY(0);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(230, 100, 162, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(230, 100, 162, 0.4)'">
                     <i class="fas fa-save mr-2"></i> Save and Next
                     <i class="fas fa-arrow-right ml-2"></i>
                 </button>

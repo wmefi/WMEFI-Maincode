@@ -1,4 +1,5 @@
 from django import template
+import re
 
 register = template.Library()
 
@@ -24,3 +25,11 @@ def starts_with_yes(answer_text):
     if answer_text:
         return str(answer_text).strip().startswith('Yes')
     return False
+
+@register.filter
+def remove_trailing_numbers(title):
+    """Remove trailing numbers in parentheses from survey title like (13), (4), etc."""
+    if title:
+        # Remove pattern like " (13)" or " (4)" from the end
+        return re.sub(r'\s*\(\d+\)\s*$', '', str(title)).strip()
+    return title

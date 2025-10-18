@@ -2,7 +2,7 @@
 {% load static %}
 {% load survey_extras %}
 
-{% block title %}{{ survey.title }}{% endblock %}
+{% block title %}{{ survey.title|remove_trailing_numbers }}{% endblock %}
 
 {% block style %}
 <style>
@@ -78,7 +78,7 @@
 {% block content %}
 <div class="container my-4">
     <div class="survey-card">
-        {% with page_title=survey_json_data.title|default:survey.title %}
+        {% with page_title=survey_json_data.title|default:survey.title|remove_trailing_numbers %}
         <h3 class="mb-2" style="font-size: 1.75rem; font-weight: 700;">{{ page_title }}</h3>
         {% endwith %}
         {% with page_desc=survey_json_data.description|default:survey.description %}

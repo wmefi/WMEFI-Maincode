@@ -1,0 +1,176 @@
+{
+    "title": "Perceptions of Physicians on the Combination of Pantoprazole + Domperidone vs Pantoprazole Monotherapy in GERD Management",
+    "questions": [
+        {
+            "id": 1,
+            "question": "Approximately, what percentage of patients with symptoms of GERD do you encounter and manage every month?",
+            "options": [
+                "Less than 10% GERD patients/month",
+                "10 – 30% GERD patients/month",
+                "30 – 50% GERD patients/month",
+                "More than 50% GERD patients/month"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "Which of the following clinical criteria do you most commonly prefer to diagnose GERD?",
+            "options": [
+                "Patient-reported symptoms (e.g., heartburn, regurgitation)",
+                "Endoscopy findings",
+                "Empirical trial of PPI therapy",
+                "I use all of the above, depending on the case"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "Which class of medication do you most frequently initiate as first-line therapy for GERD?",
+            "options": [
+                "PPI",
+                "PPI + Prokinetic",
+                "H2 Receptor Antagonists",
+                "Antacids/Alginates"
+            ]
+        },
+        {
+            "id": 4,
+            "question": "Kindly rate the frequency of the following symptoms you encounter in your patients with GERD.",
+            "symptoms": [
+                "Heartburn",
+                "LPR (Laryngopharyngeal Reflux)",
+                "Chronic cough",
+                "Dental erosion/damage",
+                "Halitosis (bad breath)"
+            ],
+            "options": [
+                "Frequently",
+                "Occasionally",
+                "Rarely"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "In your clinical practice, which drug class do you find most likely to cause GERD symptoms in patients?",
+            "options": [
+                "NSAIDs",
+                "Heart medication",
+                "Diabetes medication",
+                "Corticosteroids",
+                "Antibiotics"
+            ]
+        },
+        {
+            "id": 6,
+            "question": "What percentage of your GERD patients, in your clinical experience, achieve adequate symptom resolution with PPI monotherapy?",
+            "options": [
+                "Less than 25% (PPI monotherapy is not sufficient)",
+                "25% to 50%",
+                "50% to 75%",
+                "More than 75% (PPI monotherapy is sufficient)"
+            ]
+        },
+        {
+            "id": 7,
+            "question": "What is the primary reason you prefer to add a prokinetic such as domperidone to a PPI-based GERD therapy?",
+            "options": [
+                "To address dyspeptic symptoms like bloating and early satiety",
+                "To enhance the efficacy of the PPI by improving gastric emptying",
+                "To manage nocturnal GERD symptoms or improve LES functioning",
+                "To reduce the need for higher PPI doses",
+                "All of the above"
+            ]
+        },
+        {
+            "id": 8,
+            "question": "How frequently do you prefer to prescribe a combination of pantoprazole + domperidone for GERD patients in your clinical practice?",
+            "options": [
+                "Very Frequently (in more than 75% of GERD cases)",
+                "Frequently (in 50-75% of GERD cases)",
+                "Occasionally (in 25-50% of GERD cases)",
+                "Not often (in less than 25% cases)"
+            ]
+        },
+        {
+            "id": 9,
+            "question": "In which patient profile do you consider the pantoprazole + domperidone combination to be most clinically beneficial?",
+            "options": [
+                "Patients with classic GERD symptoms (heartburn, regurgitation)",
+                "GERD patients who specifically have LES dysfunction or gastroparesis",
+                "Patients who did not respond adequately to PPI monotherapy",
+                "Patients requiring sustained, long-term control of GERD symptoms",
+                "All of the above"
+            ]
+        },
+        {
+            "id": 10,
+            "question": "What is your usual duration for prescribing Pantoprazole + Domperidone in GERD patients?",
+            "options": [
+                "Less than 4 weeks",
+                "4–8 weeks",
+                "8–12 weeks",
+                "More than 6 months (long-term therapy)",
+                "Tailored duration based on individual patient needs"
+            ]
+        },
+        {
+            "id": 11,
+            "question": "Relative to PPI monotherapy, how would you rate the efficacy of the pantoprazole + domperidone combination in achieving symptom relief for GERD?",
+            "options": [
+                "Less effective than monotherapy",
+                "Equally effective as monotherapy",
+                "More effective than monotherapy",
+                "Unsure/Can’t say"
+            ]
+        },
+        {
+            "id": 12,
+            "question": "In your view, to what extent does the pantoprazole + domperidone combination improve patient quality of life compared to PPI monotherapy?",
+            "options": [
+                "Significantly improves quality of life compared with monotherapy",
+                "Moderately improves quality of life compared with monotherapy",
+                "Offers no significant improvement in quality of life compared with monotherapy"
+            ]
+        },
+        {
+            "id": 13,
+            "question": "How does patient adherence to the pantoprazole + domperidone combination compare with a PPI monotherapy regimen?",
+            "options": [
+                "Adherence is lower with the combination",
+                "Adherence is comparable between the combination and monotherapy",
+                "Adherence is higher with the combination",
+                "No significant difference in adherence between the two"
+            ]
+        },
+        {
+            "id": 14,
+            "question": "Do you prefer a step-down therapy after discontinuing/withdrawing the current GERD treatment?",
+            "options": [
+                "Yes",
+                "No"
+            ],
+            "follow_up": {
+                "question": "If yes, which of the following do you usually prefer?",
+                "options": [
+                    "Pantoprazole 20 mg + Domperidone 10 mg",
+                    "Pantoprazole 40 mg",
+                    "Pantoprazole 20 mg",
+                    "H2RA / Antacids"
+                ]
+            }
+        },
+        {
+            "id": 15,
+            "question": "In your clinical practice, what do you consider to be the most common causes of inadequate outcomes with PPI + prokinetic therapy in GERD patients?",
+            "causes": [
+                "Inappropriate adherence to prescribed dosage",
+                "Incorrect timing of medication intake",
+                "Premature discontinuation of therapy",
+                "Need for escalation of therapy"
+            ],
+            "options": [
+                "Highly Likely",
+                "Likely",
+                "Less Likely"
+            ]
+        }
+    ]
+}
